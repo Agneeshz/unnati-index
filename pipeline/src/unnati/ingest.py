@@ -47,8 +47,28 @@ def _mospi_nas_state(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/nas/getNASData")
 
 
+def _mospi_plfs_state(today: date) -> Fetched:
+    from unnati.connectors import mospi
+
+    with mospi.client() as http:
+        rows = mospi.fetch_plfs_state(http)
+    observations, problems = mospi.plfs_observations(rows, load_reference().resolver())
+    return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/plfs/getData")
+
+
+def _mospi_cpi_state(today: date) -> Fetched:
+    from unnati.connectors import mospi
+
+    with mospi.client() as http:
+        rows = mospi.fetch_cpi_state(http)
+    observations, problems = mospi.cpi_observations(rows, load_reference().resolver())
+    return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/cpi/getCPIIndex")
+
+
 INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "mospi_nas_state": _mospi_nas_state,
+    "mospi_plfs_state": _mospi_plfs_state,
+    "mospi_cpi_state": _mospi_cpi_state,
 }
 
 

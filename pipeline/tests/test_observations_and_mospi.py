@@ -128,3 +128,73 @@ def test_nas_uses_current_boundaries_and_marks_recent_years_provisional():
     assert not per_capita[("andhra-pradesh", "2012-13")].is_provisional
     assert "likely include Ladakh" in per_capita[("jammu-and-kashmir", "2017-18")].note
     assert not [x for x in found if x.entity_slug == "goa"]  # missing values are skipped
+
+
+def plfs_row(state, year, value, **overrides):
+    row = {
+        "state": state,
+        "year": year,
+        "value": value,
+        "year_type": "Calendar Year",
+        "sector": "rural + urban",
+        "weekly_status": "PS+SS",
+        "religion": "all",
+        "socialGroup": "all",
+        "General_Education": "all",
+        "AgeGroup": "15 years and above",
+        "gender": "person",
+    }
+    return {**row, **overrides}
+
+
+def test_plfs_keeps_only_the_headline_cut_on_calendar_years():
+    rows = {
+        "unemployment-rate": [
+            plfs_row("Kerala", "2025", "7.1"),
+            plfs_row("All India", "2025", "3.1"),
+            plfs_row("Goa", "2025", "8.3", General_Education="7.graduate"),  # a sub-group: dropped
+            plfs_row("Goa", "2023-24", "6.0", year_type="Agriculture Year"),  # other year type: dropped
+        ],
+        "female-lfpr": [
+            plfs_row("Delhi", "2025", "13.1", gender="female"),
+            plfs_row("Delhi", "2025", "50", gender="male"),
+        ],
+    }
+    found, problems = mospi.plfs_observations(rows, REF.resolver())
+    got = sorted((x.indicator_id, x.entity_slug, x.period.label, x.value) for x in found)
+    assert not problems
+    assert got == [
+        ("female-lfpr", "delhi", "2025", 13.1),
+        ("unemployment-rate", "india", "2025", 3.1),
+        ("unemployment-rate", "keralam", "2025", 7.1),
+    ]
+    assert found[0].period.start == date(2025, 1, 1)
+
+
+def cpi_row(state, year, month_name, inflation, status="F"):
+    return {
+        "state": state,
+        "year": year,
+        "month": month_name,
+        "subgroup": "General-Overall",
+        "inflation": inflation,
+        "status": status,
+    }
+
+
+def test_cpi_skips_partial_areas_after_the_merger_and_keeps_status():
+    rows = [
+        cpi_row("Kerala", 2025, "December", "9.49", status="P"),
+        cpi_row("Dadra & Nagar Haveli", 2019, "June", "3.0"),
+        cpi_row("Dadra & Nagar Haveli", 2021, "June", "4.0"),
+        {**cpi_row("Goa", 2025, "December", "2.0"), "subgroup": "Housing-Overall"},
+    ]
+    found, problems = mospi.cpi_observations(rows, REF.resolver())
+    assert sorted((x.entity_slug, x.period.label) for x in found) == [
+        ("dadra-and-nagar-haveli", "Jun 2019"),
+        ("keralam", "Dec 2025"),
+    ]
+    assert [x.is_provisional for x in found if x.entity_slug == "keralam"] == [True]
+    assert problems == [
+        "Dadra & Nagar Haveli: published after the 2020 merger for part of the UT only; skipped"
+    ]

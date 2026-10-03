@@ -125,13 +125,35 @@
   valid_max: 50
 - id: unemployment-rate
   name: Unemployment rate
-  description: Share of the labour force (age 15+) without work, current weekly status (PLFS).
+  description: Share of the labour force (age 15+) without work, usual status (PS+SS), calendar year (PLFS).
   unit: "%"
   direction: lower_better
   category: jobs
   pillar: economy-jobs
   dataset: mospi_plfs_state
-  frequency: quarterly
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: youth-unemployment-rate
+  name: Youth unemployment rate
+  description: Share of the labour force aged 15-29 without work, usual status (PS+SS), calendar year (PLFS).
+  unit: "%"
+  direction: lower_better
+  category: jobs
+  dataset: mospi_plfs_state
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: lfpr
+  name: Labour force participation rate
+  description: Share of people aged 15+ who are working or looking for work, usual status (PS+SS), calendar year (PLFS).
+  unit: "%"
+  direction: higher_better
+  category: jobs
+  dataset: mospi_plfs_state
+  frequency: annual
   decimals: 1
   valid_min: 0
   valid_max: 100
@@ -795,13 +817,13 @@
   valid_max: 1100
 - id: female-lfpr
   name: Female labour force participation
-  description: Share of women aged 15+ who are working or looking for work, current weekly status (PLFS).
+  description: Share of women aged 15+ who are working or looking for work, usual status (PS+SS), calendar year (PLFS).
   unit: "%"
   direction: higher_better
   category: inclusion
   pillar: inclusion
   dataset: mospi_plfs_state
-  frequency: quarterly
+  frequency: annual
   decimals: 1
   valid_min: 0
   valid_max: 100

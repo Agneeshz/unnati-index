@@ -189,15 +189,15 @@ datasets:
     title: Consumer Price Index by state (eSankhyiki)
     connector: mospi
     cadence: monthly
-    landing_url: https://esankhyiki.mospi.gov.in
-    enabled: false
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: mospi_plfs_state
     source: mospi
     title: Periodic Labour Force Survey, state estimates (eSankhyiki)
     connector: mospi
-    cadence: quarterly
-    landing_url: https://esankhyiki.mospi.gov.in
-    enabled: false
+    cadence: annual
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: mospi_hces
     source: mospi
     title: Household Consumption Expenditure Survey
