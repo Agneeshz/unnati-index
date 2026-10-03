@@ -1,0 +1,72 @@
+position_qid,entity_slug,office_type,title
+Q1813083,andhra-pradesh-undivided,chief_minister,Chief Minister of Andhra Pradesh
+Q1813083,andhra-pradesh,chief_minister,Chief Minister of Andhra Pradesh
+Q55018630,arunachal-pradesh,chief_minister,Chief Minister of Arunachal Pradesh
+Q55018631,assam,chief_minister,Chief Minister of Assam
+Q55020138,bihar,chief_minister,Chief Minister of Bihar
+Q38772867,chhattisgarh,chief_minister,Chief Minister of Chhattisgarh
+Q55018632,goa,chief_minister,Chief Minister of Goa
+Q22337580,gujarat,chief_minister,Chief Minister of Gujarat
+Q55018634,haryana,chief_minister,Chief Minister of Haryana
+Q55018635,himachal-pradesh,chief_minister,Chief Minister of Himachal Pradesh
+Q55018637,jharkhand,chief_minister,Chief Minister of Jharkhand
+Q53761260,karnataka,chief_minister,Chief Minister of Karnataka
+Q26218416,kerala,chief_minister,Chief Minister of Kerala
+Q55018639,madhya-pradesh,chief_minister,Chief Minister of Madhya Pradesh
+Q221922,maharashtra,chief_minister,Chief Minister of Maharashtra
+Q55018640,manipur,chief_minister,Chief Minister of Manipur
+Q55018641,meghalaya,chief_minister,Chief Minister of Meghalaya
+Q55018647,mizoram,chief_minister,Chief Minister of Mizoram
+Q55018648,nagaland,chief_minister,Chief Minister of Nagaland
+Q39271481,odisha,chief_minister,Chief Minister of Odisha
+Q1516776,punjab,chief_minister,Chief Minister of Punjab
+Q55018649,rajasthan,chief_minister,Chief Minister of Rajasthan
+Q55018650,sikkim,chief_minister,Chief Minister of Sikkim
+Q24040821,tamil-nadu,chief_minister,Chief Minister of Tamil Nadu
+Q55018651,telangana,chief_minister,Chief Minister of Telangana
+Q55018652,tripura,chief_minister,Chief Minister of Tripura
+Q28966983,uttar-pradesh,chief_minister,Chief Minister of Uttar Pradesh
+Q55018653,uttarakhand,chief_minister,Chief Minister of Uttarakhand
+Q55018654,west-bengal,chief_minister,Chief Minister of West Bengal
+Q1790154,delhi,chief_minister,Chief Minister of Delhi
+Q55139200,puducherry,chief_minister,Chief Minister of Puducherry
+Q38882023,jammu-and-kashmir-state,chief_minister,Chief Minister of Jammu and Kashmir
+Q38882023,jammu-and-kashmir,chief_minister,Chief Minister of Jammu and Kashmir
+Q70951203,andhra-pradesh-undivided,governor,Governor of Andhra Pradesh
+Q70951203,andhra-pradesh,governor,Governor of Andhra Pradesh
+Q15689085,arunachal-pradesh,governor,Governor of Arunachal Pradesh
+Q70954187,assam,governor,Governor of Assam
+Q70954643,bihar,governor,Governor of Bihar
+Q70954789,chhattisgarh,governor,Governor of Chhattisgarh
+Q18727717,goa,governor,Governor of Goa
+Q63438501,gujarat,governor,Governor of Gujarat
+Q70955111,haryana,governor,Governor of Haryana
+Q71223715,himachal-pradesh,governor,Governor of Himachal Pradesh
+Q71224017,jammu-and-kashmir-state,governor,Governor of Jammu and Kashmir
+Q71224243,jharkhand,governor,Governor of Jharkhand
+Q13160767,karnataka,governor,Governor of Karnataka
+Q1748927,kerala,governor,Governor of Kerala
+Q71308756,madhya-pradesh,governor,Governor of Madhya Pradesh
+Q18727576,maharashtra,governor,Governor of Maharashtra
+Q52107836,manipur,governor,Governor of Manipur
+Q65288325,meghalaya,governor,Governor of Meghalaya
+Q65288311,mizoram,governor,Governor of Mizoram
+Q61362710,nagaland,governor,Governor of Nagaland
+Q28481413,odisha,governor,Governor of Odisha
+Q25623551,punjab,governor,Governor of Punjab
+Q21448297,rajasthan,governor,Governor of Rajasthan
+Q71309242,sikkim,governor,Governor of Sikkim
+Q12983261,tamil-nadu,governor,Governor of Tamil Nadu
+Q71309714,telangana,governor,Governor of Telangana
+Q71310842,tripura,governor,Governor of Tripura
+Q12991748,uttar-pradesh,governor,Governor of Uttar Pradesh
+Q71311082,uttarakhand,governor,Governor of Uttarakhand
+Q6364703,west-bengal,governor,Governor of West Bengal
+Q110619432,andaman-and-nicobar-islands,lieutenant_governor,Lieutenant Governor of Andaman and Nicobar Islands
+Q110620063,chandigarh,administrator,Administrator of Chandigarh
+Q110619661,dadra-and-nagar-haveli-and-daman-and-diu,administrator,Administrator of Dadra and Nagar Haveli and Daman and Diu
+Q28921975,delhi,lieutenant_governor,Lieutenant Governor of Delhi
+Q104598335,jammu-and-kashmir,lieutenant_governor,Lieutenant Governor of Jammu and Kashmir
+Q104599904,ladakh,lieutenant_governor,Lieutenant Governor of Ladakh
+Q4683607,lakshadweep,administrator,Administrator of Lakshadweep
+Q110619618,puducherry,lieutenant_governor,Lieutenant Governor of Puducherry

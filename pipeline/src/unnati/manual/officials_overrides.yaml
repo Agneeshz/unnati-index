@@ -1,0 +1,15 @@
+# Maintainer decisions for office-holder terms imported from Wikidata.
+#
+# `uv run unnati officials sync --dry-run` lists every term held for review with its id.
+# Settle one here, citing an official source (a gazette notification, the state government's
+# website, the Election Commission). Every entry needs `source_url`; the rest is optional:
+#
+# "wikidata:<statement-id>:<entity-slug>":
+#   party: Q1061              # Wikidata QID of the correct party (elected offices only)
+#   party_label: Communist Party of India (Marxist)
+#   start: 2021-05-20
+#   end: 2026-05-18
+#   source_url: https://...
+#   note: why this decision was made
+#   reviewed: true            # publish the term; leave false to keep it hidden
+{}

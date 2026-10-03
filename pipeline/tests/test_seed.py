@@ -12,7 +12,9 @@ def test_seed_loads_reference_data(db):
     assert scalar(db, "select count(*) from entity where parent_id is null") == 1
     assert scalar(db, "select count(*) from indicator") == counts["indicators"]
     assert scalar(db, "select count(*) from entity_lineage") == counts["lineage"]
-    assert scalar(db, "select count(*) from dataset where status = 'paused'") == counts["datasets"]
+    enabled = sum(d.enabled for d in load_reference().registry.datasets)
+    assert scalar(db, "select count(*) from dataset where status = 'active'") == enabled
+    assert scalar(db, "select count(*) from dataset where status = 'paused'") == counts["datasets"] - enabled
 
 
 def test_seed_is_idempotent(db):

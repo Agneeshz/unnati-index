@@ -376,11 +376,11 @@ datasets:
     enabled: false
   - id: wikidata_officials
     source: wikidata
-    title: Office-holders (Governors, Chief Ministers, ministers)
+    title: Office-holders (Chief Ministers, Governors, Lieutenant Governors, Administrators)
     connector: wikidata_officials
     cadence: weekly
-    landing_url: https://www.wikidata.org
-    enabled: false
+    landing_url: https://query.wikidata.org
+    enabled: true
   - id: curated_officials
     source: curated
     title: Curated office-holders (Chief Secretaries, DGPs, secretaries, ministers)
