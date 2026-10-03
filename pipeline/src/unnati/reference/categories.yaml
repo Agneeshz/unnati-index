@@ -1,0 +1,67 @@
+# Topic categories people browse on the site. `ranked: false` categories are context only.
+- id: economy
+  name: Economy & Growth
+  name_hi: अर्थव्यवस्था और विकास
+  description: Size and growth of the state economy, incomes and prices.
+- id: jobs
+  name: Jobs & Incomes
+  name_hi: रोज़गार और आय
+  description: Employment, unemployment, labour-force participation, wages and consumption.
+- id: trade
+  name: "Trade: Exports & Imports"
+  name_hi: "व्यापार: निर्यात और आयात"
+  description: Merchandise exports by state of origin and imports by state, with commodity detail.
+- id: business
+  name: Investment, Business & Startups
+  name_hi: निवेश, व्यवसाय और स्टार्टअप
+  description: FDI, startups, MSMEs, GST collections, banking and digital payments.
+- id: public-finance
+  name: Public Finance
+  name_hi: लोक वित्त
+  description: Deficits, debt, own revenue and capital spending of state governments.
+- id: governance
+  name: Governance & Justice
+  name_hi: शासन और न्याय
+  description: Courts, police capacity, elections and representation.
+- id: crime
+  name: Crime & Safety
+  name_hi: अपराध और सुरक्षा
+  description: Registered crime, crimes against women and children, cybercrime, road safety.
+- id: health
+  name: Health & Nutrition
+  name_hi: स्वास्थ्य और पोषण
+  description: Mortality, life expectancy, nutrition, immunisation and health services.
+- id: education
+  name: Education
+  name_hi: शिक्षा
+  description: Enrolment, dropout, learning outcomes, school facilities and higher education.
+- id: infrastructure
+  name: Infrastructure, Energy & Water
+  name_hi: बुनियादी ढांचा, ऊर्जा और जल
+  description: Electricity, drinking water, sanitation, roads, housing and transport.
+- id: digital
+  name: Digital & Innovation
+  name_hi: डिजिटल और नवाचार
+  description: Telecom and internet access, digital payments, patents and innovation.
+- id: environment
+  name: Environment & Climate
+  name_hi: पर्यावरण और जलवायु
+  description: Air quality, forests, renewable energy, groundwater and waste.
+- id: agriculture
+  name: Agriculture & Rural
+  name_hi: कृषि और ग्रामीण विकास
+  description: Farm output and productivity, irrigation, livestock and rural employment.
+- id: inclusion
+  name: Inclusion, Gender & Poverty
+  name_hi: समावेशन, लैंगिक समानता और गरीबी
+  description: Poverty, inequality, gender gaps and outcomes for disadvantaged groups.
+- id: demographics
+  name: Demographics
+  name_hi: जनसांख्यिकी
+  description: Population, density, urbanisation and age structure. Context only, not ranked.
+  ranked: false
+- id: tourism-culture-sports
+  name: Tourism, Culture & Sports
+  name_hi: पर्यटन, संस्कृति और खेल
+  description: Tourist visits, heritage and sporting achievement. Not part of the composite.
+  ranked: false

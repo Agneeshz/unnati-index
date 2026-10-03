@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Neutral palette with a teal accent: deliberately not tied to any political party's colours. */
+:root {
+  --bg: #fafaf8;
+  --fg: #1c1d1f;
+  --muted: #55585e;
+  --border: #e2e2dd;
+  --surface: #ffffff;
+  --accent: #0f766e;
+  --accent-soft: #e3f1ef;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111315;
+    --fg: #ececea;
+    --muted: #a3a6ac;
+    --border: #2b2e33;
+    --surface: #181b1e;
+    --accent: #5eead4;
+    --accent-soft: #143430;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-latin), var(--font-devanagari), system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}

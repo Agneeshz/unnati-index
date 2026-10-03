@@ -1,0 +1,389 @@
+# Every data source and dataset Unnati Index uses. `unnati seed` syncs this file into the
+# `source` and `dataset` tables. A dataset stays `enabled: false` (status "paused") until its
+# connector exists and has tests. Landing URLs point at publisher home pages until each
+# connector is built and its exact source page is verified.
+
+sources:
+  - id: rbi
+    name: Reserve Bank of India
+    publisher: Reserve Bank of India
+    url: https://www.rbi.org.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Reserve Bank of India"
+  - id: mospi
+    name: National Statistics Office (MoSPI)
+    publisher: Ministry of Statistics and Programme Implementation
+    url: https://www.mospi.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: National Statistics Office, MoSPI"
+  - id: ncrb
+    name: National Crime Records Bureau
+    publisher: Ministry of Home Affairs
+    url: https://www.ncrb.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: National Crime Records Bureau"
+  - id: morth
+    name: Ministry of Road Transport and Highways
+    publisher: Ministry of Road Transport and Highways
+    url: https://morth.nic.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Ministry of Road Transport and Highways"
+  - id: rgi
+    name: Registrar General & Census Commissioner, India
+    publisher: Ministry of Home Affairs
+    url: https://censusindia.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Office of the Registrar General & Census Commissioner, India"
+  - id: mohfw
+    name: Ministry of Health and Family Welfare
+    publisher: Ministry of Health and Family Welfare
+    url: https://mohfw.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Ministry of Health and Family Welfare"
+  - id: iips
+    name: National Family Health Survey (IIPS)
+    publisher: International Institute for Population Sciences for MoHFW
+    url: https://rchiips.org/nfhs
+    license: Government publication — reproduced with attribution
+    attribution: "Source: National Family Health Survey, IIPS and MoHFW"
+  - id: moe
+    name: Ministry of Education
+    publisher: Ministry of Education
+    url: https://www.education.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Ministry of Education (UDISE+, AISHE, PARAKH)"
+  - id: gstn
+    name: GST Network
+    publisher: Goods and Services Tax Network
+    url: https://www.gst.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: GSTN"
+  - id: dgcis
+    name: Directorate General of Commercial Intelligence and Statistics
+    publisher: Ministry of Commerce and Industry
+    url: https://www.dgciskol.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: DGCI&S, Ministry of Commerce and Industry"
+  - id: cpcb
+    name: Central Pollution Control Board (via data.gov.in)
+    publisher: Ministry of Environment, Forest and Climate Change
+    url: https://data.gov.in/resource/real-time-air-quality-index-various-locations
+    license: Government Open Data License – India (GODL)
+    attribution: "Source: Central Pollution Control Board, via data.gov.in"
+  - id: cea
+    name: Central Electricity Authority
+    publisher: Ministry of Power
+    url: https://cea.nic.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Central Electricity Authority"
+  - id: phonepe
+    name: PhonePe Pulse
+    publisher: PhonePe
+    url: https://github.com/PhonePe/pulse
+    license: CDLA-Permissive-2.0
+    attribution: "Source: PhonePe Pulse (CDLA-Permissive-2.0)"
+  - id: niti
+    name: NITI Aayog
+    publisher: NITI Aayog
+    url: https://www.niti.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: NITI Aayog"
+  - id: epfo
+    name: Employees' Provident Fund Organisation
+    publisher: Ministry of Labour and Employment
+    url: https://www.epfindia.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: EPFO payroll data"
+  - id: trai
+    name: Telecom Regulatory Authority of India
+    publisher: Telecom Regulatory Authority of India
+    url: https://www.trai.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: TRAI"
+  - id: doj
+    name: National Judicial Data Grid
+    publisher: eCourts Services, Department of Justice
+    url: https://njdg.ecourts.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: National Judicial Data Grid"
+  - id: bprd
+    name: Bureau of Police Research and Development
+    publisher: Ministry of Home Affairs
+    url: https://bprd.nic.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: BPR&D, Data on Police Organisations"
+  - id: jalshakti
+    name: Ministry of Jal Shakti
+    publisher: Ministry of Jal Shakti
+    url: https://ejalshakti.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Ministry of Jal Shakti (Jal Jeevan Mission, CGWB)"
+  - id: moefcc
+    name: Forest Survey of India
+    publisher: Ministry of Environment, Forest and Climate Change
+    url: https://fsi.nic.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Forest Survey of India, India State of Forest Report"
+  - id: mnre
+    name: Ministry of New and Renewable Energy
+    publisher: Ministry of New and Renewable Energy
+    url: https://mnre.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: MNRE"
+  - id: mohua
+    name: Ministry of Housing and Urban Affairs
+    publisher: Ministry of Housing and Urban Affairs
+    url: https://mohua.gov.in
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Ministry of Housing and Urban Affairs"
+  - id: wikidata
+    name: Wikidata
+    publisher: Wikimedia Foundation
+    url: https://www.wikidata.org
+    license: CC0 1.0
+    attribution: "Office-holder data: Wikidata (CC0)"
+  - id: curated
+    name: Unnati Index curated tables
+    publisher: Unnati Index contributors
+    url: https://github.com/Agneeshz/unnati-index/tree/main/pipeline/src/unnati/manual
+    license: CC BY 4.0 (our transcription; original publisher terms apply to the data)
+    attribution: "Transcribed by Unnati Index from the official publication cited per row"
+
+datasets:
+  - id: population_projections
+    source: mohfw
+    title: Population projections for India and states, 2011–2036 (Technical Group report)
+    connector: manual
+    cadence: irregular
+    landing_url: https://mohfw.gov.in
+    enabled: false
+  - id: rbi_hsis
+    source: rbi
+    title: Handbook of Statistics on Indian States
+    connector: rbi_hsis
+    cadence: annual
+    landing_url: https://www.rbi.org.in/Scripts/AnnualPublications.aspx?head=Handbook%20of%20Statistics%20on%20Indian%20States
+    enabled: false
+  - id: rbi_state_finances
+    source: rbi
+    title: "State Finances: A Study of Budgets"
+    connector: rbi_state_finances
+    cadence: annual
+    landing_url: https://www.rbi.org.in
+    enabled: false
+  - id: mospi_nas_state
+    source: mospi
+    title: State domestic product (National Accounts Statistics, eSankhyiki)
+    connector: mospi
+    cadence: annual
+    landing_url: https://esankhyiki.mospi.gov.in
+    enabled: false
+  - id: mospi_cpi_state
+    source: mospi
+    title: Consumer Price Index by state (eSankhyiki)
+    connector: mospi
+    cadence: monthly
+    landing_url: https://esankhyiki.mospi.gov.in
+    enabled: false
+  - id: mospi_plfs_state
+    source: mospi
+    title: Periodic Labour Force Survey, state estimates (eSankhyiki)
+    connector: mospi
+    cadence: quarterly
+    landing_url: https://esankhyiki.mospi.gov.in
+    enabled: false
+  - id: mospi_hces
+    source: mospi
+    title: Household Consumption Expenditure Survey
+    connector: mospi
+    cadence: irregular
+    landing_url: https://esankhyiki.mospi.gov.in
+    enabled: false
+  - id: ncrb_cii
+    source: ncrb
+    title: Crime in India
+    connector: ncrb
+    cadence: annual
+    landing_url: https://www.ncrb.gov.in
+    enabled: false
+  - id: ncrb_adsi
+    source: ncrb
+    title: Accidental Deaths & Suicides in India
+    connector: ncrb
+    cadence: annual
+    landing_url: https://www.ncrb.gov.in
+    enabled: false
+  - id: morth_road_accidents
+    source: morth
+    title: Road Accidents in India
+    connector: morth
+    cadence: annual
+    landing_url: https://morth.nic.in
+    enabled: false
+  - id: rgi_srs
+    source: rgi
+    title: Sample Registration System — Statistical Report and bulletins
+    connector: rgi_srs
+    cadence: annual
+    landing_url: https://censusindia.gov.in
+    enabled: false
+  - id: rgi_srs_mmr
+    source: rgi
+    title: Sample Registration System — Special Bulletin on Maternal Mortality
+    connector: rgi_srs
+    cadence: irregular
+    landing_url: https://censusindia.gov.in
+    enabled: false
+  - id: rgi_srs_life_tables
+    source: rgi
+    title: Sample Registration System — Abridged Life Tables
+    connector: rgi_srs
+    cadence: irregular
+    landing_url: https://censusindia.gov.in
+    enabled: false
+  - id: nfhs
+    source: iips
+    title: National Family Health Survey — state fact sheets
+    connector: nfhs
+    cadence: irregular
+    landing_url: https://rchiips.org/nfhs
+    enabled: false
+  - id: udise_plus
+    source: moe
+    title: Unified District Information System for Education Plus (UDISE+)
+    connector: udise
+    cadence: annual
+    landing_url: https://udiseplus.gov.in
+    enabled: false
+  - id: aishe
+    source: moe
+    title: All India Survey on Higher Education
+    connector: mospi
+    cadence: annual
+    landing_url: https://aishe.gov.in
+    enabled: false
+  - id: parakh
+    source: moe
+    title: PARAKH Rashtriya Sarvekshan (national learning assessment)
+    connector: manual
+    cadence: irregular
+    landing_url: https://ncert.nic.in
+    enabled: false
+  - id: gstn_state_collections
+    source: gstn
+    title: State-wise GST collections
+    connector: gstn
+    cadence: monthly
+    landing_url: https://www.gst.gov.in
+    enabled: false
+  - id: dgcis_state_trade
+    source: dgcis
+    title: Exports by state of origin and imports by state (FTDDP)
+    connector: dgcis
+    cadence: monthly
+    landing_url: https://ftddp.dgciskol.gov.in/dgcis/principalcommditysearch.html
+    enabled: false
+  - id: cpcb_aqi_live
+    source: cpcb
+    title: Real-time Air Quality Index from monitoring stations
+    connector: cpcb_aqi
+    cadence: hourly
+    landing_url: https://data.gov.in/resource/real-time-air-quality-index-various-locations
+    enabled: false
+  - id: cea_psp
+    source: cea
+    title: Power supply position by state
+    connector: cea
+    cadence: monthly
+    landing_url: https://cea.nic.in
+    enabled: false
+  - id: phonepe_pulse
+    source: phonepe
+    title: PhonePe Pulse transactions by state
+    connector: phonepe
+    cadence: quarterly
+    landing_url: https://github.com/PhonePe/pulse
+    enabled: false
+  - id: niti_mpi
+    source: niti
+    title: National Multidimensional Poverty Index
+    connector: manual
+    cadence: irregular
+    landing_url: https://www.niti.gov.in
+    enabled: false
+  - id: epfo_payroll
+    source: epfo
+    title: EPFO provisional payroll estimates
+    connector: epfo
+    cadence: monthly
+    landing_url: https://www.epfindia.gov.in
+    enabled: false
+  - id: trai_subscriptions
+    source: trai
+    title: Telecom subscription data
+    connector: trai
+    cadence: monthly
+    landing_url: https://www.trai.gov.in
+    enabled: false
+  - id: njdg_pendency
+    source: doj
+    title: District court pendency (National Judicial Data Grid)
+    connector: njdg
+    cadence: daily
+    landing_url: https://njdg.ecourts.gov.in
+    enabled: false
+  - id: bprd_dopo
+    source: bprd
+    title: Data on Police Organisations
+    connector: manual
+    cadence: annual
+    landing_url: https://bprd.nic.in
+    enabled: false
+  - id: jjm_tap_water
+    source: jalshakti
+    title: Jal Jeevan Mission — household tap connections
+    connector: jjm
+    cadence: daily
+    landing_url: https://ejalshakti.gov.in/jjmreport/JJMIndia.aspx
+    enabled: false
+  - id: cgwb_groundwater
+    source: jalshakti
+    title: Dynamic Ground Water Resources assessment
+    connector: manual
+    cadence: annual
+    landing_url: https://cgwb.gov.in
+    enabled: false
+  - id: isfr
+    source: moefcc
+    title: India State of Forest Report
+    connector: manual
+    cadence: biennial
+    landing_url: https://fsi.nic.in
+    enabled: false
+  - id: mnre_capacity
+    source: mnre
+    title: State-wise installed renewable energy capacity
+    connector: mnre
+    cadence: monthly
+    landing_url: https://mnre.gov.in
+    enabled: false
+  - id: sbm_urban_waste
+    source: mohua
+    title: Swachh Bharat Mission (Urban) — waste processing
+    connector: manual
+    cadence: irregular
+    landing_url: https://sbmurban.org
+    enabled: false
+  - id: wikidata_officials
+    source: wikidata
+    title: Office-holders (Governors, Chief Ministers, ministers)
+    connector: wikidata_officials
+    cadence: weekly
+    landing_url: https://www.wikidata.org
+    enabled: false
+  - id: curated_officials
+    source: curated
+    title: Curated office-holders (Chief Secretaries, DGPs, secretaries, ministers)
+    connector: manual
+    cadence: irregular
+    enabled: false

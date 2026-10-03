@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Environment & secrets (only the example file is committed)
+.env
+.env.*
+!.env.example
+
+# Local database (PGlite) and pipeline caches
+.pglite/
+pipeline/.cache/
+pipeline/data/raw/
+
+# Build artefacts
+web/.next/
+web/out/
+geo/build/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log

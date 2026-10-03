@@ -1,0 +1,42 @@
+slug,name,name_hi,type,lgd_code,census2011_code,parent_slug,peer_group,valid_from,valid_to,wikidata_qid
+india,India,भारत,country,,,,,,,Q668
+andhra-pradesh,Andhra Pradesh,आंध्र प्रदेश,state,28,28,india,large_state,2014-06-02,,Q1159
+arunachal-pradesh,Arunachal Pradesh,अरुणाचल प्रदेश,state,12,12,india,ne_himalayan_state,,,Q1162
+assam,Assam,असम,state,18,18,india,ne_himalayan_state,,,Q1164
+bihar,Bihar,बिहार,state,10,10,india,large_state,,,Q1165
+chhattisgarh,Chhattisgarh,छत्तीसगढ़,state,22,22,india,large_state,,,Q1168
+goa,Goa,गोवा,state,30,30,india,large_state,,,Q1171
+gujarat,Gujarat,गुजरात,state,24,24,india,large_state,,,Q1061
+haryana,Haryana,हरियाणा,state,6,06,india,large_state,,,Q1174
+himachal-pradesh,Himachal Pradesh,हिमाचल प्रदेश,state,2,02,india,ne_himalayan_state,,,Q1177
+jharkhand,Jharkhand,झारखंड,state,20,20,india,large_state,,,Q1184
+karnataka,Karnataka,कर्नाटक,state,29,29,india,large_state,,,Q1185
+kerala,Kerala,केरल,state,32,32,india,large_state,,,Q1186
+madhya-pradesh,Madhya Pradesh,मध्य प्रदेश,state,23,23,india,large_state,,,Q1188
+maharashtra,Maharashtra,महाराष्ट्र,state,27,27,india,large_state,,,Q1191
+manipur,Manipur,मणिपुर,state,14,14,india,ne_himalayan_state,,,Q1193
+meghalaya,Meghalaya,मेघालय,state,17,17,india,ne_himalayan_state,,,Q1195
+mizoram,Mizoram,मिज़ोरम,state,15,15,india,ne_himalayan_state,,,Q1502
+nagaland,Nagaland,नागालैंड,state,13,13,india,ne_himalayan_state,,,Q1599
+odisha,Odisha,ओडिशा,state,21,21,india,large_state,,,Q22048
+punjab,Punjab,पंजाब,state,3,03,india,large_state,,,Q22424
+rajasthan,Rajasthan,राजस्थान,state,8,08,india,large_state,,,Q1437
+sikkim,Sikkim,सिक्किम,state,11,11,india,ne_himalayan_state,,,Q1505
+tamil-nadu,Tamil Nadu,तमिलनाडु,state,33,33,india,large_state,,,Q1445
+telangana,Telangana,तेलंगाना,state,36,,india,large_state,2014-06-02,,Q677037
+tripura,Tripura,त्रिपुरा,state,16,16,india,ne_himalayan_state,,,Q1363
+uttar-pradesh,Uttar Pradesh,उत्तर प्रदेश,state,9,09,india,large_state,,,Q1498
+uttarakhand,Uttarakhand,उत्तराखंड,state,5,05,india,ne_himalayan_state,,,Q1499
+west-bengal,West Bengal,पश्चिम बंगाल,state,19,19,india,large_state,,,Q1356
+andaman-and-nicobar-islands,Andaman and Nicobar Islands,अंडमान और निकोबार द्वीपसमूह,ut,35,35,india,ut,,,Q40888
+chandigarh,Chandigarh,चंडीगढ़,ut,4,04,india,ut,,,Q120971341
+dadra-and-nagar-haveli-and-daman-and-diu,Dadra and Nagar Haveli and Daman and Diu,दादरा और नगर हवेली और दमन और दीव,ut,38,,india,ut,2020-01-26,,Q77997266
+delhi,Delhi,दिल्ली,ut,7,07,india,ut,,,Q9357528
+jammu-and-kashmir,Jammu and Kashmir,जम्मू और कश्मीर,ut,1,01,india,ut,2019-10-31,,Q66278313
+ladakh,Ladakh,लद्दाख,ut,37,,india,ut,2019-10-31,,Q200667
+lakshadweep,Lakshadweep,लक्षद्वीप,ut,31,31,india,ut,,,Q26927
+puducherry,Puducherry,पुडुचेरी,ut,34,34,india,ut,,,Q66743
+andhra-pradesh-undivided,Andhra Pradesh (undivided),आंध्र प्रदेश (अविभाजित),state,28,28,india,large_state,,2014-06-01,Q67906082
+jammu-and-kashmir-state,Jammu and Kashmir (state),जम्मू और कश्मीर (राज्य),state,1,01,india,ne_himalayan_state,,2019-10-30,Q1180
+dadra-and-nagar-haveli,Dadra and Nagar Haveli,दादरा और नगर हवेली,ut,26,26,india,ut,,2020-01-25,
+daman-and-diu,Daman and Diu,दमन और दीव,ut,25,25,india,ut,,2020-01-25,

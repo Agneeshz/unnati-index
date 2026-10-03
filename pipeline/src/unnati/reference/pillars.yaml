@@ -1,0 +1,33 @@
+# The eight pillars of the Unnati Index composite (methodology v1).
+- id: economy-jobs
+  name: Economy & Jobs
+  name_hi: अर्थव्यवस्था और रोज़गार
+  description: Prosperity, growth, employment and export competitiveness.
+- id: health
+  name: Health
+  name_hi: स्वास्थ्य
+  description: Survival, nutrition and coverage of essential health services.
+- id: education
+  name: Education
+  name_hi: शिक्षा
+  description: Access, retention, learning and school readiness.
+- id: safety-justice
+  name: Safety & Justice
+  name_hi: सुरक्षा और न्याय
+  description: Personal safety, road safety and the capacity of police and courts.
+- id: governance-fiscal
+  name: Governance & Fiscal Health
+  name_hi: सुशासन और वित्तीय स्वास्थ्य
+  description: Sustainable public finances and the quality of state spending.
+- id: infrastructure-digital
+  name: Infrastructure & Digital
+  name_hi: बुनियादी ढांचा और डिजिटल
+  description: Water, sanitation, energy, clean cooking and connectivity for households.
+- id: environment
+  name: Environment
+  name_hi: पर्यावरण
+  description: Clean air, forests, clean energy, water security and waste management.
+- id: inclusion
+  name: Inclusion & Equality
+  name_hi: समावेशन और समानता
+  description: Poverty, gender equality and fair distribution of gains.

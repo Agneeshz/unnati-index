@@ -1,0 +1,7 @@
+predecessor_slug,successor_slug,event_date,kind,note
+andhra-pradesh-undivided,andhra-pradesh,2014-06-02,split,Andhra Pradesh Reorganisation Act 2014
+andhra-pradesh-undivided,telangana,2014-06-02,split,Andhra Pradesh Reorganisation Act 2014
+jammu-and-kashmir-state,jammu-and-kashmir,2019-10-31,reorganisation,Jammu and Kashmir Reorganisation Act 2019
+jammu-and-kashmir-state,ladakh,2019-10-31,reorganisation,Jammu and Kashmir Reorganisation Act 2019
+dadra-and-nagar-haveli,dadra-and-nagar-haveli-and-daman-and-diu,2020-01-26,merge,DNH and DD (Merger of Union Territories) Act 2019
+daman-and-diu,dadra-and-nagar-haveli-and-daman-and-diu,2020-01-26,merge,DNH and DD (Merger of Union Territories) Act 2019

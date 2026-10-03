@@ -1,0 +1,75 @@
+{
+  "site": {
+    "name": "Unnati Index",
+    "tagline": "India's progress, state by state",
+    "description": "Rankings and comparisons of Indian states across the economy, jobs, health, education, safety, governance, infrastructure, environment and inclusion, refreshed automatically from official sources."
+  },
+  "nav": {
+    "home": "Home",
+    "language": "हिंदी",
+    "languageLabel": "पढ़ें हिंदी में"
+  },
+  "home": {
+    "status": "Early preview. Data pipelines are being connected; rankings will appear here as official data loads.",
+    "pillarsTitle": "Eight pillars of progress",
+    "pillarsIntro": "The Unnati Index combines about 40 indicators into eight equally weighted pillars. Every indicator is a rate or per-person value, so large states don't win just by size.",
+    "principlesTitle": "How we rank",
+    "principles": [
+      {
+        "title": "Fair comparisons",
+        "body": "States are ranked within peer groups (large states, North-East and Himalayan states, Union Territories) as well as overall."
+      },
+      {
+        "title": "Progress, not just position",
+        "body": "Fixed goalposts mean a state's score rises only when its own numbers improve. Every leaderboard also shows who improved most."
+      },
+      {
+        "title": "Honest about freshness",
+        "body": "Every number shows the period it covers, when we fetched it and when the next official release is expected."
+      },
+      {
+        "title": "Accountable, not partisan",
+        "body": "Each figure is linked to the office-holders in charge during the period it describes, not just today's. Methodology, code and data are public."
+      }
+    ]
+  },
+  "pillars": {
+    "economy-jobs": {
+      "name": "Economy & Jobs",
+      "description": "Prosperity, growth, employment and export competitiveness."
+    },
+    "health": {
+      "name": "Health",
+      "description": "Survival, nutrition and coverage of essential health services."
+    },
+    "education": {
+      "name": "Education",
+      "description": "Access, retention, learning and school readiness."
+    },
+    "safety-justice": {
+      "name": "Safety & Justice",
+      "description": "Personal safety, road safety and the capacity of police and courts."
+    },
+    "governance-fiscal": {
+      "name": "Governance & Fiscal Health",
+      "description": "Sustainable public finances and the quality of state spending."
+    },
+    "infrastructure-digital": {
+      "name": "Infrastructure & Digital",
+      "description": "Water, sanitation, energy, clean cooking and connectivity for households."
+    },
+    "environment": {
+      "name": "Environment",
+      "description": "Clean air, forests, clean energy, water security and waste management."
+    },
+    "inclusion": {
+      "name": "Inclusion & Equality",
+      "description": "Poverty, gender equality and fair distribution of gains."
+    }
+  },
+  "footer": {
+    "disclaimer": "Unnati Index is an independent, non-partisan project. Data comes from official publications, and each figure links to its source.",
+    "license": "Code: MIT · Data: CC BY 4.0",
+    "source": "Source code on GitHub"
+  }
+}

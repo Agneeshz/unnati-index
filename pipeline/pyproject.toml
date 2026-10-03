@@ -1,0 +1,42 @@
+[project]
+name = "unnati"
+version = "0.1.0"
+description = "Data pipeline for Unnati Index: fetches official Indian statistics, validates, loads and scores them."
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "openpyxl>=3.1.5",
+    "pandas>=3.0.6",
+    "pandera>=0.33.1",
+    "pg8000>=1.31.5",
+    "pydantic>=2.13.5",
+    "pyyaml>=6.0.3",
+    "structlog>=26.1.0",
+    "tenacity>=9.1.4",
+    "typer>=0.27.2",
+]
+
+[project.scripts]
+unnati = "unnati:main"
+
+[build-system]
+requires = ["uv_build>=0.11.19,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# The project deliberately uses ₹, Hindi text and en dashes in strings and docs.
+ignore = ["RUF001", "RUF002", "RUF003"]

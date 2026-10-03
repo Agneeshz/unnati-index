@@ -1,0 +1,823 @@
+# Indicator catalogue. `pillar` marks membership of the Unnati Index composite (methodology v1);
+# goalposts are set per methodology version once enough data is loaded (Phase 2).
+# Ranked indicators are always rates, shares or per-person values, never raw totals.
+#
+# direction: higher_better | lower_better | neutral
+# target:    official national/SDG target where one exists (used as the "best" goalpost)
+
+# --- Demographics (context, denominators) -------------------------------------------------
+- id: population
+  name: Population
+  description: Projected mid-year population.
+  unit: persons
+  direction: neutral
+  category: demographics
+  dataset: population_projections
+  frequency: annual
+  decimals: 0
+  rankable: false
+  valid_min: 0
+- id: population-working-age
+  name: Working-age population (15–59)
+  description: Projected mid-year population aged 15–59.
+  unit: persons
+  direction: neutral
+  category: demographics
+  dataset: population_projections
+  frequency: annual
+  decimals: 0
+  rankable: false
+  valid_min: 0
+- id: total-fertility-rate
+  name: Total fertility rate
+  description: Average number of children a woman would have over her lifetime at current age-specific fertility rates.
+  unit: children per woman
+  direction: neutral
+  category: demographics
+  dataset: rgi_srs
+  frequency: annual
+  decimals: 1
+  rankable: false
+  valid_min: 0
+  valid_max: 10
+
+# --- Economy & Jobs -------------------------------------------------------------------------
+- id: gsdp-current
+  name: Gross State Domestic Product (current prices)
+  description: Value of all goods and services produced in the state, at current prices.
+  unit: ₹ crore
+  direction: neutral
+  category: economy
+  dataset: mospi_nas_state
+  frequency: annual
+  decimals: 0
+  rankable: false
+  valid_min: 0
+- id: gsdp-constant
+  name: Gross State Domestic Product (constant prices)
+  description: Real GSDP at constant prices of the base year.
+  unit: ₹ crore
+  direction: neutral
+  category: economy
+  dataset: mospi_nas_state
+  frequency: annual
+  decimals: 0
+  rankable: false
+  valid_min: 0
+  caveat: Base-year revisions create series breaks; values from different base years are never mixed.
+- id: per-capita-nsdp-constant
+  name: Per-capita income (real)
+  description: Per-capita Net State Domestic Product at constant prices.
+  unit: ₹
+  direction: higher_better
+  category: economy
+  pillar: economy-jobs
+  dataset: mospi_nas_state
+  frequency: annual
+  decimals: 0
+  valid_min: 0
+- id: gsdp-growth-real-3yr
+  name: Real GSDP growth (3-year average)
+  description: Average annual growth of real GSDP over the latest three years.
+  unit: "%"
+  direction: higher_better
+  category: economy
+  pillar: economy-jobs
+  dataset: mospi_nas_state
+  frequency: annual
+  decimals: 1
+  derived: mean of the last three year-on-year changes in gsdp-constant
+  valid_min: -50
+  valid_max: 50
+- id: cpi-inflation
+  name: Retail inflation (CPI, combined)
+  description: Year-on-year change in the Consumer Price Index (rural + urban).
+  unit: "%"
+  direction: neutral
+  category: economy
+  dataset: mospi_cpi_state
+  frequency: monthly
+  decimals: 1
+  rankable: false
+  valid_min: -20
+  valid_max: 50
+- id: unemployment-rate
+  name: Unemployment rate
+  description: Share of the labour force (age 15+) without work, current weekly status (PLFS).
+  unit: "%"
+  direction: lower_better
+  category: jobs
+  pillar: economy-jobs
+  dataset: mospi_plfs_state
+  frequency: quarterly
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: epfo-net-payroll-per-1000
+  name: New formal jobs per 1,000 working-age people
+  description: Net additions to EPFO payroll over the year per 1,000 people aged 15–59.
+  unit: per 1,000 working-age people
+  direction: higher_better
+  category: jobs
+  pillar: economy-jobs
+  dataset: epfo_payroll
+  frequency: annual
+  decimals: 1
+  derived: sum of 12 months of epfo-net-payroll / population-working-age * 1000
+  caveat: Counts formal-sector enrolments only; establishments register where they are headquartered, which can over-count some states.
+- id: mpce-rural
+  name: Monthly per-capita consumption (rural)
+  description: Average monthly per-capita consumption expenditure of rural households (HCES).
+  unit: ₹ per month
+  direction: higher_better
+  category: jobs
+  dataset: mospi_hces
+  frequency: irregular
+  decimals: 0
+  valid_min: 0
+- id: mpce-urban
+  name: Monthly per-capita consumption (urban)
+  description: Average monthly per-capita consumption expenditure of urban households (HCES).
+  unit: ₹ per month
+  direction: higher_better
+  category: jobs
+  dataset: mospi_hces
+  frequency: irregular
+  decimals: 0
+  valid_min: 0
+
+# --- Trade ----------------------------------------------------------------------------------
+- id: merchandise-exports
+  name: Merchandise exports
+  description: Value of goods exported, by state of origin.
+  unit: US$ million
+  direction: neutral
+  category: trade
+  dataset: dgcis_state_trade
+  frequency: monthly
+  decimals: 0
+  rankable: false
+  valid_min: 0
+- id: exports-per-capita
+  name: Merchandise exports per person
+  description: Annual merchandise exports by state of origin divided by population.
+  unit: US$ per person
+  direction: higher_better
+  category: trade
+  pillar: economy-jobs
+  dataset: dgcis_state_trade
+  frequency: annual
+  decimals: 0
+  derived: merchandise-exports (12 months) * 1e6 / population
+  caveat: State of origin is as declared in shipping bills. Services exports are not published by state.
+  valid_min: 0
+- id: merchandise-exports-growth
+  name: Merchandise export growth
+  description: Year-on-year growth in merchandise exports by state of origin.
+  unit: "%"
+  direction: higher_better
+  category: trade
+  dataset: dgcis_state_trade
+  frequency: monthly
+  decimals: 1
+  derived: year-on-year change in merchandise-exports
+- id: merchandise-imports
+  name: Merchandise imports
+  description: Value of goods imported, by state as recorded by DGCI&S.
+  unit: US$ million
+  direction: neutral
+  category: trade
+  dataset: dgcis_state_trade
+  frequency: monthly
+  decimals: 0
+  rankable: false
+  valid_min: 0
+  caveat: State attribution of imports is incomplete; DGCI&S flags it as a known data-quality limitation.
+
+# --- Business -------------------------------------------------------------------------------
+- id: gst-collection-per-capita
+  name: GST collected per person
+  description: State GST collections in the fiscal year divided by population.
+  unit: ₹ per person
+  direction: higher_better
+  category: business
+  dataset: gstn_state_collections
+  frequency: annual
+  decimals: 0
+  derived: sum of monthly gst collections / population
+  valid_min: 0
+- id: gst-collection-growth
+  name: GST collection growth
+  description: Year-on-year growth in monthly state GST collections.
+  unit: "%"
+  direction: higher_better
+  category: business
+  dataset: gstn_state_collections
+  frequency: monthly
+  decimals: 1
+- id: digital-payments-per-capita
+  name: Digital payments per person (PhonePe)
+  description: PhonePe transactions in the latest four quarters divided by population.
+  unit: transactions per person per year
+  direction: higher_better
+  category: digital
+  dataset: phonepe_pulse
+  frequency: quarterly
+  decimals: 0
+  derived: sum of 4 quarters of phonepe transactions / population
+  caveat: Covers one payments app only; its market share varies by state, so treat as a proxy.
+  valid_min: 0
+
+# --- Public finance -------------------------------------------------------------------------
+- id: fiscal-deficit-pct-gsdp
+  name: Fiscal deficit
+  description: Gross fiscal deficit of the state government as a share of GSDP.
+  unit: "% of GSDP"
+  direction: lower_better
+  category: public-finance
+  pillar: governance-fiscal
+  dataset: rbi_state_finances
+  frequency: annual
+  decimals: 1
+  target: 3
+  valid_min: -20
+  valid_max: 40
+- id: debt-pct-gsdp
+  name: Outstanding debt
+  description: Outstanding liabilities of the state government as a share of GSDP.
+  unit: "% of GSDP"
+  direction: lower_better
+  category: public-finance
+  pillar: governance-fiscal
+  dataset: rbi_state_finances
+  frequency: annual
+  decimals: 1
+  target: 20
+  valid_min: 0
+  valid_max: 200
+- id: own-tax-revenue-pct-gsdp
+  name: Own tax revenue
+  description: The state's own tax revenue as a share of GSDP.
+  unit: "% of GSDP"
+  direction: higher_better
+  category: public-finance
+  pillar: governance-fiscal
+  dataset: rbi_state_finances
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 50
+- id: capex-share
+  name: Capital expenditure share
+  description: Capital outlay as a share of total state expenditure.
+  unit: "% of expenditure"
+  direction: higher_better
+  category: public-finance
+  pillar: governance-fiscal
+  dataset: rbi_state_finances
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+
+# --- Governance & justice -------------------------------------------------------------------
+- id: court-cases-pending-over-5y
+  name: Court cases pending over 5 years
+  description: Share of pending cases in district and subordinate courts that are more than five years old.
+  unit: "% of pending cases"
+  direction: lower_better
+  category: governance
+  pillar: safety-justice
+  dataset: njdg_pendency
+  frequency: daily
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: police-vacancy
+  name: Police vacancy rate
+  description: Share of sanctioned police posts that are vacant.
+  unit: "% of sanctioned posts"
+  direction: lower_better
+  category: governance
+  pillar: safety-justice
+  dataset: bprd_dopo
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+
+# --- Crime & safety -------------------------------------------------------------------------
+- id: murder-rate
+  name: Murder rate
+  description: Murders registered per lakh population.
+  unit: per lakh population
+  direction: lower_better
+  category: crime
+  pillar: safety-justice
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  caveat: Used in the composite because murder is the crime least affected by under-reporting.
+  valid_min: 0
+- id: crime-rate-total
+  name: Total cognisable crime rate
+  description: Cognisable crimes registered (IPC/BNS and special & local laws) per lakh population.
+  unit: per lakh population
+  direction: lower_better
+  category: crime
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  caveat: Registered crime depends on how easily people can report it. A higher rate can reflect better reporting rather than more crime.
+  valid_min: 0
+- id: crimes-against-women-rate
+  name: Crimes against women
+  description: Crimes against women registered per lakh female population.
+  unit: per lakh women
+  direction: lower_better
+  category: crime
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  caveat: Registered crime depends on how easily people can report it. A higher rate can reflect better reporting rather than more crime.
+  valid_min: 0
+- id: crimes-against-children-rate
+  name: Crimes against children
+  description: Crimes against children registered per lakh child population.
+  unit: per lakh children
+  direction: lower_better
+  category: crime
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  caveat: Registered crime depends on how easily people can report it. A higher rate can reflect better reporting rather than more crime.
+  valid_min: 0
+- id: cybercrime-rate
+  name: Cybercrime rate
+  description: Cybercrimes registered per lakh population.
+  unit: per lakh population
+  direction: lower_better
+  category: crime
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  caveat: Registered crime depends on how easily people can report it. A higher rate can reflect better reporting rather than more crime.
+  valid_min: 0
+- id: conviction-rate
+  name: Conviction rate
+  description: Share of IPC/BNS trials completed in the year that ended in conviction.
+  unit: "%"
+  direction: higher_better
+  category: crime
+  pillar: safety-justice
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: chargesheeting-rate
+  name: Charge-sheeting rate
+  description: Share of IPC/BNS cases disposed of by police in which a charge-sheet was filed.
+  unit: "%"
+  direction: higher_better
+  category: crime
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: road-deaths-per-lakh
+  name: Road accident deaths
+  description: Deaths in road accidents per lakh population.
+  unit: per lakh population
+  direction: lower_better
+  category: crime
+  pillar: safety-justice
+  dataset: morth_road_accidents
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+- id: suicide-rate
+  name: Suicide rate
+  description: Suicides per lakh population.
+  unit: per lakh population
+  direction: lower_better
+  category: crime
+  dataset: ncrb_adsi
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+
+# --- Health ---------------------------------------------------------------------------------
+- id: infant-mortality-rate
+  name: Infant mortality rate
+  description: Deaths of infants under one year per 1,000 live births.
+  unit: per 1,000 live births
+  direction: lower_better
+  category: health
+  pillar: health
+  dataset: rgi_srs
+  frequency: annual
+  decimals: 0
+  valid_min: 0
+  valid_max: 200
+- id: under5-mortality-rate
+  name: Under-5 mortality rate
+  description: Deaths of children under five per 1,000 live births.
+  unit: per 1,000 live births
+  direction: lower_better
+  category: health
+  dataset: rgi_srs
+  frequency: annual
+  decimals: 0
+  target: 25
+  valid_min: 0
+  valid_max: 300
+- id: maternal-mortality-ratio
+  name: Maternal mortality ratio
+  description: Maternal deaths per 1,00,000 live births (three-year SRS estimate).
+  unit: per 1,00,000 live births
+  direction: lower_better
+  category: health
+  pillar: health
+  dataset: rgi_srs_mmr
+  frequency: irregular
+  decimals: 0
+  target: 70
+  caveat: Published only for larger states; smaller states are reported in combined groups.
+  valid_min: 0
+  valid_max: 1500
+- id: life-expectancy
+  name: Life expectancy at birth
+  description: Average years a newborn is expected to live at current mortality rates (SRS abridged life tables, five-year period).
+  unit: years
+  direction: higher_better
+  category: health
+  pillar: health
+  dataset: rgi_srs_life_tables
+  frequency: irregular
+  decimals: 1
+  valid_min: 30
+  valid_max: 100
+- id: stunting-under5
+  name: Stunted children under 5
+  description: Share of children under five who are too short for their age (NFHS).
+  unit: "%"
+  direction: lower_better
+  category: health
+  pillar: health
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: anaemia-women
+  name: Anaemia among women
+  description: Share of women aged 15–49 who are anaemic (NFHS).
+  unit: "%"
+  direction: lower_better
+  category: health
+  pillar: health
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  caveat: Check for changes in measurement method between NFHS rounds before comparing over time.
+  valid_min: 0
+  valid_max: 100
+- id: full-immunisation
+  name: Fully immunised children
+  description: Share of children aged 12–23 months who received all basic vaccinations (NFHS).
+  unit: "%"
+  direction: higher_better
+  category: health
+  pillar: health
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: institutional-births
+  name: Institutional births
+  description: Share of births in the last five years that took place in a health facility (NFHS).
+  unit: "%"
+  direction: higher_better
+  category: health
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+
+# --- Education ------------------------------------------------------------------------------
+- id: ger-secondary
+  name: Gross enrolment ratio, secondary
+  description: Enrolment in classes 9–10 as a share of the population of the official age for those classes.
+  unit: "%"
+  direction: higher_better
+  category: education
+  pillar: education
+  dataset: udise_plus
+  frequency: annual
+  decimals: 1
+  target: 100
+  caveat: Can exceed 100% when over- or under-age children are enrolled.
+  valid_min: 0
+  valid_max: 200
+- id: dropout-secondary
+  name: Dropout rate, secondary
+  description: Average annual dropout rate at the secondary level (classes 9–10).
+  unit: "%"
+  direction: lower_better
+  category: education
+  pillar: education
+  dataset: udise_plus
+  frequency: annual
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: ptr-secondary
+  name: Pupil–teacher ratio, secondary
+  description: Pupils per teacher at the secondary level.
+  unit: pupils per teacher
+  direction: lower_better
+  category: education
+  pillar: education
+  dataset: udise_plus
+  frequency: annual
+  decimals: 0
+  target: 30
+  valid_min: 0
+  valid_max: 200
+- id: schools-with-internet
+  name: Schools with internet
+  description: Share of schools with a functional internet connection.
+  unit: "% of schools"
+  direction: higher_better
+  category: education
+  pillar: education
+  dataset: udise_plus
+  frequency: annual
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: parakh-grade6-maths
+  name: Grade 6 maths score (PARAKH)
+  description: Average score in mathematics of Grade 6 students in the PARAKH Rashtriya Sarvekshan.
+  unit: "% score"
+  direction: higher_better
+  category: education
+  pillar: education
+  dataset: parakh
+  frequency: irregular
+  decimals: 0
+  valid_min: 0
+  valid_max: 100
+- id: ger-higher-education
+  name: Gross enrolment ratio, higher education
+  description: Enrolment in higher education as a share of the population aged 18–23.
+  unit: "%"
+  direction: higher_better
+  category: education
+  pillar: education
+  dataset: aishe
+  frequency: annual
+  decimals: 1
+  target: 50
+  valid_min: 0
+  valid_max: 200
+
+# --- Infrastructure & digital ---------------------------------------------------------------
+- id: tap-water-households
+  name: Rural households with tap water
+  description: Share of rural households with a functional household tap connection.
+  unit: "% of rural households"
+  direction: higher_better
+  category: infrastructure
+  pillar: infrastructure-digital
+  dataset: jjm_tap_water
+  frequency: daily
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: electricity-per-capita
+  name: Per-capita electricity consumption
+  description: Electricity consumed per person per year.
+  unit: kWh per person
+  direction: higher_better
+  category: infrastructure
+  pillar: infrastructure-digital
+  dataset: cea_psp
+  frequency: annual
+  decimals: 0
+  valid_min: 0
+- id: energy-deficit
+  name: Electricity shortage
+  description: Energy not supplied as a share of energy requirement.
+  unit: "% of requirement"
+  direction: lower_better
+  category: infrastructure
+  dataset: cea_psp
+  frequency: monthly
+  decimals: 2
+  valid_min: 0
+  valid_max: 100
+- id: clean-cooking-fuel
+  name: Households using clean cooking fuel
+  description: Share of households mainly using clean fuel (LPG, natural gas, electricity, biogas) for cooking (NFHS).
+  unit: "% of households"
+  direction: higher_better
+  category: infrastructure
+  pillar: infrastructure-digital
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: improved-sanitation
+  name: Households with improved sanitation
+  description: Share of households using an improved sanitation facility (NFHS).
+  unit: "% of households"
+  direction: higher_better
+  category: infrastructure
+  pillar: infrastructure-digital
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: internet-subscribers-per-100
+  name: Internet subscribers per 100 people
+  description: Internet subscriptions per 100 population.
+  unit: per 100 people
+  direction: higher_better
+  category: digital
+  pillar: infrastructure-digital
+  dataset: trai_subscriptions
+  frequency: monthly
+  decimals: 1
+  caveat: TRAI reports by telecom circle. Circles covering several states (e.g. North East) are not split, and metro circles are merged into their states.
+  valid_min: 0
+
+# --- Environment ----------------------------------------------------------------------------
+- id: aqi-daily-mean
+  name: Average air quality index (daily)
+  description: Mean AQI across the state's monitoring stations for the day.
+  unit: AQI
+  direction: lower_better
+  category: environment
+  dataset: cpcb_aqi_live
+  frequency: daily
+  decimals: 0
+  caveat: Reflects monitored cities only; many districts have no continuous monitoring station.
+  valid_min: 0
+  valid_max: 500
+- id: pm25-annual
+  name: Annual PM2.5 concentration
+  description: Average PM2.5 across the state's continuous monitoring stations over the year.
+  unit: µg/m³
+  direction: lower_better
+  category: environment
+  pillar: environment
+  dataset: cpcb_aqi_live
+  frequency: annual
+  decimals: 0
+  target: 40
+  derived: annual mean of daily station averages of PM2.5
+  caveat: Reflects monitored cities only; many districts have no continuous monitoring station.
+  valid_min: 0
+  valid_max: 1000
+- id: forest-cover-change
+  name: Change in forest cover
+  description: Change in forest cover area since the previous India State of Forest Report.
+  unit: "%"
+  direction: higher_better
+  category: environment
+  pillar: environment
+  dataset: isfr
+  frequency: biennial
+  decimals: 2
+  valid_min: -100
+  valid_max: 100
+- id: renewable-share-capacity
+  name: Renewable share of power capacity
+  description: Renewable energy (incl. large hydro) as a share of installed power generation capacity in the state.
+  unit: "% of capacity"
+  direction: higher_better
+  category: environment
+  pillar: environment
+  dataset: mnre_capacity
+  frequency: monthly
+  decimals: 1
+  caveat: Depends partly on natural resources (sun, wind, rivers), not only on policy.
+  valid_min: 0
+  valid_max: 100
+- id: groundwater-extraction-stage
+  name: Groundwater extraction stage
+  description: Annual groundwater extraction as a share of extractable groundwater resources.
+  unit: "%"
+  direction: lower_better
+  category: environment
+  pillar: environment
+  dataset: cgwb_groundwater
+  frequency: annual
+  decimals: 1
+  target: 70
+  valid_min: 0
+  valid_max: 500
+- id: waste-processed
+  name: Urban solid waste processed
+  description: Share of municipal solid waste generated that is processed.
+  unit: "% of waste generated"
+  direction: higher_better
+  category: environment
+  pillar: environment
+  dataset: sbm_urban_waste
+  frequency: irregular
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+
+# --- Inclusion ------------------------------------------------------------------------------
+- id: mpi-headcount
+  name: Multidimensional poverty
+  description: Share of the population who are multidimensionally poor (National MPI).
+  unit: "%"
+  direction: lower_better
+  category: inclusion
+  pillar: inclusion
+  dataset: niti_mpi
+  frequency: irregular
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: sex-ratio-at-birth
+  name: Sex ratio at birth
+  description: Girls born per 1,000 boys (three-year SRS average).
+  unit: girls per 1,000 boys
+  direction: higher_better
+  category: inclusion
+  pillar: inclusion
+  dataset: rgi_srs
+  frequency: annual
+  decimals: 0
+  target: 950
+  caveat: The natural sex ratio at birth is about 950 girls per 1,000 boys, so values above that are not "better".
+  valid_min: 700
+  valid_max: 1100
+- id: female-lfpr
+  name: Female labour force participation
+  description: Share of women aged 15+ who are working or looking for work, current weekly status (PLFS).
+  unit: "%"
+  direction: higher_better
+  category: inclusion
+  pillar: inclusion
+  dataset: mospi_plfs_state
+  frequency: quarterly
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: women-bank-account
+  name: Women with a bank account they use
+  description: Share of women aged 15–49 who have a bank or savings account that they themselves use (NFHS).
+  unit: "%"
+  direction: higher_better
+  category: inclusion
+  pillar: inclusion
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: child-marriage
+  name: Child marriage
+  description: Share of women aged 20–24 who were married before age 18 (NFHS).
+  unit: "%"
+  direction: lower_better
+  category: inclusion
+  pillar: inclusion
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 0
+  valid_min: 0
+  valid_max: 100
+- id: consumption-gini
+  name: Consumption inequality (Gini)
+  description: Gini coefficient of monthly per-capita consumption expenditure (HCES); 0 is perfect equality.
+  unit: index (0–1)
+  direction: lower_better
+  category: inclusion
+  pillar: inclusion
+  dataset: mospi_hces
+  frequency: irregular
+  decimals: 3
+  valid_min: 0
+  valid_max: 1
