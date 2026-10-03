@@ -106,6 +106,67 @@ def _nfhs_factsheets(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(raw), nf.PDF_URL)
 
 
+def _ncrb_probe(today: date) -> str:
+    from unnati.connectors import ncrb
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient() as http:
+        return ncrb.fingerprint(ncrb.editions(http, today))
+
+
+def _ncrb_cii(today: date) -> Fetched:
+    from unnati.connectors import ncrb
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=300) as http:
+        found = ncrb.editions(http, today)
+        pdfs = ncrb.fetch(http, found)
+    observations, problems = ncrb.observations(pdfs, load_reference().resolver())
+    latest = found[-1]
+    return Fetched(observations, problems, ncrb.fingerprint(found), latest.volumes.get(1, ncrb.CKAN_PACKAGE))
+
+
+def _ncrb_adsi(today: date) -> Fetched:
+    from unnati.connectors import ncrb
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=120) as http:
+        tables = ncrb.adsi_tables(http, today)
+        pdfs = {year: http.get(resource["url"]).content for year, resource in tables.items()}
+    observations, problems = ncrb.adsi_observations(pdfs, load_reference().resolver())
+    raw = {year: hashlib.sha256(pdf).hexdigest() for year, pdf in pdfs.items()}
+    return Fetched(observations, problems, fingerprint_of(raw), tables[max(tables)]["url"])
+
+
+def _morth_road_accidents(today: date) -> Fetched:
+    from unnati.connectors import morth
+    from unnati.core.http import PoliteClient
+    from unnati.reference import population
+
+    with PoliteClient(timeout=120) as http:
+        edition, resource = morth.latest(http, today)
+        text = http.get(resource["url"]).text
+    observations, problems = morth.observations(text, edition, load_reference().resolver(), population())
+    return Fetched(observations, problems, fingerprint_of({"edition": edition, "csv": text}), resource["url"])
+
+
+def _population_projections(today: date) -> Fetched:
+    from unnati.connectors import population_projections as pp
+    from unnati.core.periods import calendar_year
+    from unnati.reference import population
+
+    # Projections run to 2036; only years up to now are loaded, so "latest" means this year.
+    rows = {key: value for key, value in population().items() if key[1] <= today.year}
+    observations = [
+        obs.Observation(
+            "population", slug, calendar_year(year), value.persons, note="Projected population as on 1 July"
+        )
+        for (slug, year), value in sorted(rows.items())
+    ]
+    raw = {f"{slug}:{year}": value.persons for (slug, year), value in rows.items()}
+    return Fetched(observations, [], fingerprint_of(raw), pp.REPORT_URL)  # changes each new year
+
+
 INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "mospi_nas_state": _mospi_nas_state,
     "mospi_plfs_state": _mospi_plfs_state,
@@ -114,6 +175,17 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "udise_plus": _udise_plus,
     "aishe": _aishe,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
+    "ncrb_cii": _ncrb_cii,
+    "ncrb_adsi": _ncrb_adsi,
+    "morth_road_accidents": _morth_road_accidents,
+    "population_projections": _population_projections,
+}
+
+# Cheap change checks for sources that are expensive to download: when the probe's fingerprint
+# matches the last load, the run stops before fetching. The ingester must report the same
+# fingerprint as its probe.
+PROBES: dict[str, Callable[[date], str]] = {
+    "ncrb_cii": _ncrb_probe,
 }
 
 
@@ -138,6 +210,12 @@ def run(
 ) -> IngestReport:
     run_id = start_run(conn, dataset_id, trigger)
     try:
+        if dataset_id in PROBES and not force:
+            probed = PROBES[dataset_id](today)
+            if probed == last_fingerprint(conn, dataset_id):
+                mark_checked(conn, dataset_id, probed, changed=False)
+                finish_run(conn, run_id, "unchanged", fingerprint=probed)
+                return IngestReport(dataset_id, Fetched([], [], probed, ""), obs.Validation(), "unchanged")
         report = check(dataset_id, today)
         details = {**report.validation.as_dict(), "problems": report.fetched.problems}
         if not report.validation.ok:

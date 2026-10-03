@@ -39,4 +39,9 @@ automatically. Monorepo: `pipeline/` (Python), `web/` (Next.js), `db/migrations/
   (sourced terms Wikidata lacks), then cross-checks current holders against Wikipedia's incumbent
   tables by Wikidata ID. Every curated entry needs an official source URL; check person QIDs
   aren't disambiguation pages. Never publish a party that the sources don't agree on.
+- Per-capita denominators come from `reference/population.csv` (MoHFW 1 July projections, the
+  ones NCRB uses), rebuilt with `uv run unnati population build`. Connectors with large
+  downloads register a cheap metadata probe in `ingest.PROBES` so unchanged runs skip the fetch.
+- NCRB/MoRTH files are read from OpenCity's CKAN mirror (`data.opencity.in`); ncrb.gov.in lists
+  files via JavaScript. Check that mirrored files are what their names say (2024 "Vol 3" is Vol 2).
 - Never commit secrets; configuration comes from env vars (see `.env.example`).

@@ -159,10 +159,10 @@ datasets:
   - id: population_projections
     source: mohfw
     title: Population projections for India and states, 2011–2036 (Technical Group report)
-    connector: manual
+    connector: population_projections
     cadence: irregular
-    landing_url: https://mohfw.gov.in
-    enabled: false
+    landing_url: https://nhm.gov.in/New_Updates_2018/Report_Population_Projection_2019.pdf
+    enabled: true
   - id: rbi_hsis
     source: rbi
     title: Handbook of Statistics on Indian States
@@ -210,22 +210,22 @@ datasets:
     title: Crime in India
     connector: ncrb
     cadence: annual
-    landing_url: https://www.ncrb.gov.in
-    enabled: false
+    landing_url: https://data.opencity.in/dataset/crime-in-india-2024
+    enabled: true
   - id: ncrb_adsi
     source: ncrb
     title: Accidental Deaths & Suicides in India
     connector: ncrb
     cadence: annual
-    landing_url: https://www.ncrb.gov.in
-    enabled: false
+    landing_url: https://data.opencity.in/dataset/accidental-deaths-and-suicides-in-india-2024
+    enabled: true
   - id: morth_road_accidents
     source: morth
     title: Road Accidents in India
     connector: morth
     cadence: annual
-    landing_url: https://morth.nic.in
-    enabled: false
+    landing_url: https://data.opencity.in/dataset/road-accidents-in-india-2024
+    enabled: true
   - id: rgi_srs
     source: rgi
     title: Sample Registration System — Statistical Report and bulletins

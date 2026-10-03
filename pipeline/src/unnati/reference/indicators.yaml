@@ -394,7 +394,7 @@
   dataset: ncrb_cii
   frequency: annual
   decimals: 1
-  caveat: Registered crime depends on how easily people can report it. A higher rate can reflect better reporting rather than more crime.
+  caveat: Registered crime depends on how easily people can report it. A higher rate can reflect better reporting rather than more crime. NCRB divides by the 2011 Census child population, so the rate drifts where the number of children has grown or fallen since then.
   valid_min: 0
 - id: cybercrime-rate
   name: Cybercrime rate

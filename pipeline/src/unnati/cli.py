@@ -12,6 +12,8 @@ from unnati.reference import load_reference
 app = typer.Typer(help="Unnati Index data pipeline.", no_args_is_help=True)
 officials_app = typer.Typer(help="Office-holders: politicians and bureaucrats.", no_args_is_help=True)
 app.add_typer(officials_app, name="officials")
+population_app = typer.Typer(help="Population denominators.", no_args_is_help=True)
+app.add_typer(population_app, name="population")
 
 
 @app.command()
@@ -162,6 +164,32 @@ def officials_observe(
     finally:
         conn.close()
     typer.echo("terms: " + ", ".join(f"{n} {k}" for k, n in counts.items()))
+
+
+@population_app.command("build")
+def population_build(
+    pdf: str = typer.Option(None, help="A local copy of the report; downloaded when omitted."),
+) -> None:
+    """Rebuild reference/population.csv from the MoHFW Technical Group report."""
+    import csv
+    from pathlib import Path
+
+    from unnati.connectors import population_projections as pp
+
+    if pdf:
+        raw = Path(pdf).read_bytes()
+    else:
+        from unnati.core.http import PoliteClient
+
+        with PoliteClient(timeout=300) as http:
+            raw = http.get(pp.REPORT_URL).content
+    rows = pp.rows(pp.parse(raw), load_reference().entities)
+    out = Path(__file__).parent / "reference" / "population.csv"
+    with out.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=list(rows[0]), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    typer.echo(f"wrote {len(rows)} rows to {out}")
 
 
 @app.command()

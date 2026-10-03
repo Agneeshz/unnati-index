@@ -5,6 +5,7 @@ database."""
 from __future__ import annotations
 
 import csv
+from dataclasses import dataclass
 from datetime import date
 from functools import cache
 from importlib.resources import files
@@ -200,6 +201,25 @@ class ReferenceData(_Model):
             (e.to_entity() for e in self.entities),
             (Alias(a.alias, a.entity_slug, a.period_from, a.period_to) for a in self.aliases),
         )
+
+
+@dataclass(frozen=True)
+class Population:
+    persons: int
+    male: int
+    female: int
+
+
+@cache
+def population() -> dict[tuple[str, int], Population]:
+    """Projected population as on 1 July of each year, 2011-2036 (MoHFW Technical Group, July
+    2020), keyed by (entity slug, year). Built from the report by `unnati population build`."""
+    return {
+        (row["entity_slug"], int(row["year"])): Population(
+            int(row["persons_000"]) * 1000, int(row["male_000"]) * 1000, int(row["female_000"]) * 1000
+        )
+        for row in _csv_rows("population.csv")
+    }
 
 
 @cache
