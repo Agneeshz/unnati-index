@@ -21,7 +21,9 @@ def raw(statement, position, person="Q1", name="Person One", start=None, end=Non
 
 
 def build(*raw_terms, memberships=()):
-    return wd.build_terms(raw_terms, memberships, MAPPINGS, ENTITIES, TODAY)
+    result = wd.build_terms(raw_terms, memberships, MAPPINGS, ENTITIES, TODAY)
+    wd.flag_overlaps(result.terms, TODAY)
+    return result
 
 
 # --- the position map --------------------------------------------------------------------------

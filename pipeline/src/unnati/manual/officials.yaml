@@ -1,0 +1,216 @@
+# Office-holder terms that Wikidata does not have yet: recent appointments and missing history.
+# Each needs the person's Wikidata ID (so the entry retires itself once Wikidata catches up:
+# the sync reports "Wikidata now has ..."), a start date and an official source.
+#
+# - entity: kerala                 # entity slug
+#   office: chief_minister         # chief_minister | governor | lieutenant_governor | administrator
+#   person: V. D. Satheesan
+#   wikidata: Q6956446
+#   start: 2026-05-18
+#   end: 2027-01-01                # omit while in office
+#   party: Q10225                  # chief ministers only
+#   party_label: Indian National Congress
+#   additional_charge: true        # governors holding a second state temporarily
+#   source_url: https://...
+#   note: optional
+#
+# Verified 2026-10-03. Appointment dates come from the cited source; dates of assuming charge
+# not stated there were checked against Wikipedia's office-holder lists.
+
+# --- Chief Ministers -----------------------------------------------------------------------------
+
+- entity: kerala
+  office: chief_minister
+  person: V. D. Satheesan
+  wikidata: Q6956446
+  start: 2026-05-18
+  party: Q10225
+  party_label: Indian National Congress
+  source_url: https://newsonair.gov.in/congress-leader-v-d-satheesan-takes-oath-as-keralam-cm-along-with-20-cabinet-ministers/
+
+- entity: karnataka
+  office: chief_minister
+  person: D. K. Shivakumar
+  wikidata: Q17089931
+  start: 2026-06-03
+  party: Q10225
+  party_label: Indian National Congress
+  source_url: https://newsonair.gov.in/d-k-shivakumar-sworn-in-as-karnataka-chief-minister/
+
+# --- Governors -----------------------------------------------------------------------------------
+
+- entity: odisha
+  office: governor
+  person: Kambhampati Hari Babu
+  wikidata: Q16897892
+  start: 2025-01-03
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-5-states
+
+- entity: mizoram
+  office: governor
+  person: V. K. Singh
+  wikidata: Q7929176
+  start: 2025-01-16
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-5-states
+
+- entity: manipur
+  office: governor
+  person: Ajay Kumar Bhalla
+  wikidata: Q84214668
+  start: 2025-01-03
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-5-states
+
+- entity: goa
+  office: governor
+  person: Pusapati Ashok Gajapathi Raju
+  wikidata: Q16887749
+  start: 2025-07-26
+  source_url: https://presidentofindia.nic.in/press_releases/press-communique-27
+
+- entity: haryana
+  office: governor
+  person: Ashim Kumar Ghosh
+  wikidata: Q135317452
+  start: 2025-07-21
+  source_url: https://presidentofindia.nic.in/press_releases/press-communique-27
+
+- entity: maharashtra
+  office: governor
+  person: C. P. Radhakrishnan
+  wikidata: Q15472832
+  start: 2024-07-31
+  end: 2025-09-11
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-multiple-states
+  note: Left office on election as Vice-President.
+
+- entity: maharashtra
+  office: governor
+  person: Acharya Devvrat
+  wikidata: Q20781437
+  start: 2025-09-15
+  end: 2026-03-09
+  additional_charge: true
+  source_url: https://en.wikipedia.org/wiki/List_of_governors_of_Maharashtra
+
+- entity: maharashtra
+  office: governor
+  person: Jishnu Dev Varma
+  wikidata: Q50385022
+  start: 2026-03-10
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+- entity: nagaland
+  office: governor
+  person: Ajay Kumar Bhalla
+  wikidata: Q84214668
+  start: 2025-08-25
+  end: 2026-03-13
+  additional_charge: true
+  source_url: https://en.wikipedia.org/wiki/List_of_governors_of_Nagaland
+
+- entity: nagaland
+  office: governor
+  person: Nand Kishore Yadav
+  wikidata: Q6963115
+  start: 2026-03-13
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+- entity: bihar
+  office: governor
+  person: Syed Ata Hasnain
+  wikidata: Q7660309
+  start: 2026-03-14
+  source_url: https://www.etvbharat.com/en/state/lieutenant-general-syed-ata-hasnain-takes-oath-as-bihar-governor-enn26031401666
+
+- entity: himachal-pradesh
+  office: governor
+  person: Kavinder Gupta
+  wikidata: Q19542594
+  start: 2026-03-10
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+- entity: telangana
+  office: governor
+  person: Shiv Pratap Shukla
+  wikidata: Q7499213
+  start: 2026-03-11
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+- entity: west-bengal
+  office: governor
+  person: R. N. Ravi
+  wikidata: Q67179816
+  start: 2026-03-12
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+- entity: tamil-nadu
+  office: governor
+  person: Rajendra Arlekar
+  wikidata: Q15960598
+  start: 2026-03-12
+  additional_charge: true
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+# --- Lieutenant Governors and Administrators -----------------------------------------------------
+
+- entity: chandigarh
+  office: administrator
+  person: Gulab Chand Kataria
+  wikidata: Q5617192
+  start: 2024-07-31
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-multiple-states
+
+- entity: puducherry
+  office: lieutenant_governor
+  person: C. P. Radhakrishnan
+  wikidata: Q15472832
+  start: 2024-03-20
+  end: 2024-08-06
+  additional_charge: true
+  source_url: https://newsonair.gov.in/c-p-radhakrishnan-assumes-charge-of-lt-governor-of-puducherry/
+
+- entity: puducherry
+  office: lieutenant_governor
+  person: Kuniyil Kailashnathan
+  wikidata: Q17180691
+  start: 2024-08-07
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-multiple-states
+
+- entity: ladakh
+  office: lieutenant_governor
+  person: B. D. Mishra
+  wikidata: Q41694037
+  start: 2023-02-16
+  end: 2025-07-18
+  source_url: https://presidentofindia.nic.in/press_releases/press-communique-27
+  note: Resignation accepted in July 2025.
+
+- entity: ladakh
+  office: lieutenant_governor
+  person: Kavinder Gupta
+  wikidata: Q19542594
+  start: 2025-07-18
+  end: 2026-03-09
+  source_url: https://presidentofindia.nic.in/press_releases/press-communique-27
+  note: Moved to Himachal Pradesh (assumed charge 10 March 2026).
+
+- entity: ladakh
+  office: lieutenant_governor
+  person: Vinai Kumar Saxena
+  wikidata: Q112117305
+  start: 2026-03-13
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+- entity: delhi
+  office: lieutenant_governor
+  person: Taranjit Singh Sandhu
+  wikidata: Q76849931
+  start: 2026-03-11
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+
+- entity: andaman-and-nicobar-islands
+  office: lieutenant_governor
+  person: Dinesh Sharma
+  wikidata: Q5278101
+  start: 2026-09-15
+  source_url: https://newsonair.gov.in/president-murmu-appoints-dr-dinesh-sharma-as-lg-of-andaman-and-nicobar-islands/

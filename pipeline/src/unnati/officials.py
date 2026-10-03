@@ -1,8 +1,8 @@
 """Load office-holders into the database (people, parties, offices, terms).
 
 Idempotent: people are keyed by Wikidata QID, offices by (entity, type, title) and terms by
-external id. Wikidata terms that disappear upstream (corrected or deleted statements) are
-removed; curated terms are never touched by a Wikidata sync.
+external id. Terms that disappear from their source (a corrected Wikidata statement, a curated
+entry retired from manual/officials.yaml) are removed.
 
 Each table is written with one set-based statement (arrays passed through ``unnest``), so a sync
 costs a handful of round trips however many terms it carries."""
@@ -62,17 +62,19 @@ _INSERT_OFFICE_CATEGORIES = """
 _UPSERT_TERMS = """
     insert into office_term (office_id, person_id, start_date, end_date, party_id, source_type,
                              source_url, verified_at, external_id, needs_review, review_note)
-    select t.office_id, t.person_id, t.start_date, t.end_date, t.party_id, 'wikidata',
+    select t.office_id, t.person_id, t.start_date, t.end_date, t.party_id, t.source_type,
            t.source_url, :verified, t.external_id, t.needs_review, t.review_note
     from unnest(cast(:offices as int[]), cast(:people as int[]), cast(:starts as date[]),
-                cast(:ends as date[]), cast(:parties as text[]), cast(:urls as text[]),
-                cast(:ids as text[]), cast(:review as boolean[]), cast(:notes as text[]))
-         as t(office_id, person_id, start_date, end_date, party_id, source_url, external_id,
-              needs_review, review_note)
+                cast(:ends as date[]), cast(:parties as text[]), cast(:sources as text[]),
+                cast(:urls as text[]), cast(:ids as text[]), cast(:review as boolean[]),
+                cast(:notes as text[]))
+         as t(office_id, person_id, start_date, end_date, party_id, source_type, source_url,
+              external_id, needs_review, review_note)
     on conflict (external_id) where external_id is not null do update set
         office_id = excluded.office_id, person_id = excluded.person_id,
         start_date = excluded.start_date, end_date = excluded.end_date,
-        party_id = excluded.party_id, source_url = excluded.source_url,
+        party_id = excluded.party_id, source_type = excluded.source_type,
+        source_url = excluded.source_url,
         verified_at = excluded.verified_at, needs_review = excluded.needs_review,
         review_note = excluded.review_note
 """
@@ -80,7 +82,8 @@ _UPSERT_TERMS = """
 _REMOVE_VANISHED = """
     with gone as (
         delete from office_term
-        where source_type = 'wikidata' and not (external_id = any(cast(:ids as text[])))
+        where source_type in ('wikidata', 'curated')
+          and not (external_id = any(cast(:ids as text[])))
         returning 1)
     select count(*) from gone
 """
@@ -145,6 +148,7 @@ def load_wikidata_terms(
             starts=[t.start for t in terms],
             ends=[t.end for t in terms],
             parties=[t.party_qid for t in terms],
+            sources=[t.source_type for t in terms],
             urls=[t.source_url for t in terms],
             ids=[t.external_id for t in terms],
             review=[t.needs_review for t in terms],

@@ -33,4 +33,9 @@ automatically. Monorepo: `pipeline/` (Python), `web/` (Next.js), `db/migrations/
 - Ranked indicators must be rates/shares/per-person values. Office-holders are always tied to the
   data period. Never add party-vs-party rankings.
 - Source URLs in the registry must be verified before a connector is enabled.
+- Office-holders: `uv run unnati officials sync [--dry-run]` imports from Wikidata, applies
+  `manual/officials_overrides.yaml` (fixes to Wikidata terms) and `manual/officials.yaml`
+  (sourced terms Wikidata lacks), then cross-checks current holders against Wikipedia's incumbent
+  tables by Wikidata ID. Every curated entry needs an official source URL; check person QIDs
+  aren't disambiguation pages. Never publish a party that the sources don't agree on.
 - Never commit secrets; configuration comes from env vars (see `.env.example`).

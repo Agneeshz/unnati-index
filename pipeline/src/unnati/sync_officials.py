@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from unnati.connectors import wikidata_officials as wd
+from unnati.connectors import wikipedia_incumbents as wp
 from unnati.core.http import PoliteClient
 from unnati.core.wikidata import SPARQL_ENDPOINT
 from unnati.db import Connection, scalar
@@ -35,14 +36,23 @@ class SyncReport:
         return [t for t in self.terms if t.needs_review]
 
 
-def build(http: PoliteClient, today: date) -> SyncReport:
+def build(http: PoliteClient, today: date, cross_check: bool = True) -> SyncReport:
     ref = load_reference()
     entities = {e.slug: e.to_entity() for e in ref.entities}
     mappings = wd.load_position_map()
     raw_terms, memberships = wd.fetch(http, mappings)
     result = wd.build_terms(raw_terms, memberships, mappings, entities, today)
     unused = wd.apply_overrides(result.terms, wd.load_overrides())
-    return SyncReport(result.terms, result.problems, unused)
+    terms, merge_notes = wd.merge_curated(result.terms, wd.curated_terms(wd.load_curated(), mappings))
+    problems = result.problems + merge_notes
+    if cross_check:
+        try:
+            incumbents, qids = wp.fetch(http)
+            problems += wp.cross_check(terms, incumbents, qids, ref.resolver(), today)
+        except Exception as err:  # the cross-check is a safety net, not a dependency
+            problems.append(f"Wikipedia cross-check failed: {err}")
+    wd.flag_overlaps(terms, today)
+    return SyncReport(terms, problems, unused)
 
 
 def load(

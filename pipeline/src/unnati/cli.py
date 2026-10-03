@@ -59,6 +59,7 @@ def officials_sync(
     ),
 ) -> None:
     """Import Chief Ministers, Governors, Lieutenant Governors and Administrators from Wikidata."""
+    from unnati.connectors.wikidata_officials import PARTY_OFFICES
     from unnati.core.http import PoliteClient
     from unnati.sync_officials import build, load
 
@@ -86,12 +87,19 @@ def officials_sync(
         end = t.end or "now"
         typer.echo(f"  - {t.entity_slug} | {t.title} | {t.person_name} ({t.start} to {end})")
         typer.echo(f"    id: {t.external_id}")
-        for note in t.notes:
+        for note in t.conflicts + t.notes:
             typer.echo(f"    * {note}")
-    blank_party = [t for t in report.terms if t.advisories and not t.needs_review]
+    confirmed = [t for t in report.terms if any(a.startswith("confirmed current") for a in t.advisories)]
+    typer.echo(f"current office-holders confirmed by the Wikipedia cross-check: {len(confirmed)}")
+    blank_party = [
+        t
+        for t in report.terms
+        if t.party_qid is None and t.office_type in PARTY_OFFICES and not t.needs_review
+    ]
     typer.echo(f"shown with party left blank (sources unclear): {len(blank_party)}")
     for t in sorted(blank_party, key=lambda t: (t.entity_slug, t.start)):
-        typer.echo(f"  - {t.entity_slug} | {t.person_name} ({t.start}): {'; '.join(t.advisories)}")
+        reasons = [a for a in t.advisories if "part" in a] or ["no party recorded"]
+        typer.echo(f"  - {t.entity_slug} | {t.person_name} ({t.start}): {'; '.join(reasons)}")
     for problem in report.problems:
         typer.echo(f"problem: {problem}")
     for key in report.unused_overrides:

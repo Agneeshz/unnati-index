@@ -118,19 +118,23 @@ class Term:
     party_qid: str | None = None
     party_label: str | None = None
     source_url: str = ""
+    source_type: str = "wikidata"
     # Problems with who held the office or when: the term is hidden until reviewed.
     notes: list[str] = field(default_factory=list)
+    # Disagreement with an independent source about who holds the office now. Always hides
+    # the term: a maintainer's earlier "reviewed" cannot outlive a change of office-holder.
+    conflicts: list[str] = field(default_factory=list)
     # Problems that only blank out a detail (an unverified party is never shown); still shown.
     advisories: list[str] = field(default_factory=list)
     reviewed: bool = False
 
     @property
     def needs_review(self) -> bool:
-        return bool(self.notes) and not self.reviewed
+        return bool(self.conflicts) or (bool(self.notes) and not self.reviewed)
 
     @property
     def review_note(self) -> str | None:
-        return "; ".join(self.notes + self.advisories) or None
+        return "; ".join(self.conflicts + self.notes + self.advisories) or None
 
 
 @dataclass
@@ -306,14 +310,17 @@ def build_terms(
                 if problem:  # the party stays blank; the person and tenure are still shown
                     term.advisories.append(problem)
             if term.end is None and today - term.start > STALE_AFTER:
-                term.notes.append(f"in office since {term.start} with no end date; possibly out of date")
+                term.notes.append(STALE_NOTE.format(start=term.start))
             terms.append(term)
 
-    _flag_overlaps(terms, today)
     return BuildResult(terms, problems)
 
 
-def _flag_overlaps(terms: list[Term], today: date) -> None:
+STALE_NOTE = "in office since {start} with no end date; possibly out of date"
+
+
+def flag_overlaps(terms: list[Term], today: date) -> None:
+    """Run last, after overrides, curated terms and cross-checks have settled the dates."""
     by_office: dict[tuple[str, str], list[Term]] = defaultdict(list)
     for t in terms:
         by_office[(t.entity_slug, t.office_type)].append(t)
@@ -339,14 +346,84 @@ def apply_overrides(terms: list[Term], overrides: Mapping[str, Mapping]) -> list
         if "party" in override:
             term.party_qid = override["party"]
             term.party_label = override.get("party_label", term.party_label)
+            term.advisories = [a for a in term.advisories if "part" not in a]
+        if "person_name" in override:  # e.g. a vandalised or mislabelled Wikidata item
+            term.person_name = override["person_name"]
+            term.notes = [n for n in term.notes if n != "no English name in Wikidata"]
         for attr in ("start", "end"):
             if attr in override:
                 setattr(term, attr, override[attr])
+        if term.end is not None:  # an end date settles the "possibly out of date" question
+            term.notes = [n for n in term.notes if not n.endswith("possibly out of date")]
         term.source_url = override["source_url"]
         term.reviewed = bool(override.get("reviewed", False))
         if note := override.get("note"):
-            term.notes.append(f"maintainer: {note}")
+            term.advisories.append(f"maintainer: {note}")
     return unused
+
+
+def load_curated() -> list[dict]:
+    resource = files("unnati.manual").joinpath("officials.yaml")
+    with resource.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or []
+
+
+def curated_terms(entries: Iterable[Mapping], mappings: Iterable[PositionMapping]) -> list[Term]:
+    """Officially sourced terms that Wikidata lacks (recent appointments, missing history)."""
+    titles = {(m.entity_slug, m.office_type): m.title for m in mappings}
+    terms = []
+    for entry in entries:
+        key = (entry["entity"], entry["office"])
+        if key not in titles:
+            raise ValueError(f"curated term for unknown office {key}")
+        for required in ("person", "wikidata", "start", "source_url"):
+            if not entry.get(required):
+                raise ValueError(f"curated term {entry.get('person', key)} needs {required!r}")
+        term = Term(
+            external_id=f"curated:{entry['entity']}:{entry['office']}:{entry['wikidata']}:{entry['start']}",
+            entity_slug=entry["entity"],
+            office_type=entry["office"],
+            title=titles[key],
+            person_qid=entry["wikidata"],
+            person_name=entry["person"],
+            person_name_hi=entry.get("person_hi"),
+            start=entry["start"],
+            end=entry.get("end"),
+            party_qid=entry.get("party") if entry["office"] in PARTY_OFFICES else None,
+            party_label=entry.get("party_label") if entry["office"] in PARTY_OFFICES else None,
+            source_url=entry["source_url"],
+            source_type="curated",
+            reviewed=True,
+        )
+        if entry.get("additional_charge"):
+            term.advisories.append("additional charge")
+        if note := entry.get("note"):
+            term.advisories.append(f"maintainer: {note}")
+        terms.append(term)
+    return terms
+
+
+def merge_curated(terms: list[Term], curated: list[Term]) -> tuple[list[Term], list[str]]:
+    """Curated terms win over Wikidata duplicates (same office, person and start within 15 days),
+    and say so, so that the curated entry can be retired once Wikidata has caught up."""
+    notes = []
+    kept = []
+    for t in terms:
+        twin = next(
+            (
+                c
+                for c in curated
+                if (c.entity_slug, c.office_type, c.person_qid)
+                == (t.entity_slug, t.office_type, t.person_qid)
+                and abs((c.start - t.start).days) <= 15
+            ),
+            None,
+        )
+        if twin:
+            notes.append(f"Wikidata now has {twin.external_id}; the curated entry can be retired")
+        else:
+            kept.append(t)
+    return kept + curated, notes
 
 
 def categories_for(

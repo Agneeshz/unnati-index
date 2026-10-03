@@ -1,15 +1,206 @@
 # Maintainer decisions for office-holder terms imported from Wikidata.
 #
 # `uv run unnati officials sync --dry-run` lists every term held for review with its id.
-# Settle one here, citing an official source (a gazette notification, the state government's
-# website, the Election Commission). Every entry needs `source_url`; the rest is optional:
+# Settle one here, citing an official source (a President's Secretariat communique, All India
+# Radio, a gazette notification, the state government's website). Every entry needs
+# `source_url`; the rest is optional:
 #
 # "wikidata:<statement-id>:<entity-slug>":
-#   party: Q1061              # Wikidata QID of the correct party (elected offices only)
+#   party: Q234277            # Wikidata QID of the correct party (elected offices only)
 #   party_label: Communist Party of India (Marxist)
+#   person_name: Ramesh Bais  # fixes a missing or vandalised Wikidata label
 #   start: 2021-05-20
-#   end: 2026-05-18
+#   end: 2026-05-18           # setting an end date settles "possibly out of date"
 #   source_url: https://...
 #   note: why this decision was made
-#   reviewed: true            # publish the term; leave false to keep it hidden
-{}
+#   reviewed: true            # clears remaining review notes; leave out to keep them
+#
+# New office-holders that Wikidata does not have yet go in officials.yaml instead.
+# Verified 2026-10-03.
+
+# --- Chief Ministers -----------------------------------------------------------------------------
+
+"wikidata:Q3595385-980e2388-4515-09de-5192-afafe744a627:kerala":
+  end: 2026-05-18
+  party: Q234277
+  party_label: Communist Party of India (Marxist)
+  source_url: https://newsonair.gov.in/congress-leader-v-d-satheesan-takes-oath-as-keralam-cm-along-with-20-cabinet-ministers/
+  note: Succeeded by V. D. Satheesan on 18 May 2026. Wikidata's term qualifier wrongly says CPI (Marxist-Leninist).
+
+"wikidata:Q7508046-6ff44e22-40a3-49af-e987-a3ed1334b5f1:karnataka":
+  end: 2026-06-03
+  source_url: https://newsonair.gov.in/d-k-shivakumar-sworn-in-as-karnataka-chief-minister/
+  note: Succeeded by D. K. Shivakumar on 3 June 2026.
+
+"wikidata:Q7161834-c46f89c8-43e1-9e85-b1c0-100e46e39574:arunachal-pradesh":
+  party: Q10230
+  party_label: Bharatiya Janata Party
+  source_url: https://en.wikipedia.org/wiki/Chief_minister_(India)
+  note: Wikidata gives his former party (INC); he has led a BJP government since December 2016.
+
+"wikidata:Q5162596-24e63bc2-4b16-a040-2110-bf55e24253e0:meghalaya":
+  party: Q6974870
+  party_label: National People's Party
+  source_url: https://en.wikipedia.org/wiki/Chief_minister_(India)
+
+"wikidata:Q23879743-E378B2FB-AA15-48B9-AFE6-A3EB15DA6DA5:sikkim":
+  party: Q4801137
+  party_label: Sikkim Krantikari Morcha
+  source_url: https://en.wikipedia.org/wiki/Chief_minister_(India)
+
+# --- Governors, Lieutenant Governors, Administrators ---------------------------------------------
+
+# December 2024 appointments (Odisha, Mizoram, Manipur, Kerala, Bihar)
+"wikidata:Q7282990-947718ea-4d20-235f-ea57-dbbed0e294cc:odisha":
+  end: 2024-12-24
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-5-states
+  note: Resignation accepted by the President on 24 December 2024.
+
+"wikidata:Q16897892-4D5F3B1B-B0CB-476F-959E-8FA429D9A211:mizoram":
+  end: 2025-01-02
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-5-states
+  note: Moved to Odisha (assumed charge 3 January 2025).
+
+"wikidata:Q28794126-0908dd3c-42e3-bf05-17ce-889738a605de:manipur":
+  end: 2025-01-03
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-5-states
+  note: Additional charge of Manipur ended when Ajay Kumar Bhalla assumed office.
+
+# July 2024 appointments (Punjab and Chandigarh, Puducherry, Maharashtra, Telangana and others)
+"wikidata:Q4857338-2AAEC877-6AF7-43F6-86D8-801943A7B7A3:chandigarh":
+  end: 2024-07-30
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-multiple-states
+  note: Gulab Chand Kataria became Governor of Punjab and Administrator of Chandigarh.
+
+"wikidata:Q17198781-6F22C6BA-4D60-4AC6-A68B-284BB16AE2AB:puducherry":
+  end: 2024-03-18
+  source_url: https://newsonair.gov.in/c-p-radhakrishnan-assumes-charge-of-lt-governor-of-puducherry/
+  note: Resigned on 18 March 2024 to contest the Lok Sabha election.
+
+"wikidata:Q7289378-d06ec18b-4062-17af-ba4a-eff83f2d2779:maharashtra":
+  person_name: Ramesh Bais
+  end: 2024-07-30
+  source_url: https://www.newsonair.gov.in/president-droupadi-murmu-appoints-new-governors-in-multiple-states
+  note: The Wikidata item (Q7289378, Ramesh Bais) carries a wrong label. C. P. Radhakrishnan succeeded him on 31 July 2024.
+
+# July 2025 appointments (Goa, Haryana, Ladakh)
+"wikidata:Q6815509-03F479F9-2725-415D-AABE-7CD2BD1E1656:goa":
+  end: 2025-07-26
+  source_url: https://presidentofindia.nic.in/press_releases/press-communique-27
+  note: Succeeded by Pusapati Ashok Gajapathi Raju.
+
+"wikidata:Q4854461-676BD174-C829-4B9A-91EF-2AA14CF691F7:haryana":
+  end: 2025-07-21
+  source_url: https://presidentofindia.nic.in/press_releases/press-communique-27
+  note: Succeeded by Ashim Kumar Ghosh.
+
+"wikidata:Q6462710-021af435-4161-8b60-f7dc-ad127204bb2f:nagaland":
+  end: 2025-08-15
+  source_url: https://en.wikipedia.org/wiki/List_of_governors_of_Nagaland
+  note: Died in office on 15 August 2025.
+
+# March 2026 reshuffle (nine states and UTs)
+"wikidata:Q4790546-fb4ec1f9-4d34-f276-a13d-dda001c85cab:bihar":
+  end: 2026-03-14
+  source_url: https://www.etvbharat.com/en/state/lieutenant-general-syed-ata-hasnain-takes-oath-as-bihar-governor-enn26031401666
+  note: Succeeded by Syed Ata Hasnain.
+
+"wikidata:Q7499213-a5dd5b8b-4a6b-158e-4684-a558e6000dbc:himachal-pradesh":
+  end: 2026-03-10
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+  note: Moved to Telangana.
+
+"wikidata:Q67179816-78BF44D8-3F82-48E8-829E-BE60518EA890:tamil-nadu":
+  end: 2026-03-12
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+  note: Moved to West Bengal.
+
+"wikidata:Q50385022-98d7e240-4467-9398-d78a-9844b9011412:telangana":
+  end: 2026-03-10
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+  note: Moved to Maharashtra.
+
+"wikidata:Q5015116-C1FF89C7-F00F-4A12-A1F7-1092B9576BB3:west-bengal":
+  end: 2026-03-12
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+  note: Resignation accepted; succeeded by R. N. Ravi.
+
+"wikidata:Q112117305-992E3BC8-131F-406D-8F0F-181475ADADF5:delhi":
+  end: 2026-03-11
+  source_url: https://www.etvbharat.com/amp/en/bharat/president-murmu-appoints-nine-new-governors-enn26030507166
+  note: Moved to Ladakh; succeeded by Taranjit Singh Sandhu.
+
+# September 2026
+"wikidata:Q5266858-7F9B6BE3-82DA-4D44-ACE9-D86E5DA07A66:andaman-and-nicobar-islands":
+  end: 2026-09-15
+  source_url: https://newsonair.gov.in/president-murmu-appoints-dr-dinesh-sharma-as-lg-of-andaman-and-nicobar-islands/
+  note: Succeeded by Dinesh Sharma, who assumed charge on 15 September 2026.
+
+# --- Parties of chief ministers since 2015 that Wikidata records ambiguously -------------------
+# (people with several undated party memberships). Neiphiu Rio (Nagaland, 2018-) stays blank:
+# his term began under the NDPP, which merged into the NPF in 2025, so no single party is true.
+
+"wikidata:Q112191581-AFC7E67A-5339-48E8-9287-F392E56270C2:himachal-pradesh":
+  party: Q10225
+  party_label: Indian National Congress
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Himachal_Pradesh
+
+"wikidata:Q16910976-c5b407ed-4e38-1989-c8e4-9995fb4271b5:bihar":
+  party: Q904827
+  party_label: Janata Dal (United)
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Bihar
+
+"wikidata:Q33168-2D97F2E7-1909-400A-A91C-B51D8A784734:telangana":
+  party: Q3518390
+  party_label: Bharat Rashtra Samithi
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Telangana
+
+"wikidata:Q3518013-3A42BAEA-E479-4227-AAF1-59D9A3D7F041:andhra-pradesh":
+  party: Q2279320
+  party_label: Telugu Desam Party
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Andhra_Pradesh
+
+"wikidata:Q3518013-dd999e24-4507-09eb-7ac5-429d912e886f:andhra-pradesh":
+  party: Q2279320
+  party_label: Telugu Desam Party
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Andhra_Pradesh
+
+"wikidata:Q3633236-91cf8840-4f13-a5d7-d236-a2d60e44cc0f:punjab":
+  party: Q10225
+  party_label: Indian National Congress
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Punjab,_India
+
+"wikidata:Q599267-34BE6E99-4D5C-4E0F-B609-8E844DF875AE:puducherry":
+  party: Q1166149
+  party_label: All India N.R. Congress
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Puducherry
+
+"wikidata:Q599267-92ca111b-49cb-b9e3-edc1-f0f2831fae69:puducherry":
+  party: Q1166149
+  party_label: All India N.R. Congress
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Puducherry
+
+"wikidata:Q6095720-F134A98C-2F26-458F-A308-1A0E9CCEAA09:jammu-and-kashmir-state":
+  party: Q3781724
+  party_label: Jammu and Kashmir Peoples Democratic Party
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Jammu_and_Kashmir
+
+"wikidata:Q6809265-12dd03ba-4964-3d92-257f-820e9983b62e:jammu-and-kashmir-state":
+  party: Q3781724
+  party_label: Jammu and Kashmir Peoples Democratic Party
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Jammu_and_Kashmir
+
+"wikidata:Q7049407-a6252f2f-4f1d-ad87-26b4-67795232c184:manipur":
+  party: Q10230
+  party_label: Bharatiya Janata Party
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Manipur
+
+"wikidata:Q7503817-C3CE3B7D-31CF-46A4-B03B-9A526F3E89B7:mizoram":
+  party: Q60763483
+  party_label: Zoram People's Movement
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_Mizoram
+
+"wikidata:Q7650495-88dd9611-4e87-653c-7447-0f78005f08ff:west-bengal":
+  party: Q10230
+  party_label: Bharatiya Janata Party
+  source_url: https://en.wikipedia.org/wiki/List_of_chief_ministers_of_West_Bengal
