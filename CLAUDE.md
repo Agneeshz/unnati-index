@@ -7,7 +7,8 @@ automatically. Monorepo: `pipeline/` (Python), `web/` (Next.js), `db/migrations/
 
 - Repo root: `npm install`, `npm run db:check` (migrations up/down/up on PGlite),
   `npm run db:local` + `npm run db:migrate:local` (PGlite server :5432), `npm run geo:build`.
-- Neon (hosted DB): the repo is linked with `neon link` (`.neon`, git-ignored); connection vars
+- Neon (hosted DB) runs in aws-ap-southeast-1 (Singapore, nearest to India); deploy Vercel
+  functions to `sin1` when the site reads the DB. The repo is linked with `neon link` (`.neon`, git-ignored); connection vars
   are in `.env.local`. `npm run db:migrate` uses `DATABASE_URL_UNPOOLED`; the pipeline prefers it
   too (`uv run --env-file ../.env.local unnati seed`). `neon.ts` is the Neon config-as-code
   policy (Postgres only, `neon deploy`). Neon agent skill: `neon skills -s neon --agent claude-code -y`
