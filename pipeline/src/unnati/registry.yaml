@@ -333,11 +333,11 @@ datasets:
     enabled: false
   - id: trai_subscriptions
     source: trai
-    title: Telecom subscription data
+    title: Telecom subscription data (quarterly Performance Indicators Report)
     connector: trai
-    cadence: monthly
-    landing_url: https://www.trai.gov.in
-    enabled: false
+    cadence: quarterly
+    landing_url: https://www.trai.gov.in/release-publication/reports/performance-indicators-reports
+    enabled: true
   - id: njdg_pendency
     source: doj
     title: District court pendency (National Judicial Data Grid)
@@ -348,10 +348,10 @@ datasets:
   - id: bprd_dopo
     source: bprd
     title: Data on Police Organisations
-    connector: manual
+    connector: bprd
     cadence: annual
-    landing_url: https://bprd.nic.in
-    enabled: false
+    landing_url: https://bprd.nic.in/page/data_on_police_organization_dopo
+    enabled: true
   - id: jjm_tap_water
     source: jalshakti
     title: Jal Jeevan Mission — household tap connections

@@ -12,6 +12,8 @@ from unnati.reference import load_reference
 app = typer.Typer(help="Unnati Index data pipeline.", no_args_is_help=True)
 officials_app = typer.Typer(help="Office-holders: politicians and bureaucrats.", no_args_is_help=True)
 app.add_typer(officials_app, name="officials")
+manual_app = typer.Typer(help="Sources that need a manual download.", no_args_is_help=True)
+app.add_typer(manual_app, name="manual")
 population_app = typer.Typer(help="Population denominators.", no_args_is_help=True)
 app.add_typer(population_app, name="population")
 
@@ -164,6 +166,30 @@ def officials_observe(
     finally:
         conn.close()
     typer.echo("terms: " + ", ".join(f"{n} {k}" for k, n in counts.items()))
+
+
+@manual_app.command("rbi-links")
+def manual_rbi_links() -> None:
+    """Print the RBI handbook files to download, and which are already in the repo."""
+    from unnati.connectors import rbi_hsis
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient() as http:
+        edition, listed = rbi_hsis.index(http)
+    have = rbi_hsis.local_files(edition)
+    folder = rbi_hsis.MANUAL_DIR / edition
+    typer.echo(f"Edition {edition}. Save into: {folder}")
+    by_number = {t.number: t for t in listed}
+    missing = 0
+    for number, expected in rbi_hsis.TABLES.items():
+        table = by_number.get(number)
+        if table is None or expected.lower() not in table.title.lower():
+            typer.echo(f"  table {number}: '{expected}' not found at this number; check the index page")
+            continue
+        status = "have" if number in have else "GET "
+        missing += number not in have
+        typer.echo(f"  [{status}] {table.title}\n         {table.url}")
+    typer.echo(f"{missing} file(s) to download.")
 
 
 @population_app.command("build")

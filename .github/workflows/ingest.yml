@@ -41,6 +41,8 @@ jobs:
           - rgi_srs
           - rgi_srs_mmr
           - rgi_srs_life_tables
+          - trai_subscriptions
+          - bprd_dopo
     defaults:
       run:
         working-directory: pipeline

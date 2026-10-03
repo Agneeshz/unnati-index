@@ -347,7 +347,8 @@
   dataset: bprd_dopo
   frequency: annual
   decimals: 1
-  valid_min: 0
+  caveat: State police only (civil, district armed reserve, armed police and IRB), as on 1 January. Below zero means more personnel than sanctioned posts.
+  valid_min: -100
   valid_max: 100
 
 # --- Crime & safety -------------------------------------------------------------------------
@@ -763,9 +764,9 @@
   category: digital
   pillar: infrastructure-digital
   dataset: trai_subscriptions
-  frequency: monthly
+  frequency: quarterly
   decimals: 1
-  caveat: TRAI reports by telecom circle. Circles covering several states (e.g. North East) are not split, and metro circles are merged into their states.
+  caveat: Counts subscriptions (one person can have several) where they are registered, so states with many visitors and migrant workers, such as Delhi and Goa, read high.
   valid_min: 0
 
 # --- Environment ----------------------------------------------------------------------------

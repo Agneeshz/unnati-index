@@ -192,6 +192,45 @@ _srs_mmr_probe, _srs_mmr = _srs_bulletin("MMR")
 _srs_life_probe, _srs_life = _srs_bulletin("LIFE")
 
 
+def _trai_probe(today: date) -> str:
+    from unnati.connectors import trai
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient() as http:
+        return trai.fingerprint(trai.report_urls(http))
+
+
+def _trai_subscriptions(today: date) -> Fetched:
+    from unnati.connectors import trai
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=300) as http:
+        urls = trai.report_urls(http)
+        pdfs = [http.get(url).content for url in urls]
+    observations, problems = trai.observations(pdfs, load_reference().resolver())
+    return Fetched(observations, problems, trai.fingerprint(urls), urls[0])
+
+
+def _bprd_dopo(today: date) -> Fetched:
+    from unnati.connectors import bprd
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=600) as http:
+        year, url = bprd.latest(http)
+        pdf = http.get(url).content
+    observations, problems = bprd.observations(pdf, year, load_reference().resolver())
+    return Fetched(observations, problems, fingerprint_of({"year": year, "url": url}), url)
+
+
+def _bprd_probe(today: date) -> str:
+    from unnati.connectors import bprd
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient() as http:
+        year, url = bprd.latest(http)
+    return fingerprint_of({"year": year, "url": url})
+
+
 def _morth_road_accidents(today: date) -> Fetched:
     from unnati.connectors import morth
     from unnati.core.http import PoliteClient
@@ -234,6 +273,8 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "ncrb_adsi": _ncrb_adsi,
     "morth_road_accidents": _morth_road_accidents,
     "rgi_srs": _rgi_srs,
+    "trai_subscriptions": _trai_subscriptions,
+    "bprd_dopo": _bprd_dopo,
     "rgi_srs_mmr": _srs_mmr,
     "rgi_srs_life_tables": _srs_life,
     "population_projections": _population_projections,
@@ -245,6 +286,8 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
 PROBES: dict[str, Callable[[date], str]] = {
     "ncrb_cii": _ncrb_probe,
     "rgi_srs": _srs_probe,
+    "trai_subscriptions": _trai_probe,
+    "bprd_dopo": _bprd_probe,
     "rgi_srs_mmr": _srs_mmr_probe,
     "rgi_srs_life_tables": _srs_life_probe,
 }
