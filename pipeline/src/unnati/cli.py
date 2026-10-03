@@ -169,6 +169,7 @@ def ingest(
     dataset: str = typer.Argument(..., help="Dataset id from the registry, e.g. mospi_nas_state."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Fetch and validate, but don't write."),
     force: bool = typer.Option(False, help="Load even if the source is unchanged."),
+    trigger: str = typer.Option("manual", help="Recorded with the run: manual, schedule or backfill."),
     database_url: str = typer.Option(
         None, help="Postgres URL. Defaults to $DATABASE_URL_UNPOOLED, then $DATABASE_URL."
     ),
@@ -184,7 +185,7 @@ def ingest(
 
         conn = connect(database_url)
         try:
-            report = ingest_module.run(conn, dataset, today, force=force)
+            report = ingest_module.run(conn, dataset, today, trigger=trigger, force=force)
         finally:
             conn.close()
 

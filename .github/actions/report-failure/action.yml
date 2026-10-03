@@ -1,0 +1,23 @@
+name: Report failure
+description: Open a data-source issue for a failing job, or comment on the one already open.
+inputs:
+  title:
+    description: Issue title (one open issue per title)
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TITLE: ${{ inputs.title }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        body="The scheduled job failed: $RUN_URL"
+        number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label data-source \
+          --json number,title --jq "map(select(.title == env.TITLE)) | .[0].number // empty")
+        if [ -n "$number" ]; then
+          gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body "Failed again: $RUN_URL"
+        else
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label data-source --body "$body"
+        fi
