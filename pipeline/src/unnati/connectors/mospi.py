@@ -16,11 +16,30 @@ from datetime import date
 
 from unnati.core.entities import EntityResolver, UnknownEntityError
 from unnati.core.http import PoliteClient, legacy_renegotiation_context
-from unnati.core.periods import calendar_year, day, month, parse_period, span
+from unnati.core.periods import Period, calendar_year, day, month, parse_period, span
 from unnati.observations import Observation
 
 BASE_URL = "https://api.mospi.gov.in"
 PAGE_SIZE = 200
+
+
+def number(raw: object) -> float | None:
+    """Source values like "12.5", "1,234", "(27.4)"; "*", "NA", "-" and blanks mean no value."""
+    text = str(raw).replace(",", "").strip().strip("()") if raw is not None else ""
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def resolve_current_first(resolver: EntityResolver, name: str, period: Period, today: date):
+    """For sources that report earlier years on today's boundaries where possible but still
+    use names of entities that no longer exist (e.g. Daman & Diu before 2020): try today's
+    boundaries first, then the boundaries of the data period. Raises UnknownEntityError."""
+    try:
+        return resolver.resolve(name, day(today))
+    except UnknownEntityError:
+        return resolver.resolve(name, period)
 
 
 def client() -> PoliteClient:
@@ -210,6 +229,137 @@ def nfhs_observations(rows: list[dict], resolver: EntityResolver) -> tuple[list[
                 note=f"{period.label}; values in brackets in the source rest on few cases",
             )
         )
+    return observations, sorted(set(problems))
+
+
+# --- UDISE+: school education (academic years from 2018-19) ----------------------------------
+
+
+@dataclass(frozen=True)
+class UdiseSeries:
+    indicator_code: int
+    server: tuple[tuple[str, object], ...]  # filters sent to the API
+    row: tuple[tuple[str, str], ...]  # what each accepted row must say
+    indicator_id: str
+
+
+UDISE_SERIES = (
+    UdiseSeries(
+        31,
+        (("gender_code", 3),),
+        (("gender", "Total"), ("level_of_education", "Secondary (9-10)"), ("social_group", "All")),
+        "ger-secondary",
+    ),
+    UdiseSeries(
+        41,
+        (("gender_code", 3),),
+        (("gender", "Total"), ("level_of_education", "Secondary (9-10)")),
+        "dropout-secondary",
+    ),
+    UdiseSeries(23, (), (("level_of_education", "Secondary"),), "ptr-secondary"),
+    UdiseSeries(
+        48,
+        (("type_of_management_code", 1),),
+        (
+            ("type_of_management", "All Management"),
+            ("sub_indicator", "Percentage of Schools with functional Desktop/PCs availability"),
+        ),
+        "schools-with-computers",
+    ),
+    UdiseSeries(
+        47,
+        (("type_of_management_code", 1),),
+        (
+            ("type_of_management", "All Management"),
+            ("sub_indicator", "Percentage of schools having functional electricity"),
+        ),
+        "schools-with-electricity",
+    ),
+    UdiseSeries(
+        47,
+        (("type_of_management_code", 1),),
+        (
+            ("type_of_management", "All Management"),
+            ("sub_indicator", "Percentage of schools having functional girls toilets"),
+        ),
+        "schools-with-girls-toilets",
+    ),
+)
+
+
+def fetch_udise_state(http: PoliteClient) -> dict[tuple[int, tuple], list[dict]]:
+    found: dict[tuple[int, tuple], list[dict]] = {}
+    for series in UDISE_SERIES:
+        key = (series.indicator_code, series.server)
+        if key not in found:
+            found[key] = fetch_all(
+                http,
+                "/api/udise/getUdiseRecords",
+                {"indicator_code": series.indicator_code, **dict(series.server), "Format": "JSON"},
+            )
+    return found
+
+
+def udise_observations(
+    rows_by_query: Mapping[tuple[int, tuple], list[dict]], resolver: EntityResolver, today: date
+) -> tuple[list[Observation], list[str]]:
+    """UDISE+ academic years ("2024-25") are dated April-March. UDISE+ is a hybrid: earlier years
+    use current boundaries where they can (Ladakh is listed separately from 2018-19, so its J&K
+    is always the UT), but the pre-2020 UTs Dadra & Nagar Haveli and Daman & Diu still appear
+    under their own names. So names resolve on current boundaries first, then as of the year."""
+    observations: list[Observation] = []
+    problems: list[str] = []
+    for series in UDISE_SERIES:
+        for row in rows_by_query.get((series.indicator_code, series.server), []):
+            if any(row.get(k) != v for k, v in series.row):
+                continue
+            value = number(row.get("value"))
+            if value is None:
+                continue
+            period = parse_period(row["year"])
+            try:
+                entity = resolve_current_first(resolver, row["state"], period, today)
+            except UnknownEntityError as err:
+                problems.append(str(err))
+                continue
+            if entity is None:
+                continue
+            observations.append(
+                Observation(
+                    series.indicator_id, entity.slug, period, value, note="UDISE+, current boundaries"
+                )
+            )
+    return observations, sorted(set(problems))
+
+
+# --- AISHE: higher education (academic years 2017-18 to 2021-22) ------------------------------
+
+
+def fetch_aishe_ger(http: PoliteClient) -> list[dict]:
+    return fetch_all(http, "/api/aishe/getAisheRecords", {"indicator_code": 6, "Format": "JSON"})
+
+
+def aishe_observations(
+    rows: list[dict], resolver: EntityResolver, today: date
+) -> tuple[list[Observation], list[str]]:
+    """Gross enrolment ratio in higher education (age 18-23), all categories, both sexes."""
+    observations: list[Observation] = []
+    problems: list[str] = []
+    for row in rows:
+        if row.get("social_category") != "All Categories" or row.get("gender") != "Both":
+            continue
+        value = number(row.get("value"))
+        if value is None:
+            continue
+        period = parse_period(row["year"])
+        try:
+            entity = resolve_current_first(resolver, row["state"], period, today)
+        except UnknownEntityError as err:
+            problems.append(str(err))
+            continue
+        if entity is None:
+            continue
+        observations.append(Observation("ger-higher-education", entity.slug, period, value, note="AISHE"))
     return observations, sorted(set(problems))
 
 

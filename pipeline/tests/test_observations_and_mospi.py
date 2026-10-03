@@ -237,3 +237,59 @@ def test_nfhs_matches_cleaned_labels_and_dates_each_round():
         ("jammu-and-kashmir-state", "NFHS-4 (2015-16)", 27.4),  # 2015-16: J&K was still a state
         ("keralam", "NFHS-5 (2019-21)", 23.4),
     ]
+
+
+def test_udise_resolves_current_boundaries_first_then_historic_names():
+    series = mospi.UDISE_SERIES[2]  # pupil-teacher ratio, secondary
+    rows = {
+        (series.indicator_code, series.server): [
+            {"state": "Ladakh", "year": "2018-19", "level_of_education": "Secondary", "value": "9"},
+            {"state": "Jammu & Kashmir", "year": "2018-19", "level_of_education": "Secondary", "value": "12"},
+            {
+                "state": "Dadra & Nagar Haveli",
+                "year": "2018-19",
+                "level_of_education": "Secondary",
+                "value": "30",
+            },
+            {"state": "Bihar", "year": "2024-25", "level_of_education": "Secondary", "value": "*"},
+        ]
+    }
+    found, problems = mospi.udise_observations(rows, REF.resolver(), TODAY)
+    assert not problems
+    assert sorted((x.entity_slug, x.period.label) for x in found) == [
+        ("dadra-and-nagar-haveli", "2018-19"),
+        ("jammu-and-kashmir", "2018-19"),
+        ("ladakh", "2018-19"),
+    ]
+
+
+def test_aishe_keeps_all_categories_both_sexes():
+    rows = [
+        {
+            "state": "All India",
+            "year": "2021-22",
+            "social_category": "All Categories",
+            "gender": "Both",
+            "value": "28.40",
+        },
+        {
+            "state": "All India",
+            "year": "2021-22",
+            "social_category": "All Categories",
+            "gender": "Female",
+            "value": "28.50",
+        },
+        {
+            "state": "Ladakh",
+            "year": "2018-19",
+            "social_category": "All Categories",
+            "gender": "Both",
+            "value": "7.0",
+        },
+    ]
+    found, problems = mospi.aishe_observations(rows, REF.resolver(), TODAY)
+    assert not problems
+    assert sorted((x.entity_slug, x.period.label, x.value) for x in found) == [
+        ("india", "2021-22", 28.4),
+        ("ladakh", "2018-19", 7.0),
+    ]

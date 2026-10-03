@@ -264,17 +264,17 @@ datasets:
   - id: udise_plus
     source: moe
     title: Unified District Information System for Education Plus (UDISE+)
-    connector: udise
+    connector: mospi
     cadence: annual
-    landing_url: https://udiseplus.gov.in
-    enabled: false
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: aishe
     source: moe
     title: All India Survey on Higher Education
     connector: mospi
     cadence: annual
-    landing_url: https://aishe.gov.in
-    enabled: false
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: parakh
     source: moe
     title: PARAKH Rashtriya Sarvekshan (national learning assessment)

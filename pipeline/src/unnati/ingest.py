@@ -74,11 +74,34 @@ def _mospi_nfhs(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/nfhs/getNfhsRecords")
 
 
+def _udise_plus(today: date) -> Fetched:
+    from unnati.connectors import mospi
+
+    with mospi.client() as http:
+        rows = mospi.fetch_udise_state(http)
+    observations, problems = mospi.udise_observations(rows, load_reference().resolver(), today)
+    raw = {f"{code}:{filters}": value for (code, filters), value in rows.items()}
+    return Fetched(observations, problems, fingerprint_of(raw), f"{mospi.BASE_URL}/api/udise/getUdiseRecords")
+
+
+def _aishe(today: date) -> Fetched:
+    from unnati.connectors import mospi
+
+    with mospi.client() as http:
+        rows = mospi.fetch_aishe_ger(http)
+    observations, problems = mospi.aishe_observations(rows, load_reference().resolver(), today)
+    return Fetched(
+        observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/aishe/getAisheRecords"
+    )
+
+
 INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "mospi_nas_state": _mospi_nas_state,
     "mospi_plfs_state": _mospi_plfs_state,
     "mospi_cpi_state": _mospi_cpi_state,
     "mospi_nfhs": _mospi_nfhs,
+    "udise_plus": _udise_plus,
+    "aishe": _aishe,
 }
 
 

@@ -611,7 +611,44 @@
   unit: "% of schools"
   direction: higher_better
   category: education
+  dataset: udise_plus
+  frequency: annual
+  decimals: 1
+  target: 100
+  caveat: Not published in MoSPI's UDISE+ API; the composite uses schools with computers instead.
+  valid_min: 0
+  valid_max: 100
+- id: schools-with-computers
+  name: Schools with computers
+  description: Share of schools with functional desktop computers (UDISE+, all managements).
+  unit: "% of schools"
+  direction: higher_better
+  category: education
   pillar: education
+  dataset: udise_plus
+  frequency: annual
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: schools-with-electricity
+  name: Schools with electricity
+  description: Share of schools with functional electricity (UDISE+, all managements).
+  unit: "% of schools"
+  direction: higher_better
+  category: education
+  dataset: udise_plus
+  frequency: annual
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: schools-with-girls-toilets
+  name: Schools with functional girls' toilets
+  description: Share of schools with a functional girls' toilet (UDISE+, all managements).
+  unit: "% of schools"
+  direction: higher_better
+  category: education
   dataset: udise_plus
   frequency: annual
   decimals: 1
