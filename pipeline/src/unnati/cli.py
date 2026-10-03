@@ -106,6 +106,64 @@ def officials_sync(
         typer.echo(f"warning: override {key!r} matched no term")
 
 
+@officials_app.command("observe")
+def officials_observe(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Fetch and parse, but don't write."),
+    database_url: str = typer.Option(
+        None, help="Postgres URL. Defaults to $DATABASE_URL_UNPOOLED, then $DATABASE_URL."
+    ),
+) -> None:
+    """Record current Chief Secretaries and police chiefs (tenure is observed, not invented)."""
+    from unnati.connectors import wikipedia_bureaucrats as wb
+    from unnati.core.http import PoliteClient
+    from unnati.core.periods import day
+
+    today = date.today()
+    ref = load_reference()
+    resolver = ref.resolver()
+    with PoliteClient() as http:
+        listed = wb.fetch(http)
+    rows, problems = [], []
+    for item in listed:
+        try:
+            entity = resolver.resolve(item.place, day(today))
+        except (UnknownEntityError, AmbiguousEntityError) as err:
+            problems.append(str(err))
+            continue
+        if entity is None:
+            continue
+        flags = [
+            f for f, on in (("acting", item.acting), ("additional charge", item.additional_charge)) if on
+        ]
+        note = "; ".join([*flags, f"per Wikipedia's current list ({item.page_url})"])
+        rows.append((entity.slug, item.office_type, item.name, item.citation or item.page_url, note))
+    by_type = Counter(r[1] for r in rows)
+    typer.echo(f"listed: {len(rows)} ({dict(by_type)})")
+    for problem in problems:
+        typer.echo(f"problem: {problem}")
+    if dry_run:
+        return
+
+    from unnati.db import connect
+    from unnati.officials import load_observed_terms
+    from unnati.runs import finish_run, start_run
+
+    conn = connect(database_url)
+    try:
+        run_id = start_run(conn, "wikipedia_bureaucrats")
+        try:
+            names = {e.slug: e.name for e in ref.entities}
+            ranked = [c.id for c in ref.categories if c.ranked]
+            counts = load_observed_terms(conn, rows, names, ranked, today)
+        except Exception as err:
+            finish_run(conn, run_id, "failed", error=str(err))
+            raise
+        finish_run(conn, run_id, "loaded", rows_loaded=len(rows), validation={"problems": problems})
+    finally:
+        conn.close()
+    typer.echo("terms: " + ", ".join(f"{n} {k}" for k, n in counts.items()))
+
+
 @app.command()
 def resolve(name: str, period: str = typer.Option("2024", help='e.g. "2024", "2023-24", "Jun 2026"')) -> None:
     """Show which entity a source's place name maps to for a given period."""

@@ -9,6 +9,7 @@ costs a handful of round trips however many terms it carries."""
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from datetime import date
 
@@ -87,6 +88,118 @@ _REMOVE_VANISHED = """
         returning 1)
     select count(*) from gone
 """
+
+
+OBSERVED_TITLES = {
+    "chief_secretary": "Chief Secretary of {name}",
+    "dgp": "Director General of Police, {name}",
+}
+OBSERVED_CATEGORIES = {"chief_secretary": None, "dgp": ["crime"]}  # None = every ranked category
+MIN_OBSERVED = 50  # never close terms on the strength of a partial or broken page
+
+
+def observed_title(slug: str, office_type: str, name: str) -> str:
+    if (slug, office_type) == ("delhi", "dgp"):
+        return "Commissioner of Police, Delhi"  # Delhi Police is headed by a Commissioner
+    return OBSERVED_TITLES[office_type].format(name=name)
+
+
+def observed_external_id(entity_slug: str, office_type: str, name: str) -> str:
+    return f"observed:{entity_slug}:{office_type}:{re.sub(r'[^a-z]+', '-', name.lower()).strip('-')}"
+
+
+def load_observed_terms(
+    conn: Connection,
+    observed: list[tuple[str, str, str, str, str]],
+    entity_names: dict[str, str],
+    ranked_categories: list[str],
+    today: date,
+) -> dict[str, int]:
+    """Load (entity_slug, office_type, person, source_url, note) rows seen today.
+
+    A new person's term starts today; a person no longer listed has their term ended
+    yesterday. Start dates are therefore first-observed dates, and say so."""
+    if len(observed) < MIN_OBSERVED:
+        raise ValueError(f"only {len(observed)} office-holders observed; refusing to update terms")
+    counts = {"opened": 0, "closed": 0, "unchanged": 0}
+    with transaction(conn):
+        entity_ids = {slug: id_ for id_, slug in conn.run("select id, slug from entity")}
+        offices: dict[tuple[str, str], int] = {}
+        for slug, office_type in sorted({(o[0], o[1]) for o in observed}):
+            offices[(slug, office_type)] = scalar(
+                conn,
+                """insert into office (entity_id, office_type, title, is_political)
+                   values (:entity, :type, :title, false)
+                   on conflict (entity_id, office_type, title) do update set is_political = false
+                   returning id""",
+                entity=entity_ids[slug],
+                type=office_type,
+                title=observed_title(slug, office_type, entity_names[slug]),
+            )
+        office_ids = list(offices.values())
+        conn.run("delete from office_category where office_id = any(cast(:ids as int[]))", ids=office_ids)
+        pairs = [
+            (office_id, category)
+            for (slug, office_type), office_id in offices.items()
+            for category in (OBSERVED_CATEGORIES[office_type] or ranked_categories)
+        ]
+        conn.run(
+            """insert into office_category (office_id, category_id)
+               select * from unnest(cast(:offices as int[]), cast(:categories as text[]))""",
+            offices=[p[0] for p in pairs],
+            categories=[p[1] for p in pairs],
+        )
+
+        current_ids = []
+        for slug, office_type, name, source_url, note in observed:
+            external_id = observed_external_id(slug, office_type, name)
+            current_ids.append(external_id)
+            existing = conn.run("select end_date from office_term where external_id = :id", id=external_id)
+            if existing and existing[0][0] is None:
+                conn.run(
+                    """update office_term set source_url = :url, verified_at = :today, review_note = :note
+                       where external_id = :id""",
+                    url=source_url,
+                    today=today,
+                    note=note,
+                    id=external_id,
+                )
+                counts["unchanged"] += 1
+                continue
+            person_id = scalar(
+                conn, "select id from person where name = :name and wikidata_qid is null limit 1", name=name
+            ) or scalar(conn, "insert into person (name) values (:name) returning id", name=name)
+            first_seen = f"start date not sourced: first observed in office on {today}"
+            conn.run(
+                """insert into office_term (office_id, person_id, start_date, source_type, source_url,
+                                            verified_at, external_id, review_note)
+                   values (:office, :person, :today, 'observed', :url, :today, :id, :note)
+                   on conflict (external_id) where external_id is not null do update
+                       set end_date = null, verified_at = :today, review_note = excluded.review_note""",
+                office=offices[(slug, office_type)],
+                person=person_id,
+                today=today,
+                url=source_url,
+                id=external_id,
+                note="; ".join(filter(None, [first_seen, note])),
+            )
+            counts["opened"] += 1
+
+        counts["closed"] = scalar(
+            conn,
+            """with closed as (
+                   update office_term set end_date = cast(:today as date) - 1,
+                          review_note = coalesce(review_note || '; ', '') || 'change observed on ' || :today
+                   where source_type = 'observed' and end_date is null
+                     and office_id = any(cast(:offices as int[]))
+                     and not (external_id = any(cast(:ids as text[])))
+                   returning 1)
+               select count(*) from closed""",
+            today=today,
+            offices=office_ids,
+            ids=current_ids,
+        )
+    return counts
 
 
 def load_wikidata_terms(

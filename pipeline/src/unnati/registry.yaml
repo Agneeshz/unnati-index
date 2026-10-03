@@ -142,6 +142,12 @@ sources:
     url: https://www.wikidata.org
     license: CC0 1.0
     attribution: "Office-holder data: Wikidata (CC0)"
+  - id: wikipedia
+    name: Wikipedia
+    publisher: Wikimedia Foundation
+    url: https://en.wikipedia.org
+    license: CC BY-SA 4.0 (facts about who holds an office are not copyrightable; cited as the source)
+    attribution: "Current office-holder lists: Wikipedia, citing the sources named per row"
   - id: curated
     name: Unnati Index curated tables
     publisher: Unnati Index contributors
@@ -383,7 +389,14 @@ datasets:
     enabled: true
   - id: curated_officials
     source: curated
-    title: Curated office-holders (Chief Secretaries, DGPs, secretaries, ministers)
+    title: Curated office-holders (sourced terms Wikidata lacks)
     connector: manual
     cadence: irregular
-    enabled: false
+    enabled: true
+  - id: wikipedia_bureaucrats
+    source: wikipedia
+    title: Current Chief Secretaries and police chiefs (observed weekly)
+    connector: wikipedia_bureaucrats
+    cadence: weekly
+    landing_url: https://en.wikipedia.org/wiki/Chief_secretary_(India)
+    enabled: true
