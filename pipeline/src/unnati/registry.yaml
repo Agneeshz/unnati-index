@@ -203,8 +203,8 @@ datasets:
     title: Household Consumption Expenditure Survey
     connector: mospi
     cadence: irregular
-    landing_url: https://esankhyiki.mospi.gov.in
-    enabled: false
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: ncrb_cii
     source: ncrb
     title: Crime in India
@@ -231,22 +231,22 @@ datasets:
     title: Sample Registration System — Statistical Report and bulletins
     connector: rgi_srs
     cadence: annual
-    landing_url: https://censusindia.gov.in
-    enabled: false
+    landing_url: https://data.opencity.in/dataset/sample-registration-system-statistical-reports
+    enabled: true
   - id: rgi_srs_mmr
     source: rgi
     title: Sample Registration System — Special Bulletin on Maternal Mortality
-    connector: rgi_srs
-    cadence: irregular
-    landing_url: https://censusindia.gov.in
-    enabled: false
+    connector: srs_bulletins
+    cadence: annual
+    landing_url: https://censusindia.gov.in/nada/index.php/catalog/?sk=special+bulletin+on+maternal+mortality
+    enabled: true
   - id: rgi_srs_life_tables
     source: rgi
     title: Sample Registration System — Abridged Life Tables
-    connector: rgi_srs
-    cadence: irregular
-    landing_url: https://censusindia.gov.in
-    enabled: false
+    connector: srs_bulletins
+    cadence: annual
+    landing_url: https://censusindia.gov.in/nada/index.php/catalog/?sk=abridged+life+tables
+    enabled: true
   - id: nfhs
     source: iips
     title: NFHS-6 (2023-24) state fact sheets (IIPS compendium and OpenCity CSVs)

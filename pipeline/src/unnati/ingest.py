@@ -95,6 +95,15 @@ def _aishe(today: date) -> Fetched:
     )
 
 
+def _mospi_hces(today: date) -> Fetched:
+    from unnati.connectors import mospi
+
+    with mospi.client() as http:
+        rows = mospi.fetch_hces_gini(http)
+    observations, problems = mospi.hces_observations(rows, load_reference().resolver())
+    return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/hces/getHcesRecords")
+
+
 def _nfhs_factsheets(today: date) -> Fetched:
     from unnati.connectors import nfhs_factsheets as nf
     from unnati.core.http import PoliteClient
@@ -138,6 +147,51 @@ def _ncrb_adsi(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(raw), tables[max(tables)]["url"])
 
 
+def _srs_probe(today: date) -> str:
+    from unnati.connectors import srs
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient() as http:
+        return srs.fingerprint(*srs.latest_resource(http))
+
+
+def _rgi_srs(today: date) -> Fetched:
+    from unnati.connectors import srs
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=300) as http:
+        edition, resource = srs.latest_resource(http)
+        pdf = http.get(resource["url"]).content
+    observations, problems = srs.observations(pdf, edition, load_reference().resolver())
+    return Fetched(observations, problems, srs.fingerprint(edition, resource), resource["url"])
+
+
+def _srs_bulletin(series_name: str) -> tuple[Callable[[date], str], Callable[[date], Fetched]]:
+    """Probe and ingester for one SRS bulletin series (MMR or LIFE)."""
+
+    def probe(today: date) -> str:
+        from unnati.connectors import srs_bulletins as sb
+
+        with sb.client() as http:
+            return sb.fingerprint(sb.editions(http, getattr(sb, series_name)))
+
+    def ingest(today: date) -> Fetched:
+        from unnati.connectors import srs_bulletins as sb
+
+        with sb.client() as http:
+            found = sb.editions(http, getattr(sb, series_name))
+            pdfs = [(edition, sb.download(http, edition)) for edition in found]
+        observations, problems = sb.observations(pdfs, load_reference().resolver())
+        url = f"{sb.NADA}/catalog/{found[-1].catalog_id}"
+        return Fetched(observations, problems, sb.fingerprint(found), url)
+
+    return probe, ingest
+
+
+_srs_mmr_probe, _srs_mmr = _srs_bulletin("MMR")
+_srs_life_probe, _srs_life = _srs_bulletin("LIFE")
+
+
 def _morth_road_accidents(today: date) -> Fetched:
     from unnati.connectors import morth
     from unnati.core.http import PoliteClient
@@ -174,10 +228,14 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "mospi_nfhs": _mospi_nfhs,
     "udise_plus": _udise_plus,
     "aishe": _aishe,
+    "mospi_hces": _mospi_hces,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,
     "ncrb_adsi": _ncrb_adsi,
     "morth_road_accidents": _morth_road_accidents,
+    "rgi_srs": _rgi_srs,
+    "rgi_srs_mmr": _srs_mmr,
+    "rgi_srs_life_tables": _srs_life,
     "population_projections": _population_projections,
 }
 
@@ -186,6 +244,9 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
 # fingerprint as its probe.
 PROBES: dict[str, Callable[[date], str]] = {
     "ncrb_cii": _ncrb_probe,
+    "rgi_srs": _srs_probe,
+    "rgi_srs_mmr": _srs_mmr_probe,
+    "rgi_srs_life_tables": _srs_life_probe,
 }
 
 

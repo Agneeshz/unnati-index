@@ -33,10 +33,14 @@ jobs:
           - mospi_nfhs
           - udise_plus
           - aishe
+          - mospi_hces
           - ncrb_cii
           - ncrb_adsi
           - morth_road_accidents
           - population_projections
+          - rgi_srs
+          - rgi_srs_mmr
+          - rgi_srs_life_tables
     defaults:
       run:
         working-directory: pipeline

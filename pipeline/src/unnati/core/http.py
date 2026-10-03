@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import ssl
 import time
+from importlib.resources import files
 from typing import Any
 from urllib.parse import urlparse
 
@@ -22,6 +23,18 @@ def legacy_renegotiation_context() -> ssl.SSLContext:
     for public, read-only fetches that send no credentials."""
     context = ssl.create_default_context()
     context.options |= getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)
+    return context
+
+
+def with_intermediates(*names: str) -> ssl.SSLContext:
+    """For servers that omit their intermediate certificate (e.g. censusindia.gov.in sends only
+    its leaf). The named intermediates from `core/certs/` are added beside certifi's roots, so
+    the chain is still verified up to a trusted root, and hostnames are still checked."""
+    import certifi
+
+    context = ssl.create_default_context(cafile=certifi.where())
+    for name in names:
+        context.load_verify_locations(cadata=files("unnati.core").joinpath("certs", name).read_text("ascii"))
     return context
 
 

@@ -875,6 +875,19 @@
   caveat: The natural sex ratio at birth is about 950 girls per 1,000 boys, so values above that are not "better".
   valid_min: 700
   valid_max: 1100
+- id: sex-ratio-at-birth-nfhs
+  name: Sex ratio at birth (NFHS)
+  description: Girls per 1,000 boys among children born in the five years before the survey (NFHS); covers every state and UT.
+  unit: girls per 1,000 boys
+  direction: higher_better
+  category: inclusion
+  dataset: nfhs
+  frequency: irregular
+  decimals: 0
+  target: 950
+  caveat: Survey estimate with wide margins in small states and UTs. SRS figures are preferred where SRS publishes them.
+  valid_min: 600
+  valid_max: 1300
 - id: female-lfpr
   name: Female labour force participation
   description: Share of women aged 15+ who are working or looking for work, usual status (PS+SS), calendar year (PLFS).
@@ -915,7 +928,7 @@
   valid_max: 100
 - id: consumption-gini
   name: Consumption inequality (Gini)
-  description: Gini coefficient of monthly per-capita consumption expenditure (HCES); 0 is perfect equality.
+  description: Average of the rural and urban Gini coefficients of monthly per-capita consumption expenditure (HCES); 0 is perfect equality.
   unit: index (0–1)
   direction: lower_better
   category: inclusion
@@ -923,5 +936,31 @@
   dataset: mospi_hces
   frequency: irregular
   decimals: 3
+  derived: unweighted mean of consumption-gini-rural and consumption-gini-urban
+  caveat: MoSPI publishes rural and urban Gini separately; this average is not a Gini for the whole state, since it leaves out the gap between rural and urban consumption.
+  valid_min: 0
+  valid_max: 1
+- id: consumption-gini-rural
+  name: Consumption inequality, rural (Gini)
+  description: Gini coefficient of monthly per-capita consumption expenditure in rural areas (HCES, without imputed free items).
+  unit: index (0–1)
+  direction: lower_better
+  category: inclusion
+  dataset: mospi_hces
+  frequency: irregular
+  decimals: 3
+  rankable: false
+  valid_min: 0
+  valid_max: 1
+- id: consumption-gini-urban
+  name: Consumption inequality, urban (Gini)
+  description: Gini coefficient of monthly per-capita consumption expenditure in urban areas (HCES, without imputed free items).
+  unit: index (0–1)
+  direction: lower_better
+  category: inclusion
+  dataset: mospi_hces
+  frequency: irregular
+  decimals: 3
+  rankable: false
   valid_min: 0
   valid_max: 1

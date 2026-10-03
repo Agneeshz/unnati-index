@@ -12,7 +12,8 @@ import calendar
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
+from itertools import pairwise
 
 from unnati.core.entities import EntityResolver, UnknownEntityError
 from unnati.core.http import PoliteClient, legacy_renegotiation_context
@@ -173,6 +174,9 @@ NFHS_INDICATORS = {
     "Population living in households that use an improved sanitation facility (%)": "improved-sanitation",
     "Population living in households with electricity (%)": "households-with-electricity",
     "Women age 20-24 years married before age 18 years (%)": "child-marriage",
+    "Sex ratio at birth for children born in the last five years (females per 1,000 males)": (
+        "sex-ratio-at-birth-nfhs"
+    ),
     "Institutional births (in the 5 years before the survey) (%)": "institutional-births",
     "Children age 12-23 months fully vaccinated based on information from either vaccination card"
     " or mother's recall (%)": "full-immunisation",
@@ -298,6 +302,55 @@ def fetch_udise_state(http: PoliteClient) -> dict[tuple[int, tuple], list[dict]]
                 {"indicator_code": series.indicator_code, **dict(series.server), "Format": "JSON"},
             )
     return found
+
+
+# HCES survey years run August to July ("2023-24" = Aug 2023 - Jul 2024).
+HCES_GINI = {"Rural": "consumption-gini-rural", "Urban": "consumption-gini-urban"}
+
+
+def fetch_hces_gini(http: PoliteClient) -> list[dict]:
+    return fetch_all(http, "/api/hces/getHcesRecords", {"indicator_code": 9, "Format": "JSON"})
+
+
+def hces_observations(rows: list[dict], resolver: EntityResolver) -> tuple[list[Observation], list[str]]:
+    """Rural and urban Gini (MoSPI's headline series, without imputed free items), plus their
+    unweighted mean as consumption-gini."""
+    observations: list[Observation] = []
+    problems: list[str] = []
+    found: dict[tuple[str, str], dict[str, float]] = {}
+    periods: dict[str, Period] = {}
+    for row in rows:
+        indicator_id = HCES_GINI.get(row.get("sector", ""))
+        value = number(row.get("value"))
+        if indicator_id is None or value is None or row.get("imputation_type") != "Without Imputation":
+            continue
+        first = int(row["year"][:4])
+        period = periods.setdefault(
+            row["year"],
+            span(date(first, 8, 1), date(first + 1, 7, 31), f"HCES {row['year']}", "survey_round"),
+        )
+        try:
+            entity = resolver.resolve(row["state"], period)
+        except UnknownEntityError as err:
+            problems.append(str(err))
+            continue
+        if entity is None:
+            continue
+        note = "HCES, without imputed values of free items"
+        observations.append(Observation(indicator_id, entity.slug, period, value, note=note))
+        found.setdefault((entity.slug, row["year"]), {})[indicator_id] = value
+    for (slug, year), values in found.items():
+        if len(values) == 2:
+            observations.append(
+                Observation(
+                    "consumption-gini",
+                    slug,
+                    periods[year],
+                    round(sum(values.values()) / 2, 4),
+                    note="Mean of the rural and urban Gini (HCES, without imputed values of free items)",
+                )
+            )
+    return observations, sorted(set(problems))
 
 
 def udise_observations(
@@ -490,4 +543,32 @@ def nas_observations(
                     note=note,
                 )
             )
+    observations += three_year_growth(observations)
     return observations, sorted(set(problems))
+
+
+def three_year_growth(observations: list[Observation]) -> list[Observation]:
+    """gsdp-growth-real-3yr: the mean of real GSDP growth over three consecutive fiscal years,
+    one value per window. Provisional if any of the three years is."""
+    by_entity: dict[str, list[Observation]] = {}
+    for o in observations:
+        if o.indicator_id == "gsdp-growth-real":
+            by_entity.setdefault(o.entity_slug, []).append(o)
+    out = []
+    for slug, series in by_entity.items():
+        series.sort(key=lambda o: o.period.start)
+        for window in zip(series, series[1:], series[2:], strict=False):
+            if any(b.period.start != a.period.end + timedelta(days=1) for a, b in pairwise(window)):
+                continue  # a missing year
+            first, last = window[0].period, window[-1].period
+            out.append(
+                Observation(
+                    "gsdp-growth-real-3yr",
+                    slug,
+                    span(first.start, last.end, f"{first.label} to {last.label}"),
+                    round(sum(o.value for o in window) / 3, 2),
+                    is_provisional=any(o.is_provisional for o in window),
+                    note=f"Mean of real GSDP growth in {', '.join(o.period.label for o in window)}",
+                )
+            )
+    return out

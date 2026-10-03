@@ -7,7 +7,8 @@ urban, rural and total, then the NFHS-5 total. Only the NFHS-6 total is taken (N
 from MoSPI's API).
 
 Fieldwork ran from 28 May 2023 to 31 December 2024. NFHS-6 dropped clean cooking fuel,
-sanitation and anaemia from the fact sheets, so those stay at NFHS-5 for now."""
+sanitation, anaemia and the sex ratio at birth from the fact sheets, so those stay at NFHS-5 for
+now."""
 
 from __future__ import annotations
 
