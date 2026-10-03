@@ -41,7 +41,7 @@ def test_reseeding_keeps_broken_status_of_enabled_datasets(db):
 
 def test_office_holders_are_matched_to_the_data_period(db):
     seed(db, load_reference())
-    kerala = scalar(db, "select id from entity where slug = 'kerala'")
+    kerala = scalar(db, "select id from entity where slug = 'keralam'")
     office = scalar(
         db,
         """insert into office (entity_id, office_type, title, is_political)

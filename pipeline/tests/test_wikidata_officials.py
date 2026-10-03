@@ -48,7 +48,7 @@ def test_position_map_is_consistent():
     pairs = [(m.position_qid, m.entity_slug) for m in MAPPINGS]
     assert len(pairs) == len(set(pairs))
     titles = {(m.entity_slug, m.office_type): m.title for m in MAPPINGS}
-    assert titles[("kerala", "chief_minister")] == "Chief Minister of Kerala"
+    assert titles[("keralam", "chief_minister")] == "Chief Minister of Keralam"
 
 
 # --- parsing -----------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ def test_old_terms_duplicates_and_undated_terms():
         raw("s3", CM_KERALA, start=date(2006, 5, 18), end=date(2011, 5, 14), groups=[(CPIM, "CPI(M)")]),
         raw("s4", CM_KERALA, person="Q4", name="Undated"),
     )
-    assert [t.external_id for t in result.terms] == ["wikidata:s2:kerala"]
+    assert [t.external_id for t in result.terms] == ["wikidata:s2:keralam"]
     assert result.problems == ["Undated (Q4): term has no start date; skipped"]
 
 
@@ -223,26 +223,26 @@ def test_overrides_settle_a_flagged_term():
     unused = wd.apply_overrides(
         terms,
         {
-            "wikidata:s1:kerala": {
+            "wikidata:s1:keralam": {
                 "party": CPIM,
                 "party_label": "CPI(M)",
                 "end": date(2026, 5, 20),
                 "source_url": "https://example.org/gazette",
                 "reviewed": True,
             },
-            "wikidata:nope:kerala": {"source_url": "https://example.org"},
+            "wikidata:nope:keralam": {"source_url": "https://example.org"},
         },
     )
     [term] = terms
     assert (term.party_qid, term.end, term.needs_review) == (CPIM, date(2026, 5, 20), False)
     assert term.source_url == "https://example.org/gazette"
-    assert unused == ["wikidata:nope:kerala"]
+    assert unused == ["wikidata:nope:keralam"]
 
 
 def test_overrides_need_a_source():
     terms = build(raw("s1", GOV_KERALA, start=date(2025, 1, 2))).terms
     with pytest.raises(ValueError, match="source_url"):
-        wd.apply_overrides(terms, {"wikidata:s1:kerala": {"reviewed": True}})
+        wd.apply_overrides(terms, {"wikidata:s1:keralam": {"reviewed": True}})
 
 
 # --- accountability ----------------------------------------------------------------------------
@@ -250,8 +250,8 @@ def test_overrides_need_a_source():
 
 def test_categories_for_each_kind_of_office():
     ranked = ["economy", "crime", "governance", "health"]
-    assert wd.categories_for("chief_minister", "kerala", True, ranked) == ranked
-    assert wd.categories_for("governor", "kerala", True, ranked) == ["governance"]
+    assert wd.categories_for("chief_minister", "keralam", True, ranked) == ranked
+    assert wd.categories_for("governor", "keralam", True, ranked) == ["governance"]
     assert wd.categories_for("lieutenant_governor", "ladakh", False, ranked) == ranked
     assert wd.categories_for("lieutenant_governor", "delhi", True, ranked) == ["governance", "crime"]
     assert wd.categories_for("lieutenant_governor", "puducherry", True, ranked) == ["governance"]

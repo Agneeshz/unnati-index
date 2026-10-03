@@ -2,7 +2,7 @@
 # Each needs the person's Wikidata ID (so the entry retires itself once Wikidata catches up:
 # the sync reports "Wikidata now has ..."), a start date and an official source.
 #
-# - entity: kerala                 # entity slug
+# - entity: keralam                # entity slug
 #   office: chief_minister         # chief_minister | governor | lieutenant_governor | administrator
 #   person: V. D. Satheesan
 #   wikidata: Q6956446
@@ -19,7 +19,7 @@
 
 # --- Chief Ministers -----------------------------------------------------------------------------
 
-- entity: kerala
+- entity: keralam
   office: chief_minister
   person: V. D. Satheesan
   wikidata: Q6956446

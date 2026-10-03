@@ -44,7 +44,7 @@ def kerala_terms():
 
 
 def holders(db, start, end):
-    kerala = scalar(db, "select id from entity where slug = 'kerala'")
+    kerala = scalar(db, "select id from entity where slug = 'keralam'")
     rows = db.run(
         "select person_name, office_type from office_holders_during(:e, :s, :t)", e=kerala, s=start, t=end
     )
@@ -74,7 +74,7 @@ def test_cm_answers_for_every_category_and_governor_for_governance(db):
     load_wikidata_terms(db, kerala_terms(), MAPPINGS, RANKED, TODAY)
     rows = db.run(
         """select o.office_type, count(*) from office o join office_category c on c.office_id = o.id
-           join entity e on e.id = o.entity_id where e.slug = 'kerala' group by 1 order by 1"""
+           join entity e on e.id = o.entity_id where e.slug = 'keralam' group by 1 order by 1"""
     )
     assert dict((r[0], r[1]) for r in rows) == {"chief_minister": len(RANKED), "governor": 1}
 

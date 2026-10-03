@@ -50,7 +50,7 @@ def test_curated_terms_do_not_overlap_each_other():
 
 
 def test_curated_terms_need_identity_and_source():
-    entry = {"entity": "kerala", "office": "chief_minister", "person": "X", "start": date(2026, 5, 18)}
+    entry = {"entity": "keralam", "office": "chief_minister", "person": "X", "start": date(2026, 5, 18)}
     with pytest.raises(ValueError, match="wikidata"):
         wd.curated_terms([entry], MAPPINGS)
     with pytest.raises(ValueError, match="unknown office"):
@@ -63,7 +63,7 @@ def test_curated_party_only_for_elected_offices():
     [cm, gov] = wd.curated_terms(
         [
             {
-                "entity": "kerala",
+                "entity": "keralam",
                 "office": "chief_minister",
                 "person": "A",
                 "wikidata": "Q1",
@@ -72,7 +72,7 @@ def test_curated_party_only_for_elected_offices():
                 "source_url": "https://x",
             },
             {
-                "entity": "kerala",
+                "entity": "keralam",
                 "office": "governor",
                 "person": "B",
                 "wikidata": "Q2",
@@ -93,7 +93,7 @@ def test_wikidata_duplicate_of_a_curated_term_is_dropped_and_reported():
     curated = wd.curated_terms(
         [
             {
-                "entity": "kerala",
+                "entity": "keralam",
                 "office": "chief_minister",
                 "person": "V. D. Satheesan",
                 "wikidata": "Q6956446",
@@ -224,7 +224,7 @@ def test_disagreement_hides_the_stale_holder_even_if_reviewed():
         {"V. D. Satheesan": "Q6956446"},
     )
     assert term.needs_review and "Wikipedia lists V. D. Satheesan" in term.conflicts[0]
-    assert any("needs a curated term: kerala chief_minister" in line for line in report)
+    assert any("needs a curated term: keralam chief_minister" in line for line in report)
 
 
 def test_cross_check_is_skipped_when_the_page_layout_changes():
