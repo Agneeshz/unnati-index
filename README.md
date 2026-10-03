@@ -65,9 +65,18 @@ To try the pipeline against a local database:
 
 ```bash
 npm run db:local            # PGlite server on 127.0.0.1:5432 (keep it running)
-# in another terminal, with DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable
-npm run db:migrate
-cd pipeline && uv run unnati seed
+npm run db:migrate:local    # in another terminal
+cd pipeline && uv run unnati seed --database-url "postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable"
+```
+
+The hosted database is [Neon](https://neon.com). Maintainers link it with the
+[Neon CLI](https://www.npmjs.com/package/neon), which writes the connection variables to the
+git-ignored `.env.local`:
+
+```bash
+neon link --project-id <project-id> --branch production -y
+npm run db:migrate          # direct (unpooled) connection from .env.local
+cd pipeline && uv run --env-file ../.env.local unnati seed
 ```
 
 ## Roadmap

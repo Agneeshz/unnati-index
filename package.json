@@ -4,9 +4,10 @@
   "description": "Repo-level tooling for Unnati Index: local database, migrations and map builds.",
   "scripts": {
     "db:local": "pglite-server --db=.pglite --port=5432",
-    "db:migrate": "dbmate --no-dump-schema --migrations-dir db/migrations up",
-    "db:rollback": "dbmate --no-dump-schema --migrations-dir db/migrations rollback",
-    "db:status": "dbmate --migrations-dir db/migrations status",
+    "db:migrate": "dbmate --env-file .env.local --env DATABASE_URL_UNPOOLED --no-dump-schema --migrations-dir db/migrations up",
+    "db:rollback": "dbmate --env-file .env.local --env DATABASE_URL_UNPOOLED --no-dump-schema --migrations-dir db/migrations rollback",
+    "db:status": "dbmate --env-file .env.local --env DATABASE_URL_UNPOOLED --migrations-dir db/migrations status",
+    "db:migrate:local": "dbmate --url postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable --no-dump-schema --migrations-dir db/migrations up",
     "db:new": "dbmate --migrations-dir db/migrations new",
     "db:check": "node db/check-migrations.mjs",
     "geo:build": "node geo/build.mjs"
@@ -16,5 +17,9 @@
     "@electric-sql/pglite-socket": "^0.2.11",
     "dbmate": "^2.36.0",
     "mapshaper": "^0.7.72"
+  },
+  "dependencies": {
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.5.0"
   }
 }

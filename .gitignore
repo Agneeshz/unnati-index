@@ -29,3 +29,8 @@ geo/build/
 .DS_Store
 Thumbs.db
 *.log
+
+# Neon: local project link and agent skills (install with `neon skills -s neon --agent claude-code -y`)
+.neon
+.claude/skills/
+skills-lock.json

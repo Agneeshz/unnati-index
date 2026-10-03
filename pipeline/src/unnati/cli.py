@@ -31,7 +31,9 @@ def check() -> None:
 
 @app.command()
 def seed(
-    database_url: str = typer.Option(None, envvar="DATABASE_URL", help="Postgres connection URL."),
+    database_url: str = typer.Option(
+        None, help="Postgres URL. Defaults to $DATABASE_URL_UNPOOLED, then $DATABASE_URL."
+    ),
 ) -> None:
     """Upsert the reference data into the database."""
     from unnati.db import connect

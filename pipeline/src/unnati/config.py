@@ -1,5 +1,8 @@
-"""Settings come only from environment variables: GitHub Actions secrets in CI, and a local
-`.env` file in development (`uv run --env-file ../.env unnati ...`)."""
+"""Settings come only from environment variables: GitHub Actions secrets in CI, and the
+`.env.local` written by `neon link` in development (`uv run --env-file ../.env.local unnati ...`).
+
+The pipeline prefers Neon's direct connection (`DATABASE_URL_UNPOOLED`): it runs long
+transactions and schema-dependent work, which Neon recommends doing outside the pooler."""
 
 from __future__ import annotations
 
@@ -21,7 +24,7 @@ class Settings:
             return value or None
 
         return cls(
-            database_url=get("DATABASE_URL"),
+            database_url=get("DATABASE_URL_UNPOOLED") or get("DATABASE_URL"),
             data_gov_in_api_key=get("DATA_GOV_IN_API_KEY"),
             revalidate_url=get("REVALIDATE_URL"),
             revalidate_secret=get("REVALIDATE_SECRET"),

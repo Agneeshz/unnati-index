@@ -12,6 +12,7 @@ import socket
 import subprocess
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pg8000.native
 import pytest
@@ -44,6 +45,11 @@ def _wait_for(url: str, timeout: float = 60) -> None:
 @pytest.fixture(scope="session")
 def database_url():
     if url := os.environ.get("TEST_DATABASE_URL"):
+        # The `db` fixture drops the whole schema: never let it near a hosted database.
+        if urlparse(url).hostname not in {"localhost", "127.0.0.1", "::1"}:
+            pytest.exit(
+                f"refusing to run destructive tests against non-local host {urlparse(url).hostname!r}"
+            )
         yield url
         return
     node = shutil.which("node")
