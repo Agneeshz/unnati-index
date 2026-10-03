@@ -3,6 +3,7 @@ and spaces out requests to the same host so public servers are never hammered.""
 
 from __future__ import annotations
 
+import ssl
 import time
 from typing import Any
 from urllib.parse import urlparse
@@ -14,6 +15,16 @@ USER_AGENT = "UnnatiIndex/0.1 (+https://github.com/Agneeshz/unnati-index)"
 TRANSIENT_STATUS = {429, 500, 502, 503, 504}
 
 
+def legacy_renegotiation_context() -> ssl.SSLContext:
+    """For servers that still need TLS legacy renegotiation (e.g. api.mospi.gov.in).
+
+    Only renegotiation is relaxed: certificates and hostnames are still verified. Use it only
+    for public, read-only fetches that send no credentials."""
+    context = ssl.create_default_context()
+    context.options |= getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)
+    return context
+
+
 def _is_transient(exc: BaseException) -> bool:
     if isinstance(exc, httpx.TransportError):
         return True
@@ -23,9 +34,19 @@ def _is_transient(exc: BaseException) -> bool:
 class PoliteClient:
     """An httpx client that waits at least ``min_interval`` seconds between requests to a host."""
 
-    def __init__(self, min_interval: float = 1.0, timeout: float = 60.0) -> None:
+    def __init__(
+        self,
+        min_interval: float = 1.0,
+        timeout: float = 60.0,
+        ssl_context: ssl.SSLContext | None = None,
+        transport: httpx.BaseTransport | None = None,
+    ) -> None:
         self._client = httpx.Client(
-            headers={"User-Agent": USER_AGENT}, timeout=timeout, follow_redirects=True
+            headers={"User-Agent": USER_AGENT},
+            timeout=timeout,
+            follow_redirects=True,
+            verify=ssl_context if ssl_context is not None else True,
+            transport=transport,
         )
         self._min_interval = min_interval
         self._last_request: dict[str, float] = {}

@@ -165,6 +165,45 @@ def officials_observe(
 
 
 @app.command()
+def ingest(
+    dataset: str = typer.Argument(..., help="Dataset id from the registry, e.g. mospi_nas_state."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Fetch and validate, but don't write."),
+    force: bool = typer.Option(False, help="Load even if the source is unchanged."),
+    database_url: str = typer.Option(
+        None, help="Postgres URL. Defaults to $DATABASE_URL_UNPOOLED, then $DATABASE_URL."
+    ),
+) -> None:
+    """Fetch a dataset, validate it and load new or revised values."""
+    from unnati import ingest as ingest_module
+
+    today = date.today()
+    if dry_run:
+        report = ingest_module.check(dataset, today)
+    else:
+        from unnati.db import connect
+
+        conn = connect(database_url)
+        try:
+            report = ingest_module.run(conn, dataset, today, force=force)
+        finally:
+            conn.close()
+
+    per_indicator = Counter(o.indicator_id for o in report.fetched.observations)
+    typer.echo(f"status: {report.status}")
+    typer.echo(f"observations: {len(report.fetched.observations)} {dict(per_indicator)}")
+    if report.counts:
+        typer.echo("loaded: " + ", ".join(f"{n} {k}" for k, n in report.counts.items()))
+    for line in report.validation.hard:
+        typer.echo(f"REJECTED: {line}")
+    for line in report.validation.soft:
+        typer.echo(f"note: {line}")
+    for line in report.fetched.problems:
+        typer.echo(f"problem: {line}")
+    if report.status == "rejected":
+        raise typer.Exit(1)
+
+
+@app.command()
 def resolve(name: str, period: str = typer.Option("2024", help='e.g. "2024", "2023-24", "Jun 2026"')) -> None:
     """Show which entity a source's place name maps to for a given period."""
     try:

@@ -76,6 +76,28 @@
   frequency: annual
   decimals: 0
   valid_min: 0
+- id: per-capita-nsdp-current
+  name: Per-capita income (current prices)
+  description: Per-capita Net State Domestic Product at current prices.
+  unit: ₹
+  direction: higher_better
+  category: economy
+  dataset: mospi_nas_state
+  frequency: annual
+  decimals: 0
+  caveat: Not adjusted for inflation; use the constant-price series to compare over time.
+  valid_min: 0
+- id: gsdp-growth-real
+  name: Real GSDP growth
+  description: Annual growth of Gross State Domestic Product at constant prices.
+  unit: "%"
+  direction: higher_better
+  category: economy
+  dataset: mospi_nas_state
+  frequency: annual
+  decimals: 1
+  valid_min: -50
+  valid_max: 50
 - id: gsdp-growth-real-3yr
   name: Real GSDP growth (3-year average)
   description: Average annual growth of real GSDP over the latest three years.

@@ -182,8 +182,8 @@ datasets:
     title: State domestic product (National Accounts Statistics, eSankhyiki)
     connector: mospi
     cadence: annual
-    landing_url: https://esankhyiki.mospi.gov.in
-    enabled: false
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: mospi_cpi_state
     source: mospi
     title: Consumer Price Index by state (eSankhyiki)
