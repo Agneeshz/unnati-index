@@ -95,6 +95,17 @@ def _aishe(today: date) -> Fetched:
     )
 
 
+def _nfhs_factsheets(today: date) -> Fetched:
+    from unnati.connectors import nfhs_factsheets as nf
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=300) as http:
+        pdf, csvs = nf.fetch(http)
+    observations, problems = nf.observations(pdf, csvs, load_reference().resolver())
+    raw = {"pdf": hashlib.sha256(pdf).hexdigest(), "csvs": csvs}
+    return Fetched(observations, problems, fingerprint_of(raw), nf.PDF_URL)
+
+
 INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "mospi_nas_state": _mospi_nas_state,
     "mospi_plfs_state": _mospi_plfs_state,
@@ -102,6 +113,7 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "mospi_nfhs": _mospi_nfhs,
     "udise_plus": _udise_plus,
     "aishe": _aishe,
+    "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
 }
 
 

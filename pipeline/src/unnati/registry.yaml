@@ -249,11 +249,11 @@ datasets:
     enabled: false
   - id: nfhs
     source: iips
-    title: National Family Health Survey — state fact sheets
-    connector: nfhs
+    title: NFHS-6 (2023-24) state fact sheets (IIPS compendium and OpenCity CSVs)
+    connector: nfhs_factsheets
     cadence: irregular
-    landing_url: https://rchiips.org/nfhs
-    enabled: false
+    landing_url: https://data.opencity.in/dataset/nfhs-6-2023-24
+    enabled: true
   - id: mospi_nfhs
     source: mospi
     title: National Family Health Survey, NFHS-4 and NFHS-5 (eSankhyiki)
