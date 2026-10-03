@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dataset: [mospi_nas_state, mospi_plfs_state, mospi_cpi_state]
+        dataset: [mospi_nas_state, mospi_plfs_state, mospi_cpi_state, mospi_nfhs]
     defaults:
       run:
         working-directory: pipeline

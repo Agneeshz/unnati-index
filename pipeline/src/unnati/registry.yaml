@@ -254,6 +254,13 @@ datasets:
     cadence: irregular
     landing_url: https://rchiips.org/nfhs
     enabled: false
+  - id: mospi_nfhs
+    source: mospi
+    title: National Family Health Survey, NFHS-4 and NFHS-5 (eSankhyiki)
+    connector: mospi
+    cadence: irregular
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: udise_plus
     source: moe
     title: Unified District Information System for Education Plus (UDISE+)

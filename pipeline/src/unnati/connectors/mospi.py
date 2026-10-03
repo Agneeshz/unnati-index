@@ -9,13 +9,14 @@ Responses are paged (at most 200 rows per page)."""
 from __future__ import annotations
 
 import calendar
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 
 from unnati.core.entities import EntityResolver, UnknownEntityError
 from unnati.core.http import PoliteClient, legacy_renegotiation_context
-from unnati.core.periods import calendar_year, day, month, parse_period
+from unnati.core.periods import calendar_year, day, month, parse_period, span
 from unnati.observations import Observation
 
 BASE_URL = "https://api.mospi.gov.in"
@@ -136,6 +137,79 @@ def plfs_observations(
                     note="PLFS annual, usual status (PS+SS)",
                 )
             )
+    return observations, sorted(set(problems))
+
+
+# --- National Family Health Survey (NFHS-4, NFHS-5) ------------------------------------------
+#
+# NFHS-6 (2023-24) is not in the API yet. Labels carry footnote numbers ("stunted
+# (height-for-age)18 (%)"); they are stripped before matching this explicit table.
+
+NFHS_ROUNDS = {
+    "nfhs-4": span(date(2015, 1, 20), date(2016, 12, 4), "NFHS-4 (2015-16)", "survey_round"),
+    "nfhs-5": span(date(2019, 6, 17), date(2021, 4, 30), "NFHS-5 (2019-21)", "survey_round"),
+}
+NFHS_INDICATORS = {
+    "Households using clean fuel for cooking (%)": "clean-cooking-fuel",
+    "Population living in households that use an improved sanitation facility (%)": "improved-sanitation",
+    "Population living in households with electricity (%)": "households-with-electricity",
+    "Women age 20-24 years married before age 18 years (%)": "child-marriage",
+    "Institutional births (in the 5 years before the survey) (%)": "institutional-births",
+    "Children age 12-23 months fully vaccinated based on information from either vaccination card"
+    " or mother's recall (%)": "full-immunisation",
+    # NFHS-4 wording for the same basic schedule (BCG, measles, 3 doses each of polio and DPT)
+    "Children age 12-23 months fully immunized (BCG; measles; and 3 doses each of polio and DPT) (%)": (
+        "full-immunisation"
+    ),
+    "Children under 5 years who are stunted (height-for-age) (%)": "stunting-under5",
+    "All women age 15-49 years who are anaemic (%)": "anaemia-women",
+    "Children age 6-59 months who are anaemic (<11.0 g/dl) (%)": "anaemia-children",
+    "Women (age 15-49 years) having a bank or savings account that they themselves use (%)": (
+        "women-bank-account"
+    ),
+}
+NFHS_SECTIONS = (1, 3, 9, 10, 12, 14, 19)
+_FOOTNOTE = re.compile(r"(?<=[^\d\s])\d+(?:,\s*\d+)*(?=\s*\(%\)$)")
+
+
+def nfhs_label(raw: str) -> str:
+    """'...stunted (height-for-age)18 (%)' -> '...stunted (height-for-age) (%)'."""
+    return re.sub(r"\s+", " ", _FOOTNOTE.sub(" ", raw)).replace(" ) (%)", ") (%)").strip()
+
+
+def fetch_nfhs_state(http: PoliteClient) -> list[dict]:
+    rows: list[dict] = []
+    for code in NFHS_SECTIONS:
+        rows += fetch_all(http, "/api/nfhs/getNfhsRecords", {"indicator_code": code, "Format": "JSON"})
+    return rows
+
+
+def nfhs_observations(rows: list[dict], resolver: EntityResolver) -> tuple[list[Observation], list[str]]:
+    observations: list[Observation] = []
+    problems: list[str] = []
+    for row in rows:
+        indicator_id = NFHS_INDICATORS.get(nfhs_label(row["sub_indicator"]))
+        period = NFHS_ROUNDS.get(row.get("survey", "").lower())
+        if not indicator_id or period is None or row.get("sector") != "Rural + Urban (Combined)":
+            continue
+        if row.get("value") in (None, "", "NA", "-", "*"):
+            continue
+        try:
+            entity = resolver.resolve(row["state"], period)
+        except UnknownEntityError as err:
+            problems.append(str(err))
+            continue
+        if entity is None:
+            continue
+        observations.append(
+            Observation(
+                indicator_id=indicator_id,
+                entity_slug=entity.slug,
+                period=period,
+                value=float(str(row["value"]).strip("()")),
+                note=f"{period.label}; values in brackets in the source rest on few cases",
+            )
+        )
     return observations, sorted(set(problems))
 
 

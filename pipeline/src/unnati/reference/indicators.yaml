@@ -528,6 +528,17 @@
   caveat: Check for changes in measurement method between NFHS rounds before comparing over time.
   valid_min: 0
   valid_max: 100
+- id: anaemia-children
+  name: Anaemia among young children
+  description: Share of children aged 6-59 months who are anaemic (NFHS).
+  unit: "%"
+  direction: lower_better
+  category: health
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  valid_min: 0
+  valid_max: 100
 - id: full-immunisation
   name: Fully immunised children
   description: Share of children aged 12–23 months who received all basic vaccinations (NFHS).
@@ -676,6 +687,18 @@
   direction: higher_better
   category: infrastructure
   pillar: infrastructure-digital
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 100
+  valid_min: 0
+  valid_max: 100
+- id: households-with-electricity
+  name: Households with electricity
+  description: Share of the population living in households with electricity (NFHS).
+  unit: "% of population"
+  direction: higher_better
+  category: infrastructure
   dataset: nfhs
   frequency: irregular
   decimals: 1

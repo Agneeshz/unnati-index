@@ -198,3 +198,42 @@ def test_cpi_skips_partial_areas_after_the_merger_and_keeps_status():
     assert problems == [
         "Dadra & Nagar Haveli: published after the 2020 merger for part of the UT only; skipped"
     ]
+
+
+def test_nfhs_matches_cleaned_labels_and_dates_each_round():
+    rows = [
+        {
+            "state": "Kerala",
+            "survey": "nfhs-5",
+            "sector": "Rural + Urban (Combined)",
+            "value": "23.4",
+            "sub_indicator": "Children under 5 years who are stunted (height-for-age)18 (%)",
+        },
+        {
+            "state": "Jammu & Kashmir",
+            "survey": "nfhs-4",
+            "sector": "Rural + Urban (Combined)",
+            "value": "(27.4)",
+            "sub_indicator": "Children under 5 years who are stunted (height-for-age)18 (%)",
+        },
+        {
+            "state": "Kerala",
+            "survey": "nfhs-5",
+            "sector": "Rural",
+            "value": "25.0",
+            "sub_indicator": "Children under 5 years who are stunted (height-for-age)18 (%)",
+        },
+        {
+            "state": "Kerala",
+            "survey": "nfhs-5",
+            "sector": "Rural + Urban (Combined)",
+            "value": "50",
+            "sub_indicator": "Children under age 6 months exclusively breastfed16 (%)",
+        },
+    ]
+    found, problems = mospi.nfhs_observations(rows, REF.resolver())
+    assert not problems
+    assert sorted((x.entity_slug, x.period.label, x.value) for x in found) == [
+        ("jammu-and-kashmir-state", "NFHS-4 (2015-16)", 27.4),  # 2015-16: J&K was still a state
+        ("keralam", "NFHS-5 (2019-21)", 23.4),
+    ]

@@ -65,10 +65,20 @@ def _mospi_cpi_state(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/cpi/getCPIIndex")
 
 
+def _mospi_nfhs(today: date) -> Fetched:
+    from unnati.connectors import mospi
+
+    with mospi.client() as http:
+        rows = mospi.fetch_nfhs_state(http)
+    observations, problems = mospi.nfhs_observations(rows, load_reference().resolver())
+    return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/nfhs/getNfhsRecords")
+
+
 INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "mospi_nas_state": _mospi_nas_state,
     "mospi_plfs_state": _mospi_plfs_state,
     "mospi_cpi_state": _mospi_cpi_state,
+    "mospi_nfhs": _mospi_nfhs,
 }
 
 
