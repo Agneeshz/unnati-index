@@ -22,3 +22,4 @@
 - {indicator: groundwater-extraction-stage, place: punjab, period: "2024", expected: 156.87, source: "RBI Handbook 2024-25, Table 107 (CGWB)"}
 - {indicator: electricity-per-capita, place: keralam, period: "2024-25", expected: 880.3, source: "RBI Handbook 2024-25, Table 138 (CEA)"}
 - {indicator: population, place: keralam, period: "2024", expected: 35967000, source: "MoHFW Technical Group projections (July 2020), Table 11: 35,967 thousand on 1 July 2024"}
+- {indicator: parakh-grade6-maths, place: punjab, period: "PRS 2024", expected: 62, source: "PARAKH Rashtriya Sarvekshan 2024, State Report Punjab, Grade 6 comparison (national 46%)"}

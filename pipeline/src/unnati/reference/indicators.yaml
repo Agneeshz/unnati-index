@@ -684,16 +684,16 @@
   valid_min: 0
   valid_max: 100
 - id: parakh-grade6-maths
-  name: Grade 6 students proficient in maths (PARAKH)
-  description: Share of Grade 6 students at the Proficient or Advanced level in mathematics in the PARAKH Rashtriya Sarvekshan (national learning survey).
-  unit: "% of students"
+  name: Grade 6 maths performance (PARAKH)
+  description: Average percentage of mathematics questions answered correctly by Grade 6 students in the PARAKH Rashtriya Sarvekshan (national learning survey).
+  unit: "% correct"
   direction: higher_better
   category: education
   pillar: education
   dataset: parakh
   frequency: irregular
   decimals: 0
-  caveat: Sample survey of about 21 lakh students (Dec 2024). State figures are transcribed from the PRS 2024 state tables and still being checked against NCERT's report.
+  caveat: Sample survey of about 21 lakh students in December 2024, from NCERT's state reports. No report has been found for DNH & DD.
   valid_min: 0
   valid_max: 100
 - id: ger-higher-education

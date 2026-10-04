@@ -181,10 +181,24 @@ def _jjm_tap_water(today: date) -> Fetched:
 
 
 def _parakh(today: date) -> Fetched:
+    """NCERT's state reports (about 2.7 MB each); PRS 2024 is a one-off, so not on the schedule."""
     from unnati.connectors import parakh
+    from unnati.core.http import PoliteClient
 
-    observations, problems = parakh.observations(load_reference().resolver())
-    return Fetched(observations, problems, fingerprint_of(parakh.rows()), parakh.SOURCE_URL)
+    reports, problems = {}, []
+    with PoliteClient(timeout=120) as http:
+        for e in load_reference().entities:
+            if e.type not in ("state", "ut") or e.valid_to or not e.lgd_code:
+                continue
+            url = parakh.report_url(http, e.slug, e.name, int(e.lgd_code))
+            if url is None:
+                problems.append(f"PARAKH: no state report found for {e.name}")
+                continue
+            reports[e.slug] = http.get(url).content
+    observations, more = parakh.observations(reports)
+    raw = {slug: hashlib.sha256(pdf).hexdigest() for slug, pdf in reports.items()}
+    url = "https://parakh.ncert.gov.in/prs-reports-2024"
+    return Fetched(observations, problems + more, fingerprint_of(raw), url)
 
 
 def _rbi_hsis(today: date) -> Fetched:

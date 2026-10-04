@@ -1,48 +1,90 @@
-"""PARAKH Rashtriya Sarvekshan 2024 (4 Dec 2024): share of Grade 6 students at "Proficient" or
-"Advanced" level in mathematics, by state.
+"""PARAKH Rashtriya Sarvekshan 2024 (4 Dec 2024): average Grade 6 mathematics performance by
+state, from NCERT's official state reports.
 
-NCERT's state report pages block automated access and the dashboard loads figures in the
-browser, so the state table is curated in `manual/parakh_prs2024_g6_maths.csv`. It was
-transcribed from the PRS 2024 state tables as republished by Education for All in India
-("Table 2: State / UT-wise Proficient Total (%)", G6 Math) and is marked as pending a check
-against NCERT's own report; replace the file when NCERT's tables can be downloaded."""
+Each state has a report at parakh.ncert.gov.in/sites/default/files/2025-07/
+REPORT_<State name>_IND<3-digit state code>.pdf (the listing page blocks automated access, but
+the files do not). Its Grade 6 page compares the state's average performance (the average
+percentage of questions answered correctly) with the national average in each subject. The
+value is read from that chart's text and checked against the report's own sentence, e.g. "The
+performance gap is 16% in ... Mathematics". No report has been found for DNH & DD."""
 
 from __future__ import annotations
 
-import csv
+import io
+import re
 from datetime import date
-from importlib.resources import files
+from urllib.parse import quote
 
-from unnati.core.entities import EntityResolver, UnknownEntityError
+import httpx
+import pdfplumber
+
+from unnati.core.http import PoliteClient
 from unnati.core.periods import span
 from unnati.observations import Observation
 
-SOURCE_URL = (
-    "https://educationforallinindia.com/"
-    "proficiency-levels-in-indian-school-education-insights-from-parakh-rashtriya-sarvekshan-2024/"
-)
+BASE = "https://parakh.ncert.gov.in/sites/default/files/2025-07/REPORT_{name}_IND{code:03d}.pdf"
 ROUND = span(date(2024, 12, 4), date(2024, 12, 4), "PRS 2024", "survey_round")
+# Names PARAKH uses where they differ from ours.
+NAMES = {
+    "keralam": ["Kerala"],
+    "delhi": ["NCT of Delhi"],
+    "jammu-and-kashmir": ["Jammu and Kashmir", "Jammu & Kashmir"],
+}
+
+_PCT = re.compile(r"^(\d{1,3})%$")
 
 
-def rows() -> list[tuple[str, float]]:
-    path = files("unnati.manual").joinpath("parakh_prs2024_g6_maths.csv")
-    with path.open(encoding="utf-8", newline="") as fh:
-        return [(r["place"], float(r["proficient_pct"])) for r in csv.DictReader(fh)]
+def report_url(http: PoliteClient, slug: str, name: str, code: int) -> str | None:
+    for candidate in dict.fromkeys([*NAMES.get(slug, []), name, name.replace(" and ", " & ")]):
+        url = BASE.format(name=quote(candidate), code=code)
+        try:
+            if http.request("HEAD", url).status_code == 200:
+                return url
+        except httpx.HTTPStatusError as err:
+            if err.response.status_code != 404:
+                raise
+    return None
 
 
-def observations(resolver: EntityResolver) -> tuple[list[Observation], list[str]]:
+def grade6_maths(pdf_bytes: bytes) -> tuple[float, float] | None:
+    """(state average, national average) for Grade 6 mathematics, or None if not found."""
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text() or ""
+            # States say "State Average", UTs "UT Average".
+            if "GRADE 6" not in text or not re.search(r"Comparison of (State|UT) Average with National", text):
+                continue
+            lines = [line.strip() for line in text.split("\n")]
+            for i, line in enumerate(lines):
+                if line == "Mathematics" and 0 < i < len(lines) - 1:
+                    before, after = _PCT.match(lines[i - 1]), _PCT.match(lines[i + 1])
+                    if before and after:
+                        state, national = float(before.group(1)), float(after.group(1))
+                        gap = re.search(r"([\d.]+)%\s+in\s+(?:[A-Za-z ,]*?)Mathematics", " ".join(lines))
+                        if gap and abs(abs(state - national) - float(gap.group(1))) > 1:
+                            message = f"Grade 6 maths {state} vs {national} disagrees with the stated gap"
+                            raise ValueError(message)
+                        return state, national
+    return None
+
+
+def observations(reports: dict[str, bytes]) -> tuple[list[Observation], list[str]]:
     out: list[Observation] = []
     problems: list[str] = []
-    for place, value in rows():
+    national: float | None = None
+    for slug, pdf in sorted(reports.items()):
         try:
-            entity = resolver.resolve(place, ROUND)
-        except UnknownEntityError as err:
-            problems.append(str(err))
+            found = grade6_maths(pdf)
+        except ValueError as err:
+            problems.append(f"PARAKH {slug}: {err}")
             continue
-        if entity is not None:
-            note = (
-                "PARAKH Rashtriya Sarvekshan 2024, Grade 6 maths, Proficient + Advanced"
-                " (transcribed; pending NCERT check)"
-            )
-            out.append(Observation("parakh-grade6-maths", entity.slug, ROUND, value, note=note))
+        if found is None:
+            problems.append(f"PARAKH {slug}: Grade 6 comparison page not found")
+            continue
+        state, national = found
+        note = "PARAKH Rashtriya Sarvekshan 2024 state report: Grade 6 maths, average % of questions correct"
+        out.append(Observation("parakh-grade6-maths", slug, ROUND, state, note=note))
+    if national is not None:
+        note = "PARAKH Rashtriya Sarvekshan 2024: national average, Grade 6 maths"
+        out.append(Observation("parakh-grade6-maths", "india", ROUND, national, note=note))
     return out, problems
