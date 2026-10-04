@@ -72,6 +72,11 @@ jobs:
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
       - run: uv sync --locked
       - run: uv run unnati score
+      - name: Refresh the website's cached pages
+        run: uv run unnati revalidate
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
       - name: Report the failure as an issue
         if: failure()
         uses: ./.github/actions/report-failure
@@ -91,6 +96,10 @@ jobs:
       - run: uv sync --locked
       - run: uv run unnati officials sync
       - run: uv run unnati officials observe
+      - run: uv run unnati revalidate officials
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
       - name: Report the failure as an issue
         if: failure()
         uses: ./.github/actions/report-failure

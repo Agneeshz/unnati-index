@@ -294,6 +294,28 @@ def score(
         typer.echo("no score (too few pillars): " + ", ".join(sorted(missing)))
 
 
+_REVALIDATE_TAGS = typer.Argument(None, help="Cache tags; default: everything data-driven.")
+
+
+@app.command()
+def revalidate(tags: list[str] = _REVALIDATE_TAGS) -> None:
+    """Ask the website to refresh cached pages (POST $SITE_URL/api/revalidate)."""
+    import os
+
+    from unnati.core.http import PoliteClient
+
+    site, secret = os.environ.get("SITE_URL"), os.environ.get("REVALIDATE_SECRET")
+    if not site or not secret:
+        typer.echo("SITE_URL and REVALIDATE_SECRET must be set", err=True)
+        raise typer.Exit(1)
+    body = {"tags": tags or ["scores", "observations", "officials", "places"]}
+    with PoliteClient(timeout=30) as http:
+        response = http.post(
+            f"{site.rstrip('/')}/api/revalidate", json=body, headers={"Authorization": f"Bearer {secret}"}
+        )
+    typer.echo(f"revalidated: {', '.join(response.json()['revalidated'])}")
+
+
 @app.command()
 def resolve(name: str, period: str = typer.Option("2024", help='e.g. "2024", "2023-24", "Jun 2026"')) -> None:
     """Show which entity a source's place name maps to for a given period."""
