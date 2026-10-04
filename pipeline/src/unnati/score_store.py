@@ -17,11 +17,18 @@ FIRST_EDITION = 2023
 
 
 def specs() -> dict[str, scoring.IndicatorSpec]:
+    """Pillar indicators, plus indicators used only by the thematic indices (no pillar)."""
+    ref = load_reference()
+    in_indices = {i for x in ref.indices for i in x.indicator_ids()}
     return {
         i.id: scoring.IndicatorSpec(i.id, i.pillar, i.direction, i.target)
-        for i in load_reference().indicators
-        if i.pillar
+        for i in ref.indicators
+        if i.pillar or i.id in in_indices
     }
+
+
+def indices() -> list[scoring.ThematicIndex]:
+    return [scoring.ThematicIndex(x.id, x.kind, x.components) for x in load_reference().indices]
 
 
 def peer_groups() -> dict[str, str]:
@@ -87,7 +94,9 @@ def compute(
     editions = {}
     for edition in range(FIRST_EDITION, today.year + 1):
         cutoff = today if edition == today.year else date(edition, 12, 31)
-        editions[edition] = scoring.score_edition(scoring.select(values, cutoff), spec, posts, groups)
+        editions[edition] = scoring.score_edition(
+            scoring.select(values, cutoff), spec, posts, groups, indices()
+        )
     return editions
 
 

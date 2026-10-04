@@ -283,13 +283,13 @@ def score(
         conn.close()
     latest = editions[max(editions)]
     composite = sorted(
-        (s for s in latest if s.level == "composite" and s.score is not None and s.rank_overall),
+        (s for s in latest if s.key == scoring.COMPOSITE_KEY and s.score is not None and s.rank_overall),
         key=lambda s: s.rank_overall,
     )
     typer.echo(f"edition {max(editions)}: {len(composite)} places with an Unnati Index score")
     for s in composite:
         typer.echo(f"  {s.rank_overall:>2}. {s.entity:<42} {s.score:5.1f}  (peer #{s.rank_peer})")
-    missing = [s.entity for s in latest if s.level == "composite" and s.score is None]
+    missing = [s.entity for s in latest if s.key == scoring.COMPOSITE_KEY and s.score is None]
     if missing:
         typer.echo("no score (too few pillars): " + ", ".join(sorted(missing)))
 

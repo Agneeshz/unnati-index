@@ -6,6 +6,8 @@ core tables, because observations and scores may still reference retired rows.""
 
 from __future__ import annotations
 
+import json
+
 from unnati.core.entities import normalize_name
 from unnati.db import Connection, transaction
 from unnati.reference import ReferenceData
@@ -94,6 +96,18 @@ _UPSERT_INDICATOR = """
 """
 
 
+_UPSERT_INDEX = """
+    insert into index_definition
+        (id, name, name_hi, description, method, caveat, inspired_by, components, sort)
+    values (:id, :name, :name_hi, :description, :method, :caveat, :inspired_by,
+            cast(:components as jsonb), :sort)
+    on conflict (id) do update set
+        name = excluded.name, name_hi = excluded.name_hi, description = excluded.description,
+        method = excluded.method, caveat = excluded.caveat, inspired_by = excluded.inspired_by,
+        components = excluded.components, sort = excluded.sort
+"""
+
+
 def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
     with transaction(conn):
         for e in ref.entities:
@@ -134,6 +148,17 @@ def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
                 _UPSERT_INDICATOR,
                 **i.model_dump(exclude={"pillar"}),
                 is_derived=i.derived is not None,
+            )
+        conn.run(
+            "delete from index_definition where not (id = any(cast(:ids as text[])))",
+            ids=[x.id for x in ref.indices],
+        )
+        for sort, x in enumerate(ref.indices, 1):
+            conn.run(
+                _UPSERT_INDEX,
+                **x.model_dump(exclude={"kind", "components"}),
+                components=json.dumps(x.components),
+                sort=sort,
             )
 
     return {

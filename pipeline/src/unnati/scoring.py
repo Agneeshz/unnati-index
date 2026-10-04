@@ -19,6 +19,7 @@ This module is pure: database reads and writes live in `score_store`."""
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
@@ -47,7 +48,7 @@ class Value:
 @dataclass(frozen=True)
 class IndicatorSpec:
     id: str
-    pillar: str
+    pillar: str | None
     direction: str  # higher_better | lower_better
     target: float | None = None
     weight: float = 1.0
@@ -147,46 +148,107 @@ def competition_ranks(scores: Mapping[str, float]) -> dict[str, int]:
     return {entity: ordered.index(score) + 1 for entity, score in rounded.items()}
 
 
+@dataclass(frozen=True)
+class ThematicIndex:
+    id: str
+    kind: str  # "mean" | "hdi"
+    components: Mapping[str, list[str]]  # dimension -> indicator ids
+
+
+# HDI-style goalposts (UNDP method): life expectancy 20-85 years; enrolment 0-100%; per-capita
+# NSDP at constant 2011-12 prices on a log scale, Rs 10,000 to Rs 5,00,000.
+HDI_LIFE = (20.0, 85.0)
+HDI_INCOME = (10_000.0, 500_000.0)
+
+
+def _clip(x: float) -> float:
+    return max(0.0, min(1.0, x))
+
+
+def hdi(life: float | None, enrolment: list[float], income: float | None) -> float | None:
+    """Geometric mean of the three dimension indices, scaled 0-100."""
+    if life is None or income is None or income <= 0 or not enrolment:
+        return None
+    health = _clip((life - HDI_LIFE[0]) / (HDI_LIFE[1] - HDI_LIFE[0]))
+    knowledge = _clip(sum(min(e, 100.0) for e in enrolment) / len(enrolment) / 100)
+    span = math.log(HDI_INCOME[1]) - math.log(HDI_INCOME[0])
+    wealth = _clip((math.log(income) - math.log(HDI_INCOME[0])) / span)
+    return 100 * (health * knowledge * wealth) ** (1 / 3)
+
+
 def score_edition(
     chosen: Mapping[tuple[str, str], Value],
     specs: Mapping[str, IndicatorSpec],
     posts: Mapping[str, Goalpost],
     peer_groups: Mapping[str, str],
+    indices: Iterable[ThematicIndex] = (),
 ) -> list[Score]:
     """Indicator, pillar and composite scores with ranks for every place in `peer_groups`
-    (state/UT slug -> peer group) and India."""
+    (state/UT slug -> peer group) and India, plus thematic indices (level "composite", key =
+    index id). Specs without a pillar are scored as indicators only, for the indices."""
     places = [*peer_groups, NATIONAL]
     pillars: dict[str, list[IndicatorSpec]] = defaultdict(list)
     for spec in specs.values():
-        pillars[spec.pillar].append(spec)
+        if spec.pillar:
+            pillars[spec.pillar].append(spec)
     out: list[Score] = []
+    indicator_scores: dict[tuple[str, str], float] = {}
     pillar_scores: dict[str, dict[str, float]] = defaultdict(dict)
     composite: dict[str, float] = {}
     for entity in places:
+        for spec in specs.values():
+            value = chosen.get((spec.id, entity))
+            post = posts.get(spec.id)
+            if value is None or post is None:
+                continue
+            s = indicator_score(value.value, post)
+            indicator_scores[(spec.id, entity)] = s
+            out.append(Score(entity, "indicator", spec.id, s, period_label=value.label))
         for pillar_id, members in sorted(pillars.items()):
             total = weight = 0.0
             for spec in members:
-                value = chosen.get((spec.id, entity))
-                post = posts.get(spec.id)
-                if value is None or post is None:
-                    continue
-                s = indicator_score(value.value, post)
-                out.append(Score(entity, "indicator", spec.id, s, period_label=value.label))
-                total += s * spec.weight
-                weight += spec.weight
+                s = indicator_scores.get((spec.id, entity))
+                if s is not None:
+                    total += s * spec.weight
+                    weight += spec.weight
             coverage = weight / sum(spec.weight for spec in members)
             score = total / weight if weight and coverage >= PILLAR_MIN_SHARE - 1e-9 else None
             out.append(Score(entity, "pillar", pillar_id, score, coverage=coverage))
             if score is not None:
                 pillar_scores[pillar_id][entity] = score
         scored = [pillar_scores[p][entity] for p in pillars if entity in pillar_scores[p]]
-        coverage = len(scored) / len(pillars)
+        coverage = len(scored) / len(pillars) if pillars else 0.0
         score = sum(scored) / len(scored) if len(scored) >= COMPOSITE_MIN_PILLARS else None
         out.append(Score(entity, "composite", COMPOSITE_KEY, score, coverage=coverage))
         if score is not None:
             composite[entity] = score
 
-    # Ranks for pillars and the composite, overall and within peer groups (India excluded).
+    index_scores: dict[str, dict[str, float]] = defaultdict(dict)
+    for index in indices:
+        for entity in places:
+            if index.kind == "hdi":
+
+                def raw(indicator_id: str, entity: str = entity) -> float | None:
+                    v = chosen.get((indicator_id, entity))
+                    return v.value if v is not None else None
+
+                enrolment = [v for i in index.components["Knowledge"] if (v := raw(i)) is not None]
+                score = hdi(raw(index.components["Health"][0]), enrolment, raw(index.components["Income"][0]))
+                coverage = 1.0 if score is not None else 0.0
+            else:
+                dimensions = []
+                for members in index.components.values():
+                    have = [indicator_scores[(m, entity)] for m in members if (m, entity) in indicator_scores]
+                    if have and len(have) / len(members) >= PILLAR_MIN_SHARE - 1e-9:
+                        dimensions.append(sum(have) / len(have))
+                coverage = len(dimensions) / len(index.components)
+                enough = bool(dimensions) and coverage >= PILLAR_MIN_SHARE - 1e-9
+                score = sum(dimensions) / len(dimensions) if enough else None
+            out.append(Score(entity, "composite", index.id, score, coverage=coverage))
+            if score is not None:
+                index_scores[index.id][entity] = score
+
+    # Ranks for pillars and composites, overall and within peer groups (India excluded).
     def rank(level: str, key: str, scores: Mapping[str, float]) -> None:
         ranked = {e: s for e, s in scores.items() if e != NATIONAL}
         overall = competition_ranks(ranked)
@@ -201,4 +263,6 @@ def score_edition(
     for pillar_id, scores in pillar_scores.items():
         rank("pillar", pillar_id, scores)
     rank("composite", COMPOSITE_KEY, composite)
+    for index_id, scores in index_scores.items():
+        rank("composite", index_id, scores)
     return out

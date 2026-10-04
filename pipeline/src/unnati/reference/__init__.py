@@ -110,6 +110,21 @@ class Indicator(_Model):
         return self
 
 
+class ThematicIndex(_Model):
+    id: str = Field(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$")
+    name: str
+    name_hi: str | None = None
+    inspired_by: str | None = None
+    description: str
+    method: str
+    caveat: str | None = None
+    kind: Literal["mean", "hdi"]
+    components: dict[str, list[str]]
+
+    def indicator_ids(self) -> list[str]:
+        return [i for members in self.components.values() for i in members]
+
+
 class Source(_Model):
     id: str
     name: str
@@ -151,6 +166,7 @@ class ReferenceData(_Model):
     categories: list[Category]
     pillars: list[Pillar]
     indicators: list[Indicator]
+    indices: list[ThematicIndex] = []
     registry: Registry
 
     @model_validator(mode="after")
@@ -170,7 +186,15 @@ class ReferenceData(_Model):
         pillars = unique("pillar", [p.id for p in self.pillars])
         sources = unique("source", [s.id for s in self.registry.sources])
         datasets = unique("dataset", [d.id for d in self.registry.datasets])
-        unique("indicator", [i.id for i in self.indicators])
+        indicator_ids = unique("indicator", [i.id for i in self.indicators])
+        unique("index", [x.id for x in self.indices])
+        directions = {i.id: i.direction for i in self.indicators}
+        for x in self.indices:
+            for member in x.indicator_ids():
+                if member not in indicator_ids:
+                    problems.append(f"index {x.id}: unknown indicator {member!r}")
+                elif directions[member] == "neutral":
+                    problems.append(f"index {x.id}: {member} has no direction")
 
         for e in self.entities:
             if e.parent_slug and e.parent_slug not in slugs:
@@ -231,5 +255,6 @@ def load_reference() -> ReferenceData:
         categories=_yaml(_REFERENCE.joinpath("categories.yaml")),
         pillars=_yaml(_REFERENCE.joinpath("pillars.yaml")),
         indicators=_yaml(_REFERENCE.joinpath("indicators.yaml")),
+        indices=_yaml(_REFERENCE.joinpath("indices.yaml")),
         registry=_yaml(_REGISTRY),
     )

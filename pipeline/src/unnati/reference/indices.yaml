@@ -1,0 +1,78 @@
+# Thematic indices computed from indicators already in the database (no outside scores).
+# Each dimension is the mean of its indicators' 0-100 scores (same fixed goalposts as the
+# Unnati Index) when at least 60% of them have data; the index is the mean of its dimensions,
+# or for the HDI-style index the geometric mean of three dimension indices (UNDP method).
+
+- id: human-development
+  name: Human Development Index (Unnati estimate)
+  inspired_by: UNDP Human Development Index
+  description: A long and healthy life, knowledge, and a decent standard of living, combined the way UNDP's HDI does it.
+  method: >-
+    Three dimension indices with UNDP-style fixed goalposts: life expectancy at birth (20 to 85
+    years); knowledge, using secondary and higher-education enrolment as a stand-in for years of
+    schooling (0 to 100%); and income, as the logarithm of per-capita NSDP at constant prices
+    (₹10,000 to ₹5,00,000). The index is their geometric mean, so a weak dimension cannot be made
+    up by a strong one. Scaled 0 to 100 (UNDP publishes 0 to 1).
+  caveat: Not comparable with UNDP's published HDI, which uses years of schooling and income in international dollars. Covers only the states with SRS life tables.
+  kind: hdi
+  components:
+    Health: [life-expectancy]
+    Knowledge: [ger-secondary, ger-higher-education]
+    Income: [per-capita-nsdp-constant]
+
+- id: social-progress
+  name: Social Progress Index
+  inspired_by: Social Progress Imperative's Social Progress Index
+  description: How well a state meets its people's needs, measured only through outcomes, never income or spending.
+  method: >-
+    Three dimensions with equal weight: basic human needs (sanitation, electricity, clean
+    cooking fuel, infant survival, child nutrition), foundations of well-being (secondary
+    enrolment, internet access, life expectancy, groundwater stress), and opportunity (women's
+    bank accounts, child marriage, women's work, safety for women, higher education).
+  kind: mean
+  components:
+    Basic human needs: [improved-sanitation, households-with-electricity, clean-cooking-fuel, infant-mortality-rate, stunting-under5]
+    Foundations of well-being: [ger-secondary, internet-subscribers-per-100, life-expectancy, groundwater-extraction-stage]
+    Opportunity: [women-bank-account, child-marriage, female-lfpr, crimes-against-women-rate, ger-higher-education]
+
+- id: safety
+  name: Safety Index
+  inspired_by: Global Peace Index (domestic safety only)
+  description: How safe people are from violence, crime and preventable deaths on the roads.
+  method: >-
+    Mean of six scores: murder rate, total cognisable crime rate, crimes against women, crimes
+    against children, road accident deaths and suicides, each per lakh people. Unlike the Global
+    Peace Index, it has no militarisation or conflict measures, which don't apply to states.
+  caveat: Registered crime depends on how easily people can report it; a state with better reporting can look less safe. The murder rate is the least affected by this.
+  kind: mean
+  components:
+    Safety: [murder-rate, crime-rate-total, crimes-against-women-rate, crimes-against-children-rate, road-deaths-per-lakh, suicide-rate]
+
+- id: gender-equality
+  name: Gender Equality Index
+  inspired_by: UNDP Gender Inequality Index and NITI Aayog SDG 5
+  description: Women's economic participation, autonomy, health and safety.
+  method: >-
+    Three dimensions with equal weight: economic (women's labour-force participation, women's
+    own bank accounts), health and autonomy (anaemia among women, child marriage, sex ratio at
+    birth), and safety (crimes against women).
+  kind: mean
+  components:
+    Economic: [female-lfpr, women-bank-account]
+    Health and autonomy: [anaemia-women, child-marriage, sex-ratio-at-birth-nfhs]
+    Safety: [crimes-against-women-rate]
+
+- id: child-wellbeing
+  name: Child Well-being Index
+  inspired_by: UNICEF child well-being report cards
+  description: Whether children survive, grow well, stay in school and are protected.
+  method: >-
+    Four dimensions with equal weight: survival (infant and under-5 mortality), nutrition and
+    health (stunting, full immunisation, anaemia in young children), education (secondary
+    dropout), and protection (child marriage, crimes against children).
+  kind: mean
+  components:
+    Survival: [infant-mortality-rate, under5-mortality-rate]
+    Nutrition and health: [stunting-under5, full-immunisation, anaemia-children]
+    Education: [dropout-secondary]
+    Protection: [child-marriage, crimes-against-children-rate]

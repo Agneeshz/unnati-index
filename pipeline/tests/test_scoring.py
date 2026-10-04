@@ -1,3 +1,4 @@
+import math
 from datetime import date
 
 from unnati import scoring
@@ -69,3 +70,28 @@ def test_pillar_and_composite_need_enough_data():
     assert (composite["y"].rank_overall, composite["x"].rank_overall) == (1, 2)
     pillar7 = next(s for s in scores if s.entity == "y" and s.key == "p7")
     assert pillar7.score is None and pillar7.coverage == 0.4
+
+
+def test_hdi_is_a_geometric_mean_with_undp_goalposts():
+    # life 72.5 -> 0.808; enrolment mean 60 -> 0.6; income Rs 1,50,000 -> ln-scaled 0.692
+    value = scoring.hdi(72.5, [80.0, 40.0], 150_000.0)
+    expected = 100 * ((52.5 / 65) * 0.6 * (math.log(15) / math.log(50))) ** (1 / 3)
+    assert abs(value - expected) < 1e-9
+    assert scoring.hdi(None, [80.0], 150_000.0) is None
+    assert scoring.hdi(72.5, [], 150_000.0) is None
+
+
+def test_mean_index_needs_most_dimensions():
+    specs = {k: IndicatorSpec(k, None, "higher_better") for k in ("a1", "a2", "b1", "c1")}
+    posts = {k: Goalpost(worst=0, best=100) for k in specs}
+    index = scoring.ThematicIndex("demo", "mean", {"A": ["a1", "a2"], "B": ["b1"], "C": ["c1"]})
+    chosen = {
+        ("a1", "x"): v("a1", "x", 2024, 40),
+        ("a2", "x"): v("a2", "x", 2024, 60),
+        ("b1", "x"): v("b1", "x", 2024, 80),
+    }
+    chosen[("c1", "y")] = v("c1", "y", 2024, 90)
+    scores = scoring.score_edition(chosen, specs, posts, {"x": "large_state", "y": "large_state"}, [index])
+    demo = {s.entity: s for s in scores if s.key == "demo"}
+    assert demo["x"].score == 65 and demo["x"].coverage == 2 / 3 and demo["x"].rank_overall == 1
+    assert demo["y"].score is None  # one of three dimensions
