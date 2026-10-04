@@ -10,6 +10,7 @@ import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
+from pathlib import Path
 
 from unnati import observations as obs
 from unnati.db import Connection
@@ -124,9 +125,11 @@ def _rbi_hsis(today: date) -> Fetched:
         files, edition, load_reference().resolver(), population(), gsdp
     )
     raw = {n: hashlib.sha256(path.read_bytes()).hexdigest() for n, path in sorted(files.items())}
-    return Fetched(
-        observations, problems, fingerprint_of({"edition": edition, "files": raw}), rbi_hsis.INDEX_URL
-    )
+    # The files rarely change, so the parser's own code is part of the fingerprint: a fix to the
+    # importer reprocesses the same files instead of being skipped as "unchanged".
+    parser = hashlib.sha256(Path(rbi_hsis.__file__).read_bytes()).hexdigest()
+    fingerprint = fingerprint_of({"edition": edition, "files": raw, "parser": parser})
+    return Fetched(observations, problems, fingerprint, rbi_hsis.INDEX_URL)
 
 
 def _nfhs_factsheets(today: date) -> Fetched:
