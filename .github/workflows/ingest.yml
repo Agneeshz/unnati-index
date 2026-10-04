@@ -38,6 +38,7 @@ jobs:
           - cpcb_aqi_bulletin
           - phonepe_pulse
           - gstn_state_collections
+          - jjm_tap_water
           - ncrb_cii
           - ncrb_adsi
           - morth_road_accidents

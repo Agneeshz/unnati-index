@@ -285,10 +285,10 @@ datasets:
   - id: parakh
     source: moe
     title: PARAKH Rashtriya Sarvekshan (national learning assessment)
-    connector: manual
+    connector: parakh
     cadence: irregular
-    landing_url: https://ncert.nic.in
-    enabled: false
+    landing_url: https://dashboard.parakh.ncert.gov.in/en
+    enabled: true
   - id: gstn_state_collections
     source: gstn
     title: State-wise GST collections
@@ -372,7 +372,7 @@ datasets:
     connector: jjm
     cadence: daily
     landing_url: https://ejalshakti.gov.in/jjmreport/JJMIndia.aspx
-    enabled: false
+    enabled: true
   - id: cgwb_groundwater
     source: jalshakti
     title: Dynamic Ground Water Resources assessment

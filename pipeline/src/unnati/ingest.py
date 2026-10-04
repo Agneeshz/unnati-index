@@ -167,6 +167,26 @@ def _gstn_state_collections(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(raw), gstn.NEWS)
 
 
+def _jjm_tap_water(today: date) -> Fetched:
+    """Reads the committed dashboard exports (pipeline/manual-downloads/jjm/)."""
+    from unnati.connectors import jjm
+
+    files = {path.name: path.read_bytes() for path in sorted(jjm.MANUAL_DIR.glob("*.pdf"))}
+    if not files:
+        raise RuntimeError(f"no JJM exports in {jjm.MANUAL_DIR}")
+    observations, problems = jjm.observations(files, load_reference().resolver())
+    raw = {name: hashlib.sha256(pdf).hexdigest() for name, pdf in files.items()}
+    url = "https://ejalshakti.gov.in/jjmreport/JJMIndia.aspx"
+    return Fetched(observations, problems, fingerprint_of(raw), url)
+
+
+def _parakh(today: date) -> Fetched:
+    from unnati.connectors import parakh
+
+    observations, problems = parakh.observations(load_reference().resolver())
+    return Fetched(observations, problems, fingerprint_of(parakh.rows()), parakh.SOURCE_URL)
+
+
 def _rbi_hsis(today: date) -> Fetched:
     """Reads the committed downloads; MoSPI's GSDP fills in where RBI Table 21 is absent."""
     from unnati.connectors import mospi, rbi_hsis
@@ -378,6 +398,8 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "cpcb_aqi_bulletin": _cpcb_aqi_bulletin,
     "phonepe_pulse": _phonepe_pulse,
     "gstn_state_collections": _gstn_state_collections,
+    "jjm_tap_water": _jjm_tap_water,
+    "parakh": _parakh,
     "rbi_hsis": _rbi_hsis,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,
