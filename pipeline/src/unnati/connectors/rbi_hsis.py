@@ -43,7 +43,6 @@ TABLES = {
     146: "Length of Roads",
     147: "Length of State Highways",
     149: "Telephones per 100 Population",
-    150: "Road Constructed under PMGSY",
     153: "Credit-Deposit Ratio of Scheduled Commercial Banks",
     164: "Gross Fiscal Deficit",
     166: "Revenue Expenditure",
@@ -297,6 +296,26 @@ def _economy_fill_in(b: _Builder, files: dict[int, Path], mospi_covered: set[str
         b.out.extend(three_year_growth(growth))
 
 
+def _densities(
+    b: _Builder, path: Path, table: int, indicator_id: str, per: int, what: str, area: dict[str, float]
+) -> None:
+    """Length (km, as at end-March of the column's year) per `per` km² of area. Years marked "*"
+    are as at end-December instead, and fall in the next fiscal year. Only years from 2015 on:
+    before that, Andhra Pradesh's figures include Telangana. Cells marked "*" (carried over from
+    an older year) are skipped."""
+    for cell in wide(path):
+        column = re.fullmatch(r"(\d{4})(\*?)", cell.column)
+        if not column or cell.value is None or cell.flagged or int(column.group(1)) < 2015:
+            continue
+        year, december = int(column.group(1)), bool(column.group(2))
+        period = fiscal_year(year if december else year - 1)
+        slug = b.slug(cell.place, period)
+        if slug and slug in area:
+            when = "end-December" if december else "end-March"
+            note = f"table {table} ({what}, as at {when} {year}) / area"
+            b.add(indicator_id, slug, period, cell.value / area[slug] * per, note)
+
+
 def observations(
     files: dict[int, Path],
     edition: str,
@@ -304,12 +323,14 @@ def observations(
     population: dict[tuple[str, int], Population],
     gsdp_fallback: dict[tuple[str, str], float],
     mospi_covered: set[str] = frozenset(),
+    area: dict[str, float] | None = None,
 ) -> tuple[list[Observation], list[str]]:
     """Indicators from the downloaded tables. `gsdp_fallback` maps (entity slug, FY label) to GSDP
     at current prices in ₹ crore (MoSPI), used where Table 21 has no value. Per-capita income and
     real growth (Tables 20 and 22) are only added for places MoSPI's API doesn't cover
     (`mospi_covered`), so the two sources never disagree on the same series."""
     b = _Builder(edition, resolver)
+    area = area or {}
     _economy_fill_in(b, files, mospi_covered)
     missing = [n for n in TABLES if n not in files]
     if missing:
@@ -424,6 +445,15 @@ def observations(
             if people:
                 note = "table 181 (DGCI&S exports by state of origin) / projected population"
                 b.add("exports-per-capita", slug, period, cell.value * 1e6 / people.persons, note)
+
+    for table, indicator_id, per, what in (
+        (146, "road-density", 100, "length of all roads"),
+        (144, "national-highway-density", 1000, "length of national highways"),
+        (147, "state-highway-density", 1000, "length of state highways"),
+        (145, "rail-route-density", 1000, "railway route length"),
+    ):
+        if table in files:
+            _densities(b, files[table], table, indicator_id, per, what, area)
 
     if 10 in files:  # MPI headcount ratio, NFHS-4 and NFHS-5 rounds
         from unnati.connectors.mospi import NFHS_ROUNDS

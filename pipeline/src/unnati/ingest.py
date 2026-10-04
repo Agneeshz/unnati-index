@@ -219,7 +219,7 @@ def _aai_traffic(today: date) -> Fetched:
 def _rbi_hsis(today: date) -> Fetched:
     """Reads the committed downloads; MoSPI's GSDP fills in where RBI Table 21 is absent."""
     from unnati.connectors import mospi, rbi_hsis
-    from unnati.reference import population
+    from unnati.reference import population, state_area
 
     folders = sorted(p.name for p in rbi_hsis.MANUAL_DIR.glob("*-*") if p.is_dir())
     if not folders:
@@ -237,7 +237,7 @@ def _rbi_hsis(today: date) -> Fetched:
         gsdp = {(o.entity_slug, o.period.label): o.value for o in nas if o.indicator_id == "gsdp-current"}
         covered = {o.entity_slug for o in nas if o.indicator_id == "per-capita-nsdp-constant"}
     observations, problems = rbi_hsis.observations(
-        files, edition, load_reference().resolver(), population(), gsdp, covered
+        files, edition, load_reference().resolver(), population(), gsdp, covered, state_area()
     )
     raw = {n: hashlib.sha256(path.read_bytes()).hexdigest() for n, path in sorted(files.items())}
     # The files rarely change, so the parser's own code is part of the fingerprint: a fix to the

@@ -42,3 +42,25 @@ def test_air_passengers_scale_fiscal_year_to_date_to_a_year():
     assert values["goa"] == 480.0
     assert found[0].period.label == "Apr–Aug 2026 (FY 2026-27 to date)"
     assert problems == ["AAI: airport 'NOWHERE' has no state in aai_airports.csv"]
+
+
+def test_density_per_area_skips_old_years_carried_cells_and_places_without_area(tmp_path):
+    import openpyxl
+
+    from unnati.connectors import rbi_hsis
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append([None, "TABLE 144: STATE-WISE LENGTH OF NATIONAL HIGHWAYS"])
+    ws.append([None, "State/Union Territory", 2014, 2021, "2024*"])
+    ws.append([None, "Kerala", 1000, 1500, "2000"])
+    ws.append([None, "Goa", 100, "200*", 300])
+    ws.append([None, "Jammu & Kashmir", 1, 2, 3])
+    path = tmp_path / "144T.xlsx"
+    wb.save(path)
+    b = rbi_hsis._Builder("2024-25", load_reference().resolver())
+    area = {"keralam": 40_000.0, "goa": 3_000.0}
+    rbi_hsis._densities(b, path, 144, "national-highway-density", 1000, "national highways", area)
+    found = {(o.entity_slug, o.period.label): o.value for o in b.out}
+    # end-March 2021 closes FY 2020-21; the end-December 2024 figure falls in FY 2024-25.
+    assert found == {("keralam", "2020-21"): 37.5, ("keralam", "2024-25"): 50.0, ("goa", "2024-25"): 100.0}

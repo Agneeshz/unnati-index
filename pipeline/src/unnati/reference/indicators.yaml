@@ -482,6 +482,54 @@
   rankable: false
   caveat: Registrations accumulate and old vehicles are rarely removed, so this overstates vehicles on the road.
   valid_min: 0
+- id: road-density
+  name: Road density
+  description: Length of all roads (national and state highways, district, rural, urban and project roads) per 100 km² of area.
+  unit: km per 100 km²
+  direction: higher_better
+  category: infrastructure
+  dataset: rbi_hsis
+  frequency: annual
+  decimals: 0
+  scale: log
+  caveat: Not computed for Jammu & Kashmir and Ladakh, whose official area includes territory India claims but does not administer. Small, urban UTs (Delhi, Chandigarh) read far higher than states.
+  valid_min: 0
+- id: national-highway-density
+  name: National highway density
+  description: Length of national highways per 1,000 km² of area.
+  unit: km per 1,000 km²
+  direction: higher_better
+  category: infrastructure
+  dataset: rbi_hsis
+  frequency: annual
+  decimals: 0
+  scale: log
+  caveat: Not computed for Jammu & Kashmir and Ladakh, whose official area includes territory India claims but does not administer. Small, urban UTs (Delhi, Chandigarh) read far higher than states.
+  valid_min: 0
+- id: state-highway-density
+  name: State highway density
+  description: Length of state highways per 1,000 km² of area.
+  unit: km per 1,000 km²
+  direction: higher_better
+  category: infrastructure
+  dataset: rbi_hsis
+  frequency: annual
+  decimals: 0
+  scale: log
+  caveat: Not computed for Jammu & Kashmir and Ladakh, whose official area includes territory India claims but does not administer. Small, urban UTs (Delhi, Chandigarh) read far higher than states.
+  valid_min: 0
+- id: rail-route-density
+  name: Railway route density
+  description: Length of railway route per 1,000 km² of area.
+  unit: km per 1,000 km²
+  direction: higher_better
+  category: infrastructure
+  dataset: rbi_hsis
+  frequency: annual
+  decimals: 1
+  scale: log
+  caveat: Not computed for Jammu & Kashmir and Ladakh, whose official area includes territory India claims but does not administer. Small, urban UTs (Delhi, Chandigarh) read far higher than states.
+  valid_min: 0
 - id: road-deaths-per-lakh
   name: Road accident deaths
   description: Deaths in road accidents per lakh population.

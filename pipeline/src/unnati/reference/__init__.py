@@ -248,6 +248,15 @@ def population() -> dict[tuple[str, int], Population]:
 
 
 @cache
+def state_area() -> dict[str, float]:
+    """Geographical area in km² by entity slug: the sum of the land-cover classes in MoSPI's
+    EnviStats (table 12, 2015-16), which matches the Census 2011 areas. Jammu & Kashmir and
+    Ladakh are left out: their only official area (222,237 km² for the former state) includes
+    territory India claims but does not administer, so a density over it would mislead."""
+    return {row["slug"]: float(row["area_km2"]) for row in _csv_rows("state_area.csv")}
+
+
+@cache
 def load_reference() -> ReferenceData:
     return ReferenceData(
         entities=_csv_rows("entities.csv"),
