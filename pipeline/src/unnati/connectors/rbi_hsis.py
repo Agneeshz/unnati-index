@@ -137,6 +137,13 @@ def wide(path: Path, header_pattern: str = r"(?i)^(region/)?state") -> list[Cell
                 if first is not None and re.match(header_pattern, str(first).strip()):
                     header = [str(c).strip() if c is not None else "" for c in values]
                 continue
+            if first is None and any(re.fullmatch(r"\d{4}(-\d{2})?.*", str(c or "")) for c in values[1:]):
+                # Years on a second header row (e.g. under "Base: 2011-12"): they win. Sub-labels
+                # such as "Headcount Ratio" under "NFHS-5" are not years and leave the header alone.
+                header = [
+                    str(c).strip() if c is not None else h for c, h in zip(values, header, strict=False)
+                ]
+                continue
             place = _place(first)
             if place is None:
                 continue
@@ -145,6 +152,19 @@ def wide(path: Path, header_pattern: str = r"(?i)^(region/)?state") -> list[Cell
                     value, flagged = _number(raw)
                     cells.append(Cell(place, label, value, flagged))
     return cells
+
+
+def unit_of(path: Path) -> str | None:
+    """The money unit printed under a table's title: "lakh" or "crore"."""
+    import openpyxl
+
+    ws = openpyxl.load_workbook(path, data_only=True, read_only=True).worksheets[0]
+    for row in ws.iter_rows(max_row=6, values_only=True):
+        for cell in row:
+            match = re.search(r"₹\s*(lakh|crore)", str(cell or ""), re.I)
+            if match:
+                return match.group(1).lower()
+    return None
 
 
 def fiscal_column(label: str) -> tuple[Period, str] | None:
@@ -244,9 +264,10 @@ def observations(
         b.problems.append(f"{b.source}: tables not downloaded: {', '.join(map(str, missing))}")
 
     # GSDP denominators: RBI Table 21 when present (it covers every state), else MoSPI.
-    gsdp = (
-        {key: value for key, (value, *_) in b.fiscal(files[21], ("A", "RE")).items()} if 21 in files else {}
-    )
+    gsdp: dict[tuple[str, str], float] = {}
+    if 21 in files:
+        to_crore = 1 / 100 if unit_of(files[21]) == "lakh" else 1.0  # Table 21 is in ₹ lakh
+        gsdp = {key: value * to_crore for key, (value, *_) in b.fiscal(files[21], ("A", "RE")).items()}
     for key, value in gsdp_fallback.items():
         gsdp.setdefault(key, value)
 
