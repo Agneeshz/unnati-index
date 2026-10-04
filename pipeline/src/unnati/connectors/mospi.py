@@ -469,6 +469,11 @@ def udise_observations(
             value = number(row.get("value"))
             if value is None:
                 continue
+            if series.indicator_id == "dropout-secondary" and value == 0:
+                # UDISE+ floors its flow-based dropout formula at 0 when enrolment data are
+                # inconsistent (e.g. Bihar 2023-24 and 2024-25), so 0 is not a measurement.
+                problems.append(f"UDISE+ dropout of 0 for {row['state']} {row['year']} skipped as unreliable")
+                continue
             period = parse_period(row["year"])
             try:
                 entity = resolve_current_first(resolver, row["state"], period, today)

@@ -128,7 +128,8 @@
     "rankings": {
       "title": "Unnati Index rankings {year}",
       "intro": "Overall and pillar scores out of 100. Ranks are shown within each peer group, so small Union Territories are not compared directly with large states. Select a state for its full report card.",
-      "overall": "Overall"
+      "overall": "Overall",
+      "partial": "8 में से {n} स्तंभों पर आधारित"
     },
     "state": {
       "reportCard": "Report card",

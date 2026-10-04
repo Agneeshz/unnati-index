@@ -317,6 +317,48 @@ def revalidate(tags: list[str] = _REVALIDATE_TAGS) -> None:
 
 
 @app.command()
+def verify(
+    database_url: str = typer.Option(
+        None, help="Postgres URL. Defaults to $DATABASE_URL_UNPOOLED, then $DATABASE_URL."
+    ),
+) -> None:
+    """Check the database against published figures in docs/verification.yaml."""
+    from pathlib import Path
+
+    import yaml
+
+    from unnati.db import connect
+
+    checks = yaml.safe_load(
+        (Path(__file__).resolve().parents[3] / "docs" / "verification.yaml").read_text("utf-8")
+    )
+    conn = connect(database_url)
+    failed = 0
+    try:
+        for check in checks:
+            rows = conn.run(
+                """select o.value from latest_observation o join entity e on e.id = o.entity_id
+                   where o.indicator_id = :i and e.slug = :s and o.period_label = :p""",
+                i=check["indicator"],
+                s=check["place"],
+                p=str(check["period"]),
+            )
+            got = rows[0][0] if rows else None
+            ok = got is not None and abs(got - check["expected"]) <= check.get("tolerance", 1e-9)
+            failed += not ok
+            mark = "ok  " if ok else "FAIL"
+            typer.echo(
+                f"{mark} {check['indicator']} {check['place']} {check['period']}: "
+                f"{got} (expected {check['expected']})"
+            )
+    finally:
+        conn.close()
+    typer.echo(f"{len(checks) - failed} of {len(checks)} published figures match")
+    if failed:
+        raise typer.Exit(1)
+
+
+@app.command()
 def resolve(name: str, period: str = typer.Option("2024", help='e.g. "2024", "2023-24", "Jun 2026"')) -> None:
     """Show which entity a source's place name maps to for a given period."""
     try:

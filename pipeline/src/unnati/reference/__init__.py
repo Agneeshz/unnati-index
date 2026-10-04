@@ -98,6 +98,7 @@ class Indicator(_Model):
     derived: str | None = None
     caveat: str | None = None
     target: float | None = None
+    scale: Literal["linear", "log"] = "linear"
     valid_min: float | None = None
     valid_max: float | None = None
 

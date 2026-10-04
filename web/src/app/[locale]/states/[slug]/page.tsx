@@ -175,6 +175,11 @@ async function ReportCard({
             </div>
             <div className="space-y-1">
               <BandLabel score={composite.score} dict={dict} />
+              {composite.coverage != null && composite.coverage < 1 && (
+                <p className="text-xs text-muted">
+                  {fill(dict.ui.rankings.partial, { n: Math.round(composite.coverage * 8) })}
+                </p>
+              )}
               <p>
                 {fill(dict.ui.state.rankOf, {
                   rank: composite.rankPeer ?? "–",

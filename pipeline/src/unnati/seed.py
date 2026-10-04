@@ -146,7 +146,7 @@ def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
         for i in ref.indicators:
             conn.run(
                 _UPSERT_INDICATOR,
-                **i.model_dump(exclude={"pillar"}),
+                **i.model_dump(exclude={"pillar", "scale"}),
                 is_derived=i.derived is not None,
             )
         conn.run(

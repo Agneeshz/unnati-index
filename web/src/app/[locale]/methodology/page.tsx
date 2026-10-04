@@ -19,7 +19,7 @@ const RULES = [
   },
   {
     title: "Fixed goalposts",
-    body: "Each indicator is scored 0-100 between two fixed goalposts. The best end is a national or SDG target where one exists, otherwise the 97.5th percentile of state values since 2015; the worst end is the 2.5th percentile. Goalposts stay fixed for a methodology version, so a score only rises when the state's own numbers improve.",
+    body: "Each indicator is scored 0-100 between two fixed goalposts. The best end is a national or SDG target where one exists, otherwise the 97.5th percentile of state values since 2015; the worst end is the 2.5th percentile. Goalposts stay fixed for a methodology version, so a score only rises when the state's own numbers improve. Very skewed per-person values (income, exports, electricity) are scored on a log scale, as UNDP does for income, so going from 10 to 100 counts as much as from 100 to 1,000.",
   },
   {
     title: "One period for everyone",

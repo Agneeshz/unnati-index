@@ -21,7 +21,7 @@ def specs() -> dict[str, scoring.IndicatorSpec]:
     ref = load_reference()
     in_indices = {i for x in ref.indices for i in x.indicator_ids()}
     return {
-        i.id: scoring.IndicatorSpec(i.id, i.pillar, i.direction, i.target)
+        i.id: scoring.IndicatorSpec(i.id, i.pillar, i.direction, i.target, log=i.scale == "log")
         for i in ref.indicators
         if i.pillar or i.id in in_indices
     }

@@ -9,7 +9,8 @@
    reaches 80% (e.g. IMR, annual for bigger states but 3-year pooled for smaller ones), use
    each place's own latest value. Values whose period ended more than six years before the
    edition's cut-off are ignored (NFHS rounds are about five years apart and published late).
-3. Indicator score = 100 * (x - worst) / (best - worst), clipped to 0-100.
+3. Indicator score = 100 * (x - worst) / (best - worst), clipped to 0-100; for very skewed
+   per-person values (income, exports, electricity) the same on a log scale.
 4. A pillar is the weighted mean of its indicator scores when at least 60% of them have data
    (3 of 5, 4 of 6); the Unnati Index is the mean of the pillars when at least six of eight have scores.
 5. Ranks are competition ranks ("1, 2, 2, 4") on scores rounded to one decimal, overall and
@@ -52,6 +53,7 @@ class IndicatorSpec:
     direction: str  # higher_better | lower_better
     target: float | None = None
     weight: float = 1.0
+    log: bool = False  # score on a log scale (very skewed per-person values)
 
 
 @dataclass(frozen=True)
@@ -136,8 +138,17 @@ def select(values: Iterable[Value], cutoff: date) -> dict[tuple[str, str], Value
     return chosen
 
 
-def indicator_score(value: float, post: Goalpost) -> float:
-    raw = 100 * (value - post.worst) / (post.best - post.worst)
+def indicator_score(value: float, post: Goalpost, log: bool = False) -> float:
+    """0-100 between the goalposts. With `log`, distances are measured on a log scale (as UNDP's
+    HDI does for income), so $10 -> $100 counts as much as $100 -> $1,000."""
+    if log:
+        floor = 1e-9
+        value, worst, best = (math.log(max(v, floor)) for v in (value, post.worst, post.best))
+        if best == worst:
+            return 0.0
+        raw = 100 * (value - worst) / (best - worst)
+    else:
+        raw = 100 * (value - post.worst) / (post.best - post.worst)
     return max(0.0, min(100.0, raw))
 
 
@@ -201,7 +212,7 @@ def score_edition(
             post = posts.get(spec.id)
             if value is None or post is None:
                 continue
-            s = indicator_score(value.value, post)
+            s = indicator_score(value.value, post, spec.log)
             indicator_scores[(spec.id, entity)] = s
             out.append(Score(entity, "indicator", spec.id, s, period_label=value.label))
         for pillar_id, members in sorted(pillars.items()):

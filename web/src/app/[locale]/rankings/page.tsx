@@ -101,6 +101,11 @@ export default async function RankingsPage() {
                           <span className="flex flex-wrap items-center gap-2">
                             <ScoreBar score={composite.score} locale={locale} />
                             <BandLabel score={composite.score} dict={dict} />
+                            {composite.coverage != null && composite.coverage < 1 && (
+                              <span className="text-xs text-muted">
+                                {fill(dict.ui.rankings.partial, { n: Math.round(composite.coverage * 8) })}
+                              </span>
+                            )}
                           </span>
                         ) : (
                           <span className="text-muted">{dict.ui.common.noScore}</span>

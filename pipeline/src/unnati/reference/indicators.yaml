@@ -75,6 +75,7 @@
   dataset: mospi_nas_state
   frequency: annual
   decimals: 0
+  scale: log
   valid_min: 0
 - id: per-capita-nsdp-current
   name: Per-capita income (current prices)
@@ -212,6 +213,7 @@
   dataset: rbi_hsis
   frequency: annual
   decimals: 0
+  scale: log
   derived: merchandise-exports (12 months) * 1e6 / population
   caveat: State of origin is as declared in shipping bills. Services exports are not published by state.
   valid_min: 0
@@ -719,6 +721,7 @@
   dataset: rbi_hsis
   frequency: annual
   decimals: 0
+  scale: log
   valid_min: 0
 - id: energy-deficit
   name: Electricity shortage
