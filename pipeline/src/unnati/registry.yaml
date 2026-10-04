@@ -76,6 +76,12 @@ sources:
     url: https://cea.nic.in
     license: Government publication — reproduced with attribution
     attribution: "Source: Central Electricity Authority"
+  - id: aai
+    name: Airports Authority of India
+    publisher: Ministry of Civil Aviation
+    url: https://www.aai.aero
+    license: Government publication — reproduced with attribution
+    attribution: "Source: Airports Authority of India, traffic news"
   - id: phonepe
     name: PhonePe Pulse
     publisher: PhonePe
@@ -324,6 +330,13 @@ datasets:
     cadence: monthly
     landing_url: https://cea.nic.in
     enabled: false
+  - id: aai_traffic
+    source: aai
+    title: AAI monthly airport traffic (Annexure III)
+    connector: aai
+    cadence: monthly
+    landing_url: https://www.aai.aero/en/business-opportunities/aai-traffic-news
+    enabled: true
   - id: phonepe_pulse
     source: phonepe
     title: PhonePe Pulse transactions by state

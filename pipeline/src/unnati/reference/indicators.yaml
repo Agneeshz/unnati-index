@@ -458,6 +458,30 @@
   decimals: 1
   valid_min: 0
   valid_max: 100
+- id: air-passengers-per-100
+  name: Air passengers per 100 people
+  description: Passengers (arriving and departing, domestic and international) at the state's airports per 100 residents per year.
+  unit: per 100 people per year
+  direction: higher_better
+  category: infrastructure
+  dataset: aai_traffic
+  frequency: monthly
+  decimals: 1
+  scale: log
+  caveat: Counts traffic handled at the state's airports, so hubs serving neighbouring states and tourists (Delhi, Goa) read far higher than residents actually fly.
+  valid_min: 0
+- id: vehicles-per-1000
+  name: Registered motor vehicles per 1,000 people
+  description: Motor vehicles registered (transport and non-transport) per 1,000 people.
+  unit: per 1,000 people
+  direction: neutral
+  category: infrastructure
+  dataset: mospi_envstats
+  frequency: annual
+  decimals: 0
+  rankable: false
+  caveat: Registrations accumulate and old vehicles are rarely removed, so this overstates vehicles on the road.
+  valid_min: 0
 - id: road-deaths-per-lakh
   name: Road accident deaths
   description: Deaths in road accidents per lakh population.

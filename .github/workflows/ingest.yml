@@ -39,6 +39,7 @@ jobs:
           - phonepe_pulse
           - gstn_state_collections
           - jjm_tap_water
+          - aai_traffic
           - ncrb_cii
           - ncrb_adsi
           - morth_road_accidents

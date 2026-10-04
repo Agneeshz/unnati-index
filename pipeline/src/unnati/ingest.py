@@ -116,7 +116,9 @@ def _mospi_envstats(today: date) -> Fetched:
 
     with mospi.client() as http:
         rows = mospi.fetch_envstats(http)
-    observations, problems = mospi.envstats_observations(rows, load_reference().resolver())
+    from unnati.reference import population
+
+    observations, problems = mospi.envstats_observations(rows, load_reference().resolver(), population())
     raw = {str(code): value for code, value in rows.items()}
     return Fetched(
         observations, problems, fingerprint_of(raw), f"{mospi.BASE_URL}/api/env/getEnvStatsRecords"
@@ -199,6 +201,18 @@ def _parakh(today: date) -> Fetched:
     raw = {slug: hashlib.sha256(pdf).hexdigest() for slug, pdf in reports.items()}
     url = "https://parakh.ncert.gov.in/prs-reports-2024"
     return Fetched(observations, problems + more, fingerprint_of(raw), url)
+
+
+def _aai_traffic(today: date) -> Fetched:
+    from unnati.connectors import aai
+    from unnati.core.http import PoliteClient
+    from unnati.reference import population
+
+    with PoliteClient(timeout=120) as http:
+        month_end, url = aai.latest_report(http)
+        pdf = http.get(url).content
+    observations, problems = aai.observations(aai.passengers(pdf), month_end, population())
+    return Fetched(observations, problems, fingerprint_of({"url": url, "sha": hashlib.sha256(pdf).hexdigest()}), url)
 
 
 def _rbi_hsis(today: date) -> Fetched:
@@ -414,6 +428,7 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "gstn_state_collections": _gstn_state_collections,
     "jjm_tap_water": _jjm_tap_water,
     "parakh": _parakh,
+    "aai_traffic": _aai_traffic,
     "rbi_hsis": _rbi_hsis,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,

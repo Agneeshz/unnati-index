@@ -412,6 +412,7 @@ def hces_observations(rows: list[dict], resolver: EntityResolver) -> tuple[list[
 # EnviStats (MoSPI "Compendium of Environment Statistics"), /api/env/getEnvStatsRecords.
 ENV_AIR = 25  # Ambient Air Quality in cities under NAMP & CAAQMS (Integrated)
 ENV_WASTE = 80  # Municipal Solid Waste Generation in India (state-wise, TPD)
+ENV_VEHICLES = 112  # Status of registered Motor Vehicles (state-wise, transport / non-transport)
 
 # MoSPI's API labels table 25's pollutant columns with fertiliser names. Checked against table 26
 # (correctly labelled, 7 metros): the CAAQMS values match SO2, NO2 and PM10 exactly, so the
@@ -421,7 +422,8 @@ ENV_AIR_COLUMNS = {"Nitrogen": "SO2", "Phosphorous": "NO2", "Potash (Potassium)"
 
 # EnviStats still lists DNH and Daman & Diu separately after their 26 Jan 2020 merger; here (and
 # only here, since other sources must fail loudly on stale names) their rows are added together.
-ENV_MERGED_NAMES = {normalize_name("Dadra and Nagar Haveli"), normalize_name("Daman and Diu")}
+ENV_COMBINED_NAME = normalize_name("Daman and Diu and Dadra Nagar Haveli")
+ENV_MERGED_NAMES = {normalize_name("Dadra and Nagar Haveli"), normalize_name("Daman and Diu"), ENV_COMBINED_NAME}
 ENV_MERGED_FROM = date(2020, 1, 26)
 ENV_MERGED_SLUG = "dadra-and-nagar-haveli-and-daman-and-diu"
 
@@ -429,12 +431,12 @@ ENV_MERGED_SLUG = "dadra-and-nagar-haveli-and-daman-and-diu"
 def fetch_envstats(http: PoliteClient) -> dict[int, list[dict]]:
     return {
         code: fetch_all(http, "/api/env/getEnvStatsRecords", {"indicator_code": code, "Format": "JSON"})
-        for code in (ENV_AIR, ENV_WASTE)
+        for code in (ENV_AIR, ENV_WASTE, ENV_VEHICLES)
     }
 
 
 def envstats_observations(
-    rows_by_code: Mapping[int, list[dict]], resolver: EntityResolver
+    rows_by_code: Mapping[int, list[dict]], resolver: EntityResolver, population=None
 ) -> tuple[list[Observation], list[str]]:
     """pm25-annual: per city, the continuous monitors' (CAAQMS) annual PM2.5 where the city has
     them, else the manual (NAMP) stations'; a state's value is the mean over its monitored
@@ -451,8 +453,12 @@ def envstats_observations(
                 entity = resolver.resolve(state, period)
                 resolved[(state, period)] = entity.slug if entity else None
             except UnknownEntityError as err:
-                if normalize_name(state) in ENV_MERGED_NAMES and period.start >= ENV_MERGED_FROM:
+                if normalize_name(state) in ENV_MERGED_NAMES and period.end >= ENV_MERGED_FROM:
                     resolved[(state, period)] = ENV_MERGED_SLUG
+                elif normalize_name(state) == ENV_COMBINED_NAME:
+                    # The vehicle table back-fills the merged name for years before the merger,
+                    # when no single place (or population) matches it: skip those years.
+                    resolved[(state, period)] = None
                 else:
                     problems.append(str(err))
                     resolved[(state, period)] = None
@@ -506,6 +512,22 @@ def envstats_observations(
                 "waste-processed", slug, period, round(min(treated / generated, 1) * 100, 1), note=note
             )
         )
+    vehicles: dict[tuple[Period, str], float] = {}
+    for row in rows_by_code.get(ENV_VEHICLES, []):
+        value = number(row.get("value"))
+        year = re.match(r"\d{4}", str(row.get("year", "")))
+        if value is None or not year:
+            continue
+        period = calendar_year(int(year.group(0)))
+        slug = slug_of(row["state"], period)
+        if slug is not None:
+            vehicles[(period, slug)] = vehicles.get((period, slug), 0.0) + value
+    for (period, slug), count in vehicles.items():
+        people = population.get((slug, period.start.year)) if population else None
+        if people is None:
+            continue
+        note = f"EnviStats (MoRTH): {count:,.0f} registered motor vehicles"
+        out.append(Observation("vehicles-per-1000", slug, period, round(count / people.persons * 1000), note=note))
     return out, sorted(set(problems))
 
 
