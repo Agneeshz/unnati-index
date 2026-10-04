@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { locale as rootLocale } from "next/root-params";
+import { IndiaMap } from "@/components/india-map";
 import { BandLabel, RankChange, ScoreBar } from "@/components/score";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
@@ -25,6 +26,23 @@ export default async function RankingsPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="text-3xl font-bold tracking-tight">{fill(dict.ui.rankings.title, { year: edition })}</h1>
       <p className="mt-3 max-w-3xl text-muted">{dict.ui.rankings.intro}</p>
+      <div className="mt-6 max-w-xl">
+        <IndiaMap
+          title={fill(dict.ui.rankings.title, { year: edition })}
+          data={Object.fromEntries(
+            places.flatMap((p) => {
+              const s = byKey.get(`${p.slug}|composite|${COMPOSITE}`);
+              return s?.score != null && p.type !== "country"
+                ? [[p.slug, { value: s.score, label: `${formatScore(s.score, locale)} / 100` }]]
+                : [];
+            }),
+          )}
+          formatBreak={(v) => formatScore(v, locale)}
+          notAvailable={dict.ui.common.noScore}
+          note="Unnati Index score out of 100. Darker means a higher score."
+          hrefFor={(slug) => `/${locale}/states/${slug}`}
+        />
+      </div>
 
       {PEER_GROUPS.map((group) => {
         const members = places

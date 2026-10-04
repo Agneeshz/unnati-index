@@ -22,6 +22,7 @@ const entitiesCsv = path.join(here, '..', 'pipeline', 'src', 'unnati', 'referenc
 const NAME_FIXES = {
   'Andaman & Nicobar': 'andaman-and-nicobar-islands',
   'Jammu & Kashmir': 'jammu-and-kashmir',
+  Kerala: 'keralam', // renamed by the Kerala (Alteration of Name) Act, 2026
 }
 
 const slugify = (name) =>

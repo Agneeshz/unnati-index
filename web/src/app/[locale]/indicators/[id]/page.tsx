@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
+import { IndiaMap } from "@/components/india-map";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
 import { getIndicatorObservations, getIndicators, getPlaces, type Observation } from "@/lib/data";
+import { formatNumber } from "@/lib/format";
 import { fill, formatValue } from "@/lib/present";
 
 export async function generateStaticParams() {
@@ -90,6 +92,18 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
         <p className="mt-1 text-sm text-muted">
           {fill(dict.ui.indicators.coverage, { n: withData.length, total: states.length })}
         </p>
+        <div className="mt-4 max-w-xl">
+          <IndiaMap
+            title={`${indicator.name}: map of states and UTs`}
+            data={Object.fromEntries(
+              withData.map((o) => [o.slug, { value: o.value, label: `${formatValue(o.value, indicator, locale)} (${o.label})` }]),
+            )}
+            formatBreak={(v) => formatNumber(v, indicator.decimals, locale)}
+            notAvailable={dict.ui.common.notAvailable}
+            note={`${indicator.unit} · ${directionText}. Darker means a higher value.`}
+            hrefFor={(slug) => `/${locale}/states/${slug}`}
+          />
+        </div>
         <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[36rem] text-sm">
             <thead className="border-b border-border text-left text-muted">
