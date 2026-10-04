@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { locale as rootLocale } from "next/root-params";
+import { IndiaMap } from "@/components/india-map";
 import { BandLabel, ScoreBar } from "@/components/score";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
@@ -13,7 +14,7 @@ import {
   type Place,
 } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
-import { fill, PEER_GROUPS } from "@/lib/present";
+import { fill, formatScore, PEER_GROUPS } from "@/lib/present";
 
 const PILLARS: (keyof Dictionary["pillars"])[] = [
   "economy-jobs",
@@ -79,6 +80,23 @@ export default async function HomePage() {
             {fill(dict.ui.home.leadersTitle, { year: edition })}
           </h2>
           <p className="mt-2 max-w-3xl text-muted">{dict.ui.home.leadersIntro}</p>
+          <div className="mt-6 max-w-xl">
+            <IndiaMap
+              title={fill(dict.ui.home.leadersTitle, { year: edition })}
+              data={Object.fromEntries(
+                places.flatMap((p) => {
+                  const s = composite.get(p.slug);
+                  return s?.score != null && p.type !== "country"
+                    ? [[p.slug, { value: s.score, label: `${formatScore(s.score, locale)} / 100` }]]
+                    : [];
+                }),
+              )}
+              formatBreak={(v) => formatScore(v, locale)}
+              notAvailable={dict.ui.common.noScore}
+              note="Unnati Index score out of 100. Darker means a higher score. Select a state for its report card."
+              hrefFor={(slug) => `/${locale}/states/${slug}`}
+            />
+          </div>
           <div className="mt-6 grid gap-6 lg:grid-cols-3">
             {PEER_GROUPS.map((group) => {
               const ranked = places

@@ -56,19 +56,20 @@ export function IndiaMap({
         >
           <defs>
             <pattern id="no-data" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <rect width="6" height="6" className="fill-bg" />
-              <line x1="0" y1="0" x2="0" y2="6" className="stroke-border" strokeWidth="2" />
+              <rect width="6" height="6" className="fill-surface" />
+              <line x1="1" y1="0" x2="1" y2="6" className="stroke-muted" strokeWidth="1.2" strokeOpacity="0.55" />
             </pattern>
           </defs>
-          {shapes.map((s) => {
+          {[...shapes].sort((a, b) => Number(!data[a.slug]) - Number(!data[b.slug])).map((s) => {
             const d = data[s.slug];
             const tip = `${s.name}: ${d ? d.label : notAvailable}`;
             const shape = (
               <path
                 d={s.d}
                 fill={fill(s.slug)}
-                className="stroke-surface"
-                strokeWidth={0.8}
+                // No-data shapes get a visible outline so India's border stays complete (e.g. Ladakh).
+                className={d ? "stroke-surface" : "stroke-muted"}
+                strokeWidth={d ? 0.8 : 1}
                 data-tip={tip}
                 tabIndex={0}
                 aria-label={tip}
