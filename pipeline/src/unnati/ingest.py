@@ -116,13 +116,17 @@ def _rbi_hsis(today: date) -> Fetched:
     edition = folders[-1]
     files = rbi_hsis.local_files(edition)
     gsdp: dict[tuple[str, str], float] = {}
-    if 21 not in files:
+    covered: set[str] = set()
+    if 21 not in files or 20 in files or 22 in files:
+        # MoSPI's GSDP (when Table 21 is missing) and the places MoSPI already covers, so RBI's
+        # per-capita income and growth only fill the gaps.
         with mospi.client() as http:
             rows = mospi.fetch_nas_state(http)
         nas, _ = mospi.nas_observations(rows, load_reference().resolver(), today)
         gsdp = {(o.entity_slug, o.period.label): o.value for o in nas if o.indicator_id == "gsdp-current"}
+        covered = {o.entity_slug for o in nas if o.indicator_id == "per-capita-nsdp-constant"}
     observations, problems = rbi_hsis.observations(
-        files, edition, load_reference().resolver(), population(), gsdp
+        files, edition, load_reference().resolver(), population(), gsdp, covered
     )
     raw = {n: hashlib.sha256(path.read_bytes()).hexdigest() for n, path in sorted(files.items())}
     # The files rarely change, so the parser's own code is part of the fingerprint: a fix to the

@@ -30,7 +30,9 @@ TABLES = {
     10: "Poverty Estimates - Multi-dimensional Poverty Index",
     16: "Health Infrastructure - Doctors and Specialists",
     17: "Number of Government Hospitals and Beds",
+    20: "Per Capita Net State Domestic Product (Constant Prices)",
     21: "Gross State Domestic Product (Current Prices)",
+    22: "Gross State Domestic Product (Constant Prices)",
     99: "Forest Cover",
     107: "Status of Ground Water Extraction",
     138: "Per Capita Availability of Power",
@@ -249,16 +251,53 @@ class _Builder:
         )
 
 
+def _economy_fill_in(b: _Builder, files: dict[int, Path], mospi_covered: set[str]) -> None:
+    """Per-capita NSDP (Table 20) and real GSDP growth from GSDP at constant prices (Table 22),
+    both base 2011-12 like MoSPI's series, for places missing from MoSPI's API."""
+    from unnati.connectors.mospi import three_year_growth
+
+    if 20 in files:
+        for (slug, _), (value, period, _) in b.fiscal(files[20], ("A",)).items():
+            if slug not in mospi_covered and period.start.year >= 2011:
+                b.add(
+                    "per-capita-nsdp-constant",
+                    slug,
+                    period,
+                    value,
+                    "table 20 (per capita NSDP, base 2011-12)",
+                )
+    if 22 in files:
+        series: dict[str, list[tuple[Period, float]]] = {}
+        for (slug, _), (value, period, _) in b.fiscal(files[22], ("A",)).items():
+            if slug not in mospi_covered:
+                series.setdefault(slug, []).append((period, value))
+        growth: list[Observation] = []
+        for slug, points in series.items():
+            points.sort(key=lambda p: p[0].start)
+            for (p0, v0), (p1, v1) in pairwise(points):
+                if p1.start.year == p0.start.year + 1 and v0 > 0 and p1.start.year >= 2012:
+                    note = f"{b.source}, table 22: growth of GSDP at constant prices (base 2011-12)"
+                    growth.append(
+                        Observation("gsdp-growth-real", slug, p1, round((v1 / v0 - 1) * 100, 2), note=note)
+                    )
+        b.out.extend(growth)
+        b.out.extend(three_year_growth(growth))
+
+
 def observations(
     files: dict[int, Path],
     edition: str,
     resolver: EntityResolver,
     population: dict[tuple[str, int], Population],
     gsdp_fallback: dict[tuple[str, str], float],
+    mospi_covered: set[str] = frozenset(),
 ) -> tuple[list[Observation], list[str]]:
     """Indicators from the downloaded tables. `gsdp_fallback` maps (entity slug, FY label) to GSDP
-    at current prices in ₹ crore (MoSPI), used where Table 21 has no value."""
+    at current prices in ₹ crore (MoSPI), used where Table 21 has no value. Per-capita income and
+    real growth (Tables 20 and 22) are only added for places MoSPI's API doesn't cover
+    (`mospi_covered`), so the two sources never disagree on the same series."""
     b = _Builder(edition, resolver)
+    _economy_fill_in(b, files, mospi_covered)
     missing = [n for n in TABLES if n not in files]
     if missing:
         b.problems.append(f"{b.source}: tables not downloaded: {', '.join(map(str, missing))}")
