@@ -79,7 +79,8 @@
       "indicators": "Indicators",
       "methodology": "Methodology",
       "sources": "Sources",
-      "indices": "Indices"
+      "indices": "Indices",
+      "compare": "Compare"
     },
     "peerGroups": {
       "large_state": "Large states",
@@ -182,6 +183,22 @@
       "stateTitle": "Other indices",
       "outOf100": "Score out of 100",
       "scaleNote": "Score out of 100. Darker means a higher score."
+    },
+    "compare": {
+      "title": "Compare states",
+      "intro": "Put two to four states or UTs side by side on the Unnati Index, its pillars and every indicator. The best value in each row is marked.",
+      "pick": "State or UT {n}",
+      "none": "None",
+      "submit": "Compare",
+      "choose": "Choose at least two states or UTs to compare.",
+      "popular": "Popular comparisons",
+      "neighbours": "Compare {name} with a neighbour",
+      "best": "Best of those compared",
+      "differentPeriods": "Not marked: the latest figures are for different periods.",
+      "indicatorsTitle": "Indicators",
+      "indicesTitle": "Other indices",
+      "rank": "#{rank} of {total} in {group}",
+      "compareThis": "Compare with other states"
     }
   }
 }

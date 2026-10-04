@@ -25,6 +25,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: `${dict.site.name}: ${dict.site.tagline}`, template: `%s · ${dict.site.name}` },
     description: dict.site.description,
+    metadataBase: new URL(process.env.SITE_URL ?? "https://unnati-index.vercel.app"),
+    openGraph: { siteName: dict.site.name, type: "website" },
   };
 }
 
@@ -48,7 +50,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
               {dict.site.name}
             </Link>
             <nav aria-label="Main" className="flex items-center gap-1 overflow-x-auto text-sm">
-              {(["rankings", "indices", "indicators", "methodology", "sources"] as const).map((key) => (
+              {(["rankings", "compare", "indices", "indicators", "methodology", "sources"] as const).map((key) => (
                 <Link
                   key={key}
                   href={`/${current}/${key}`}

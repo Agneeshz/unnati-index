@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
 import { BandLabel, RankChange, ScoreBar } from "@/components/score";
+import { compareHref, neighbours } from "@/lib/compare";
 import { TrendChart } from "@/components/trend-chart";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
@@ -155,7 +156,13 @@ async function ReportCard({
       </h1>
       <p className="text-muted">
         {dict.ui.state.reportCard} ·{" "}
-        {fill(dict.ui.common.edition, { year: edition })}
+        {fill(dict.ui.common.edition, { year: edition })} ·{" "}
+        <Link
+          href={compareHref(locale, [slug, ...neighbours(slug).slice(0, 1)])}
+          className="underline underline-offset-2"
+        >
+          {dict.ui.compare.compareThis}
+        </Link>
       </p>
 
       <section
