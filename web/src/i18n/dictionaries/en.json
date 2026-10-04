@@ -71,5 +71,95 @@
     "disclaimer": "Unnati Index is an independent, non-partisan project. Data comes from official publications, and each figure links to its source.",
     "license": "Code: MIT · Data: CC BY 4.0",
     "source": "Source code on GitHub"
+  },
+  "ui": {
+    "nav": {
+      "rankings": "Rankings",
+      "states": "States",
+      "indicators": "Indicators",
+      "methodology": "Methodology",
+      "sources": "Sources"
+    },
+    "peerGroups": {
+      "large_state": "Large states",
+      "ne_himalayan_state": "North-East & Himalayan states",
+      "ut": "Union Territories"
+    },
+    "bands": {
+      "achiever": "Achiever",
+      "frontRunner": "Front Runner",
+      "performer": "Performer",
+      "aspirant": "Aspirant"
+    },
+    "common": {
+      "score": "Score",
+      "rank": "Rank",
+      "peerRank": "Rank in group",
+      "change": "Change",
+      "place": "State / UT",
+      "noScore": "Not enough data",
+      "unchanged": "No change",
+      "up": "Up {n} from last edition",
+      "down": "Down {n} from last edition",
+      "new": "New",
+      "edition": "Edition {year}",
+      "period": "Period",
+      "value": "Value",
+      "source": "Source",
+      "provisional": "provisional",
+      "india": "India",
+      "viewAll": "View all",
+      "lowerBetter": "Lower is better",
+      "higherBetter": "Higher is better",
+      "neutral": "Context only (not ranked)",
+      "outOf100": "out of 100"
+    },
+    "home": {
+      "leadersTitle": "Unnati Index {year}",
+      "leadersIntro": "Composite scores out of 100, by peer group. A higher score means the state is closer to national and global targets across eight pillars.",
+      "top": "Leading",
+      "bottom": "Catching up",
+      "improvedTitle": "Most improved since {year}",
+      "improvedIntro": "Change in Unnati Index score, using the same methodology and fixed goalposts for both years.",
+      "updatesTitle": "Recently updated data"
+    },
+    "rankings": {
+      "title": "Unnati Index rankings {year}",
+      "intro": "Overall and pillar scores out of 100. Ranks are shown within each peer group, so small Union Territories are not compared directly with large states. Select a state for its full report card.",
+      "overall": "Overall"
+    },
+    "state": {
+      "reportCard": "Report card",
+      "pillarsTitle": "Pillar scores",
+      "strengths": "Strengths",
+      "weaknesses": "Where it lags",
+      "indicatorsTitle": "All indicators",
+      "leadersTitle": "Who was in charge",
+      "leadersIntro": "Office-holders during {period}, the period of the latest data in this report card.",
+      "noLeaders": "No office-holder records for this period yet.",
+      "vsIndia": "India",
+      "peerAverage": "Group average",
+      "rankOf": "#{rank} of {total} in {group}",
+      "notScored": "Not enough data to compute an overall score yet."
+    },
+    "indicators": {
+      "title": "Indicators",
+      "intro": "Every indicator we track, grouped by topic. Indicators in a pillar feed the Unnati Index; the rest are shown for context.",
+      "inPillar": "In pillar: {pillar}",
+      "latest": "Latest values",
+      "history": "Over time",
+      "caveat": "Read with care",
+      "allPlaces": "All states and UTs"
+    },
+    "methodology": {
+      "title": "Methodology"
+    },
+    "sources": {
+      "title": "Data sources",
+      "intro": "Every dataset, where it comes from and when we last checked it. The pipeline checks each source daily and loads only new or revised figures.",
+      "lastChecked": "Last checked",
+      "lastChanged": "Last new data",
+      "cadence": "Released"
+    }
   }
 }

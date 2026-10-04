@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
     <html lang={current} className={`${latin.variable} ${devanagari.variable}`}>
       <body className="flex min-h-dvh flex-col bg-bg font-sans text-fg antialiased">
         <header className="border-b border-border bg-surface">
-          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
+          <div className="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2">
             <Link href={`/${current}`} className="flex items-center gap-2 font-semibold">
               <svg aria-hidden="true" viewBox="0 0 32 32" className="size-7">
                 <rect width="32" height="32" rx="7" className="fill-accent" />
@@ -47,7 +47,18 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
               </svg>
               {dict.site.name}
             </Link>
-            <LocaleSwitcher current={current} label={dict.nav.language} title={dict.nav.languageLabel} />
+            <nav aria-label="Main" className="flex items-center gap-1 overflow-x-auto text-sm">
+              {(["rankings", "indicators", "methodology", "sources"] as const).map((key) => (
+                <Link
+                  key={key}
+                  href={`/${current}/${key}`}
+                  className="rounded-md px-2 py-1.5 whitespace-nowrap hover:bg-accent-soft"
+                >
+                  {dict.ui.nav[key]}
+                </Link>
+              ))}
+              <LocaleSwitcher current={current} label={dict.nav.language} title={dict.nav.languageLabel} />
+            </nav>
           </div>
         </header>
 
