@@ -212,7 +212,8 @@ def _aai_traffic(today: date) -> Fetched:
         month_end, url = aai.latest_report(http)
         pdf = http.get(url).content
     observations, problems = aai.observations(aai.passengers(pdf), month_end, population())
-    return Fetched(observations, problems, fingerprint_of({"url": url, "sha": hashlib.sha256(pdf).hexdigest()}), url)
+    fingerprint = fingerprint_of({"url": url, "sha": hashlib.sha256(pdf).hexdigest()})
+    return Fetched(observations, problems, fingerprint, url)
 
 
 def _rbi_hsis(today: date) -> Fetched:

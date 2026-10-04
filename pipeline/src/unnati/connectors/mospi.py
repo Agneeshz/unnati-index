@@ -423,7 +423,10 @@ ENV_AIR_COLUMNS = {"Nitrogen": "SO2", "Phosphorous": "NO2", "Potash (Potassium)"
 # EnviStats still lists DNH and Daman & Diu separately after their 26 Jan 2020 merger; here (and
 # only here, since other sources must fail loudly on stale names) their rows are added together.
 ENV_COMBINED_NAME = normalize_name("Daman and Diu and Dadra Nagar Haveli")
-ENV_MERGED_NAMES = {normalize_name("Dadra and Nagar Haveli"), normalize_name("Daman and Diu"), ENV_COMBINED_NAME}
+ENV_MERGED_NAMES = {
+    normalize_name("Dadra and Nagar Haveli"), normalize_name("Daman and Diu"),
+    ENV_COMBINED_NAME,
+}
 ENV_MERGED_FROM = date(2020, 1, 26)
 ENV_MERGED_SLUG = "dadra-and-nagar-haveli-and-daman-and-diu"
 
@@ -527,7 +530,8 @@ def envstats_observations(
         if people is None:
             continue
         note = f"EnviStats (MoRTH): {count:,.0f} registered motor vehicles"
-        out.append(Observation("vehicles-per-1000", slug, period, round(count / people.persons * 1000), note=note))
+        value = round(count / people.persons * 1000)
+        out.append(Observation("vehicles-per-1000", slug, period, value, note=note))
     return out, sorted(set(problems))
 
 
