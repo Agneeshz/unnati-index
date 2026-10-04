@@ -267,6 +267,33 @@ export async function getGoalposts(): Promise<{ indicatorId: string; pillarId: s
   }));
 }
 
+export type ThematicIndex = {
+  id: string;
+  name: string;
+  description: string;
+  method: string;
+  caveat: string | null;
+  inspiredBy: string | null;
+  components: { dimension: string; indicators: string[] }[];
+};
+
+export async function getIndices(): Promise<ThematicIndex[]> {
+  "use cache";
+  cacheTag("places");
+  cacheLife("max");
+  const rows = await sql()`
+    select id, name, description, method, caveat, inspired_by, components from index_definition order by sort`;
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    method: r.method,
+    caveat: r.caveat,
+    inspiredBy: r.inspired_by,
+    components: r.components,
+  }));
+}
+
 export type DatasetStatus = {
   id: string;
   title: string;

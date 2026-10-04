@@ -157,7 +157,8 @@ def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
             conn.run(
                 _UPSERT_INDEX,
                 **x.model_dump(exclude={"kind", "components"}),
-                components=json.dumps(x.components),
+                # A list keeps the dimensions in their defined order (jsonb objects don't).
+                components=json.dumps([{"dimension": k, "indicators": v} for k, v in x.components.items()]),
                 sort=sort,
             )
 

@@ -11,7 +11,7 @@ create table index_definition (
     method      text not null,
     caveat      text,
     inspired_by text,
-    -- {"dimension name": ["indicator-id", ...], ...}
+    -- [{"dimension": "Health", "indicators": ["life-expectancy"]}, ...] in display order
     components  jsonb not null,
     sort        smallint not null
 );

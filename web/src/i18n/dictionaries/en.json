@@ -78,7 +78,8 @@
       "states": "States",
       "indicators": "Indicators",
       "methodology": "Methodology",
-      "sources": "Sources"
+      "sources": "Sources",
+      "indices": "Indices"
     },
     "peerGroups": {
       "large_state": "Large states",
@@ -162,6 +163,22 @@
       "lastChecked": "Last checked",
       "lastChanged": "Last new data",
       "cadence": "Released"
+    },
+    "indices": {
+      "title": "Indices",
+      "intro": "Composite indices built only from the official data on this site, each modelled on a well-known international index. They use the same fixed goalposts as the Unnati Index, so scores rise only when a state's own numbers improve.",
+      "method": "How it's built",
+      "components": "What goes into it",
+      "inspiredBy": "Modelled on {name}",
+      "leaders": "Leading",
+      "open": "See the full ranking",
+      "otherTitle": "Also on this site",
+      "otherBody": "Consumption inequality (Gini) and multidimensional poverty (MPI) are published officially for every state, so we show them directly rather than rebuilding them.",
+      "notBuiltTitle": "Indices we don't build",
+      "notBuiltBody": "Happiness, democracy, press freedom, freedom and corruption-perception indices rest on surveys of how people feel or on expert ratings of rights, elections and the media. No official state-level data measures these, and stand-ins (such as corruption cases registered, which reflect enforcement rather than corruption) would mislead, so we leave them out.",
+      "stateTitle": "Other indices",
+      "outOf100": "Score out of 100",
+      "scaleNote": "Score out of 100. Darker means a higher score."
     }
   }
 }

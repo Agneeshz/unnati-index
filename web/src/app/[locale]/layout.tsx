@@ -48,7 +48,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
               {dict.site.name}
             </Link>
             <nav aria-label="Main" className="flex items-center gap-1 overflow-x-auto text-sm">
-              {(["rankings", "indicators", "methodology", "sources"] as const).map((key) => (
+              {(["rankings", "indices", "indicators", "methodology", "sources"] as const).map((key) => (
                 <Link
                   key={key}
                   href={`/${current}/${key}`}

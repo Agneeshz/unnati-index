@@ -9,6 +9,7 @@ import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
 import {
   COMPOSITE,
   getIndicators,
+  getIndices,
   getLatestEdition,
   getOfficeHolders,
   getPillars,
@@ -54,11 +55,12 @@ async function ReportCard({ params }: { params: PageProps<"/[locale]/states/[slu
   if (!place) notFound();
   const edition = await getLatestEdition();
   if (edition == null) notFound();
-  const [scores, pillars, indicators, observations] = await Promise.all([
+  const [scores, pillars, indicators, observations, indices] = await Promise.all([
     getScores(edition),
     getPillars(),
     getIndicators(),
     getPlaceObservations(slug),
+    getIndices(),
   ]);
 
   const mine = scores.filter((s) => s.slug === slug);
@@ -184,6 +186,36 @@ async function ReportCard({ params }: { params: PageProps<"/[locale]/states/[slu
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section aria-labelledby="indices" className="mt-10">
+        <h2 id="indices" className="text-xl font-semibold">
+          {dict.ui.indices.stateTitle}
+        </h2>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {indices.map((index) => {
+            const s = mine.find((r) => r.level === "composite" && r.key === index.id);
+            return (
+              <li key={index.id} className="rounded-md border border-border bg-surface px-3 py-2">
+                <Link href={`/${locale}/indices/${index.id}`} className="text-sm font-medium hover:underline">
+                  {index.name}
+                </Link>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  {s?.score != null ? (
+                    <>
+                      <ScoreBar score={s.score} locale={locale} />
+                      <span className="text-xs text-muted tabular-nums">
+                        #{s.rankPeer} {place.peerGroup ? `· ${dict.ui.peerGroups[place.peerGroup]}` : ""}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted italic">{dict.ui.common.notAvailable}</span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       <div className="mt-10 grid gap-8 sm:grid-cols-2">
