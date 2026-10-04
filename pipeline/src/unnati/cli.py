@@ -259,6 +259,42 @@ def ingest(
 
 
 @app.command()
+def score(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Compute and print, but don't write."),
+    database_url: str = typer.Option(
+        None, help="Postgres URL. Defaults to $DATABASE_URL_UNPOOLED, then $DATABASE_URL."
+    ),
+) -> None:
+    """Compute the Unnati Index (all editions) from the latest observations."""
+    from unnati import score_store, scoring
+    from unnati.db import connect
+
+    today = date.today()
+    conn = connect(database_url)
+    try:
+        if dry_run:
+            spec = score_store.specs()
+            values = score_store.load_values(conn, list(spec))
+            posts = scoring.goalposts(values, spec)
+            editions = score_store.compute(values, spec, posts, today)
+        else:
+            editions = score_store.run(conn, today)
+    finally:
+        conn.close()
+    latest = editions[max(editions)]
+    composite = sorted(
+        (s for s in latest if s.level == "composite" and s.score is not None and s.rank_overall),
+        key=lambda s: s.rank_overall,
+    )
+    typer.echo(f"edition {max(editions)}: {len(composite)} places with an Unnati Index score")
+    for s in composite:
+        typer.echo(f"  {s.rank_overall:>2}. {s.entity:<42} {s.score:5.1f}  (peer #{s.rank_peer})")
+    missing = [s.entity for s in latest if s.level == "composite" and s.score is None]
+    if missing:
+        typer.echo("no score (too few pillars): " + ", ".join(sorted(missing)))
+
+
+@app.command()
 def resolve(name: str, period: str = typer.Option("2024", help='e.g. "2024", "2023-24", "Jun 2026"')) -> None:
     """Show which entity a source's place name maps to for a given period."""
     try:
