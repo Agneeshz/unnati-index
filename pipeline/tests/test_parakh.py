@@ -1,8 +1,6 @@
-import pytest
-
 from unnati.connectors import parakh
 
-UT_PAGE = "\n".join(
+GRADE6 = "\n".join(
     [
         "GRADE 6 UT Report: Chandigarh",
         "Comparison of UT Average with National Average Across Subjects",
@@ -14,48 +12,47 @@ UT_PAGE = "\n".join(
         "46%",
         "57%",
         "The World",
-        "gap is 11% in Language,",
-        "8% in Mathematics, and",
+        "Around Us",
+        "49%",
+        "Chandigarh National",
+        "In Language, ...",
     ]
 )
 
 
-class _Page:
-    def __init__(self, text):
-        self.text = text
-
-    def extract_text(self):
-        return self.text
-
-
-class _Pdf:
-    def __init__(self, text):
-        self.pages = [_Page("GRADE 3 State Report"), _Page(text)]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc):
-        return False
+def test_comparison_reads_every_subject_including_wrapped_names():
+    assert parakh.comparison(GRADE6) == {
+        "Language": (68.0, 57.0),
+        "Mathematics": (54.0, 46.0),
+        "The World Around Us": (57.0, 49.0),
+    }
+    assert parakh.comparison(GRADE6.replace("Comparison of", "Something else")) == {}
 
 
-def test_reads_grade6_maths_for_states_and_uts(monkeypatch):
-    monkeypatch.setattr(parakh.pdfplumber, "open", lambda _: _Pdf(UT_PAGE))
-    assert parakh.grade6_maths(b"") == (54.0, 46.0)
-    state_page = UT_PAGE.replace("UT Average", "State Average")
-    monkeypatch.setattr(parakh.pdfplumber, "open", lambda _: _Pdf(state_page))
-    assert parakh.grade6_maths(b"") == (54.0, 46.0)
-
-
-def test_refuses_values_that_contradict_the_stated_gap(monkeypatch):
-    wrong = UT_PAGE.replace("8% in Mathematics", "20% in Mathematics")
-    monkeypatch.setattr(parakh.pdfplumber, "open", lambda _: _Pdf(wrong))
-    with pytest.raises(ValueError):
-        parakh.grade6_maths(b"")
-
-
-def test_observations_add_the_national_average(monkeypatch):
-    monkeypatch.setattr(parakh, "grade6_maths", lambda _: (62.0, 46.0))
+def test_observations_average_subjects_then_grades(monkeypatch):
+    grades = {
+        3: {"Language": (80.0, 64.0), "Mathematics": (70.0, 60.0)},
+        6: {"Language": (60.0, 57.0), "Mathematics": (50.0, 46.0), "The World Around Us": (55.0, 49.0)},
+        9: {
+            "Language": (60.0, 54.0),
+            "Mathematics": (40.0, 37.0),
+            "Science": (50.0, 40.0),
+            "Social Science": (50.0, 40.0),
+        },
+    }
+    monkeypatch.setattr(parakh, "grades", lambda _: grades)
     found, problems = parakh.observations({"punjab": b""})
-    assert {(o.entity_slug, o.value) for o in found} == {("punjab", 62.0), ("india", 46.0)}
+    values = {(o.indicator_id, o.entity_slug): o.value for o in found}
+    assert values[("parakh-grade3", "punjab")] == 75
+    assert values[("parakh-grade6", "punjab")] == 55
+    assert values[("parakh-grade9", "punjab")] == 50
+    assert values[("parakh-learning", "punjab")] == 60
+    assert values[("parakh-grade6-maths", "punjab")] == 50
+    assert values[("parakh-grade6-maths", "india")] == 46
     assert problems == []
+
+
+def test_reports_missing_grades(monkeypatch):
+    monkeypatch.setattr(parakh, "grades", lambda _: {6: {}})
+    found, problems = parakh.observations({"punjab": b""})
+    assert found == [] and problems == ["PARAKH punjab: grade 3, 9 chart not read"]

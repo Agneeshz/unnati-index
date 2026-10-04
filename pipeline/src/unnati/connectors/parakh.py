@@ -1,12 +1,18 @@
-"""PARAKH Rashtriya Sarvekshan 2024 (4 Dec 2024): average Grade 6 mathematics performance by
-state, from NCERT's official state reports.
+"""PARAKH Rashtriya Sarvekshan 2024 (4 Dec 2024): learning levels by state, from NCERT's official
+state reports.
 
 Each state has a report at parakh.ncert.gov.in/sites/default/files/2025-07/
 REPORT_<State name>_IND<3-digit state code>.pdf (the listing page blocks automated access, but
-the files do not). Its Grade 6 page compares the state's average performance (the average
-percentage of questions answered correctly) with the national average in each subject. The
-value is read from that chart's text and checked against the report's own sentence, e.g. "The
-performance gap is 16% in ... Mathematics". No report has been found for DNH & DD."""
+the files do not). For each grade it compares the state's average performance (the average
+percentage of questions answered correctly) with the national average in every subject:
+Grade 3 (Language, Mathematics), Grade 6 (also The World Around Us) and Grade 9 (Language,
+Mathematics, Science, Social Science). From these:
+
+- parakh-grade3/6/9: the mean over that grade's subjects;
+- parakh-learning: the mean of the three grade averages (used in the Education pillar);
+- parakh-grade6-maths: Grade 6 mathematics on its own.
+
+No report has been found for DNH & DD."""
 
 from __future__ import annotations
 
@@ -30,8 +36,14 @@ NAMES = {
     "delhi": ["NCT of Delhi"],
     "jammu-and-kashmir": ["Jammu and Kashmir", "Jammu & Kashmir"],
 }
+SUBJECTS = {
+    3: ("Language", "Mathematics"),
+    6: ("Language", "Mathematics", "The World Around Us"),
+    9: ("Language", "Mathematics", "Science", "Social Science"),
+}
 
 _PCT = re.compile(r"^(\d{1,3})%$")
+_GRADE = re.compile(r"GRADE\s+(\d)\b")
 
 
 def report_url(http: PoliteClient, slug: str, name: str, code: int) -> str | None:
@@ -46,45 +58,85 @@ def report_url(http: PoliteClient, slug: str, name: str, code: int) -> str | Non
     return None
 
 
-def grade6_maths(pdf_bytes: bytes) -> tuple[float, float] | None:
-    """(state average, national average) for Grade 6 mathematics, or None if not found."""
+def comparison(text: str) -> dict[str, tuple[float, float]]:
+    """{subject: (state average, national average)} from one grade's comparison chart text:
+    a state value, the subject name (one or two lines), then the national value."""
+    lines = [line.strip() for line in text.split("\n")]
+    start = next((i for i, line in enumerate(lines) if "Comparison of" in line), None)
+    if start is None:
+        return {}
+    out: dict[str, tuple[float, float]] = {}
+    pending: float | None = None
+    label: list[str] = []
+    for line in lines[start + 1 :]:
+        pct = _PCT.match(line)
+        if pct and pending is not None and label:
+            out[" ".join(label)] = (pending, float(pct.group(1)))
+            pending, label = None, []
+        elif pct:
+            pending = float(pct.group(1))
+        elif pending is not None:
+            label.append(line)
+        else:
+            break  # the legend ("<State> National") ends the chart
+    return out
+
+
+def grades(pdf_bytes: bytes) -> dict[int, dict[str, tuple[float, float]]]:
+    """{grade: {subject: (state, national)}} for grades 3, 6 and 9."""
+    out: dict[int, dict[str, tuple[float, float]]] = {}
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
         for page in pdf.pages:
             text = page.extract_text() or ""
+            grade = _GRADE.search(text[:80])
             # States say "State Average", UTs "UT Average".
-            if "GRADE 6" not in text or not re.search(r"Comparison of (State|UT) Average with National", text):
+            if not grade or not re.search(r"Comparison of (State|UT) Average with National", text):
                 continue
-            lines = [line.strip() for line in text.split("\n")]
-            for i, line in enumerate(lines):
-                if line == "Mathematics" and 0 < i < len(lines) - 1:
-                    before, after = _PCT.match(lines[i - 1]), _PCT.match(lines[i + 1])
-                    if before and after:
-                        state, national = float(before.group(1)), float(after.group(1))
-                        gap = re.search(r"([\d.]+)%\s+in\s+(?:[A-Za-z ,]*?)Mathematics", " ".join(lines))
-                        if gap and abs(abs(state - national) - float(gap.group(1))) > 1:
-                            message = f"Grade 6 maths {state} vs {national} disagrees with the stated gap"
-                            raise ValueError(message)
-                        return state, national
-    return None
+            g = int(grade.group(1))
+            found = comparison(text)
+            if g in SUBJECTS and set(found) == set(SUBJECTS[g]):
+                out[g] = found
+    return out
+
+
+def grade6_maths(pdf_bytes: bytes) -> tuple[float, float] | None:
+    """(state average, national average) for Grade 6 mathematics, or None if not found."""
+    return grades(pdf_bytes).get(6, {}).get("Mathematics")
+
+
+def _mean(values: list[float]) -> float:
+    return round(sum(values) / len(values), 1)
 
 
 def observations(reports: dict[str, bytes]) -> tuple[list[Observation], list[str]]:
     out: list[Observation] = []
     problems: list[str] = []
-    national: float | None = None
+    national: dict[int, dict[str, tuple[float, float]]] = {}
+    source = "PARAKH Rashtriya Sarvekshan 2024 state report"
     for slug, pdf in sorted(reports.items()):
-        try:
-            found = grade6_maths(pdf)
-        except ValueError as err:
-            problems.append(f"PARAKH {slug}: {err}")
+        found = grades(pdf)
+        missing = [g for g in SUBJECTS if g not in found]
+        if missing:
+            problems.append(f"PARAKH {slug}: grade {', '.join(map(str, missing))} chart not read")
             continue
-        if found is None:
-            problems.append(f"PARAKH {slug}: Grade 6 comparison page not found")
-            continue
-        state, national = found
-        note = "PARAKH Rashtriya Sarvekshan 2024 state report: Grade 6 maths, average % of questions correct"
-        out.append(Observation("parakh-grade6-maths", slug, ROUND, state, note=note))
-    if national is not None:
-        note = "PARAKH Rashtriya Sarvekshan 2024: national average, Grade 6 maths"
-        out.append(Observation("parakh-grade6-maths", "india", ROUND, national, note=note))
+        national = found
+        for g, subjects in found.items():
+            note = f"{source}: Grade {g}, mean of {', '.join(subjects)} (average % correct)"
+            value = _mean([s for s, _ in subjects.values()])
+            out.append(Observation(f"parakh-grade{g}", slug, ROUND, value, note=note))
+        overall = _mean([_mean([s for s, _ in subjects.values()]) for subjects in found.values()])
+        note = f"{source}: mean of the Grade 3, 6 and 9 averages"
+        out.append(Observation("parakh-learning", slug, ROUND, overall, note=note))
+        maths = found[6]["Mathematics"][0]
+        note = f"{source}: Grade 6 mathematics"
+        out.append(Observation("parakh-grade6-maths", slug, ROUND, maths, note=note))
+    if national:  # every report repeats the national averages
+        note = "PARAKH Rashtriya Sarvekshan 2024: national average"
+        for g, subjects in national.items():
+            value = _mean([n for _, n in subjects.values()])
+            out.append(Observation(f"parakh-grade{g}", "india", ROUND, value, note=note))
+        overall = _mean([_mean([n for _, n in subjects.values()]) for subjects in national.values()])
+        out.append(Observation("parakh-learning", "india", ROUND, overall, note=note))
+        maths = national[6]["Mathematics"][1]
+        out.append(Observation("parakh-grade6-maths", "india", ROUND, maths, note=note))
     return out, problems

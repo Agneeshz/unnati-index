@@ -689,6 +689,51 @@
   unit: "% correct"
   direction: higher_better
   category: education
+  dataset: parakh
+  frequency: irregular
+  decimals: 0
+  caveat: Sample survey of about 21 lakh students in December 2024, from NCERT's state reports. No report has been found for DNH & DD.
+  valid_min: 0
+  valid_max: 100
+- id: parakh-grade3
+  name: Grade 3 learning level (PARAKH)
+  description: Average percentage of questions answered correctly by Grade 3 students across language and mathematics in the PARAKH Rashtriya Sarvekshan.
+  unit: "% correct"
+  direction: higher_better
+  category: education
+  dataset: parakh
+  frequency: irregular
+  decimals: 0
+  valid_min: 0
+  valid_max: 100
+- id: parakh-grade6
+  name: Grade 6 learning level (PARAKH)
+  description: Average percentage of questions answered correctly by Grade 6 students across language, mathematics and The World Around Us in the PARAKH Rashtriya Sarvekshan.
+  unit: "% correct"
+  direction: higher_better
+  category: education
+  dataset: parakh
+  frequency: irregular
+  decimals: 0
+  valid_min: 0
+  valid_max: 100
+- id: parakh-grade9
+  name: Grade 9 learning level (PARAKH)
+  description: Average percentage of questions answered correctly by Grade 9 students across language, mathematics, science and social science in the PARAKH Rashtriya Sarvekshan.
+  unit: "% correct"
+  direction: higher_better
+  category: education
+  dataset: parakh
+  frequency: irregular
+  decimals: 0
+  valid_min: 0
+  valid_max: 100
+- id: parakh-learning
+  name: Learning outcomes (PARAKH)
+  description: Average of the Grade 3, 6 and 9 learning levels (average % of questions answered correctly across all subjects tested) in the PARAKH Rashtriya Sarvekshan.
+  unit: "% correct"
+  direction: higher_better
+  category: education
   pillar: education
   dataset: parakh
   frequency: irregular
