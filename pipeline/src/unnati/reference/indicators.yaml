@@ -209,7 +209,7 @@
   direction: higher_better
   category: trade
   pillar: economy-jobs
-  dataset: dgcis_state_trade
+  dataset: rbi_hsis
   frequency: annual
   decimals: 0
   derived: merchandise-exports (12 months) * 1e6 / population
@@ -280,7 +280,7 @@
   direction: lower_better
   category: public-finance
   pillar: governance-fiscal
-  dataset: rbi_state_finances
+  dataset: rbi_hsis
   frequency: annual
   decimals: 1
   target: 3
@@ -293,7 +293,7 @@
   direction: lower_better
   category: public-finance
   pillar: governance-fiscal
-  dataset: rbi_state_finances
+  dataset: rbi_hsis
   frequency: annual
   decimals: 1
   target: 20
@@ -306,7 +306,7 @@
   direction: higher_better
   category: public-finance
   pillar: governance-fiscal
-  dataset: rbi_state_finances
+  dataset: rbi_hsis
   frequency: annual
   decimals: 1
   valid_min: 0
@@ -318,7 +318,7 @@
   direction: higher_better
   category: public-finance
   pillar: governance-fiscal
-  dataset: rbi_state_finances
+  dataset: rbi_hsis
   frequency: annual
   decimals: 1
   valid_min: 0
@@ -418,6 +418,19 @@
   dataset: ncrb_cii
   frequency: annual
   decimals: 1
+  valid_min: 0
+  valid_max: 100
+- id: trial-pendency
+  name: Criminal trials pending
+  description: IPC/BNS cases still pending trial at the end of the year, as a share of all cases before the courts for trial that year.
+  unit: "%"
+  direction: lower_better
+  category: governance
+  pillar: safety-justice
+  dataset: ncrb_cii
+  frequency: annual
+  decimals: 1
+  caveat: Measures the backlog of criminal trials only, not civil cases.
   valid_min: 0
   valid_max: 100
 - id: chargesheeting-rate
@@ -698,12 +711,12 @@
   valid_max: 100
 - id: electricity-per-capita
   name: Per-capita electricity consumption
-  description: Electricity consumed per person per year.
+  description: Electricity available per person per year (CEA, per capita availability).
   unit: kWh per person
   direction: higher_better
   category: infrastructure
   pillar: infrastructure-digital
-  dataset: cea_psp
+  dataset: rbi_hsis
   frequency: annual
   decimals: 0
   valid_min: 0
@@ -804,20 +817,20 @@
   direction: higher_better
   category: environment
   pillar: environment
-  dataset: isfr
+  dataset: rbi_hsis
   frequency: biennial
   decimals: 2
   valid_min: -100
-  valid_max: 100
+  valid_max: 500
 - id: renewable-share-capacity
   name: Renewable share of power capacity
-  description: Renewable energy (incl. large hydro) as a share of installed power generation capacity in the state.
+  description: Grid-interactive renewable capacity (solar, wind, small hydro, bio-power; excluding large hydro) as a share of installed power capacity.
   unit: "% of capacity"
   direction: higher_better
   category: environment
   pillar: environment
-  dataset: mnre_capacity
-  frequency: monthly
+  dataset: rbi_hsis
+  frequency: annual
   decimals: 1
   caveat: Depends partly on natural resources (sun, wind, rivers), not only on policy.
   valid_min: 0
@@ -829,7 +842,7 @@
   direction: lower_better
   category: environment
   pillar: environment
-  dataset: cgwb_groundwater
+  dataset: rbi_hsis
   frequency: annual
   decimals: 1
   target: 70
@@ -857,7 +870,7 @@
   direction: lower_better
   category: inclusion
   pillar: inclusion
-  dataset: niti_mpi
+  dataset: rbi_hsis
   frequency: irregular
   decimals: 1
   valid_min: 0

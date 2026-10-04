@@ -169,7 +169,7 @@ datasets:
     connector: rbi_hsis
     cadence: annual
     landing_url: https://www.rbi.org.in/Scripts/AnnualPublications.aspx?head=Handbook%20of%20Statistics%20on%20Indian%20States
-    enabled: false
+    enabled: true
   - id: rbi_state_finances
     source: rbi
     title: "State Finances: A Study of Budgets"

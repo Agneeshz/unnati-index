@@ -43,6 +43,7 @@ jobs:
           - rgi_srs_life_tables
           - trai_subscriptions
           - bprd_dopo
+          - rbi_hsis
     defaults:
       run:
         working-directory: pipeline

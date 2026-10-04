@@ -9,8 +9,9 @@ The tables used share one layout: SL, State/UT, three years of cases, mid-year p
 lakh, MoHFW projections), the rate, then the charge-sheeting rate. Long names wrap around
 their numbers ("D&N Haveli and" / "31 1273 865 ..." / "Daman & Diu").
 
-Conviction rates are in Volume 3 (court disposal), which OpenCity mirrors only for 2022, so
-they are not read yet."""
+Volume 3 (court disposal: conviction rate, trial pendency) is not mirrored for recent years
+(OpenCity's 2024 "Vol 3" is a copy of Vol 2), so it is downloaded by hand from ncrb.gov.in into
+`pipeline/manual-downloads/ncrb_cii/<year>/` and committed; `local_volumes()` finds it."""
 
 from __future__ import annotations
 
@@ -21,6 +22,7 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 
 import httpx
 import pdfplumber
@@ -57,7 +59,17 @@ TABLES: dict[str, tuple[int, tuple[Column, ...]]] = {
         ),
     ),
     "9A.1": (2, (Column("cybercrime-rate", 2),)),
+    "18A.2": (
+        3,
+        (
+            Column("conviction-rate", 2, "IPC/BNS cases convicted / trials completed"),
+            Column("trial-pendency", 1, "IPC/BNS cases pending trial at year end / total cases for trial"),
+        ),
+    ),
 }
+# Tables spread over several pages whose wanted columns are only on the last ("Concluded") page.
+LAST_PAGE_ONLY = {"18A.2"}
+MANUAL_DIR = Path(__file__).resolve().parents[3] / "manual-downloads" / "ncrb_cii"
 
 _VOLUME = re.compile(r"(?i)\bvol(?:ume)?\.?\s*-?\s*(\d)\b")
 _VALUE = re.compile(r"^(?:-?\d[\d,]*(?:\.\d+)?|-)$")
@@ -127,6 +139,15 @@ def fetch(http: PoliteClient, found: list[Edition]) -> dict[int, dict[int, bytes
     }
 
 
+def local_volumes() -> dict[int, dict[int, bytes]]:
+    """year -> {3: PDF bytes} for hand-downloaded Volume 3 files."""
+    found: dict[int, dict[int, bytes]] = {}
+    for path in sorted(MANUAL_DIR.glob("*/*.pdf")):
+        if path.parent.name.isdigit() and re.search(r"(?i)volume[\s_-]*(iii|3)|vol[\s_-]*3", path.stem):
+            found.setdefault(int(path.parent.name), {})[3] = path.read_bytes()
+    return found
+
+
 def table_text(pdf_bytes: bytes, table_ids: Iterable[str]) -> dict[str, str]:
     """Text of each wanted table (all its pages), found by the "TABLE <id>" first line."""
     wanted = {re.compile(rf"^TABLE\s+{re.escape(t)}\s*$"): t for t in table_ids}
@@ -137,6 +158,8 @@ def table_text(pdf_bytes: bytes, table_ids: Iterable[str]) -> dict[str, str]:
             first = text.lstrip().split("\n", 1)[0].strip()
             for pattern, table_id in wanted.items():
                 if pattern.match(first):
+                    if table_id in LAST_PAGE_ONLY and "(Concluded)" not in text[:300]:
+                        continue
                     out.setdefault(table_id, []).append(text)
     return {t: "\n".join(pages) for t, pages in out.items()}
 

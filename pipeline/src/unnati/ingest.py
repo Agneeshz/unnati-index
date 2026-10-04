@@ -104,6 +104,31 @@ def _mospi_hces(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/hces/getHcesRecords")
 
 
+def _rbi_hsis(today: date) -> Fetched:
+    """Reads the committed downloads; MoSPI's GSDP fills in where RBI Table 21 is absent."""
+    from unnati.connectors import mospi, rbi_hsis
+    from unnati.reference import population
+
+    folders = sorted(p.name for p in rbi_hsis.MANUAL_DIR.glob("*-*") if p.is_dir())
+    if not folders:
+        raise RuntimeError(f"no RBI handbook downloads in {rbi_hsis.MANUAL_DIR}")
+    edition = folders[-1]
+    files = rbi_hsis.local_files(edition)
+    gsdp: dict[tuple[str, str], float] = {}
+    if 21 not in files:
+        with mospi.client() as http:
+            rows = mospi.fetch_nas_state(http)
+        nas, _ = mospi.nas_observations(rows, load_reference().resolver(), today)
+        gsdp = {(o.entity_slug, o.period.label): o.value for o in nas if o.indicator_id == "gsdp-current"}
+    observations, problems = rbi_hsis.observations(
+        files, edition, load_reference().resolver(), population(), gsdp
+    )
+    raw = {n: hashlib.sha256(path.read_bytes()).hexdigest() for n, path in sorted(files.items())}
+    return Fetched(
+        observations, problems, fingerprint_of({"edition": edition, "files": raw}), rbi_hsis.INDEX_URL
+    )
+
+
 def _nfhs_factsheets(today: date) -> Fetched:
     from unnati.connectors import nfhs_factsheets as nf
     from unnati.core.http import PoliteClient
@@ -115,24 +140,36 @@ def _nfhs_factsheets(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(raw), nf.PDF_URL)
 
 
+def _ncrb_fingerprint(found, local: dict[int, dict[int, bytes]]) -> str:
+    from unnati.connectors import ncrb
+
+    hashes = {f"{y}:{v}": hashlib.sha256(b).hexdigest() for y, vols in local.items() for v, b in vols.items()}
+    return fingerprint_of({"opencity": ncrb.fingerprint(found), "local": hashes})
+
+
 def _ncrb_probe(today: date) -> str:
     from unnati.connectors import ncrb
     from unnati.core.http import PoliteClient
 
     with PoliteClient() as http:
-        return ncrb.fingerprint(ncrb.editions(http, today))
+        return _ncrb_fingerprint(ncrb.editions(http, today), ncrb.local_volumes())
 
 
 def _ncrb_cii(today: date) -> Fetched:
+    """OpenCity's mirror, plus hand-downloaded volumes (Volume 3) from the repo."""
     from unnati.connectors import ncrb
     from unnati.core.http import PoliteClient
 
+    local = ncrb.local_volumes()
     with PoliteClient(timeout=300) as http:
         found = ncrb.editions(http, today)
         pdfs = ncrb.fetch(http, found)
+    for year, volumes in local.items():
+        pdfs.setdefault(year, {}).update(volumes)
     observations, problems = ncrb.observations(pdfs, load_reference().resolver())
     latest = found[-1]
-    return Fetched(observations, problems, ncrb.fingerprint(found), latest.volumes.get(1, ncrb.CKAN_PACKAGE))
+    url = latest.volumes.get(1, ncrb.CKAN_PACKAGE)
+    return Fetched(observations, problems, _ncrb_fingerprint(found, local), url)
 
 
 def _ncrb_adsi(today: date) -> Fetched:
@@ -268,6 +305,7 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "udise_plus": _udise_plus,
     "aishe": _aishe,
     "mospi_hces": _mospi_hces,
+    "rbi_hsis": _rbi_hsis,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,
     "ncrb_adsi": _ncrb_adsi,

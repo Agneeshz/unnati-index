@@ -57,7 +57,7 @@ def test_composite_has_eight_pillars_with_four_to_six_indicators():
     per_pillar = Counter(i.pillar for i in REF.indicators if i.pillar)
     assert set(per_pillar) == {p.id for p in REF.pillars}
     assert all(4 <= n <= 6 for n in per_pillar.values()), per_pillar
-    assert sum(per_pillar.values()) == 42
+    assert sum(per_pillar.values()) == 43  # v1: 42 + trial pendency (NCRB) in safety-justice
 
 
 def test_unranked_categories_have_no_composite_indicators():
