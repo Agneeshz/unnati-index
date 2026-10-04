@@ -142,7 +142,9 @@
       "vsIndia": "India",
       "peerAverage": "Group average",
       "rankOf": "#{rank} of {total} in {group}",
-      "notScored": "Not enough data to compute an overall score yet."
+      "notScored": "Not enough data to compute an overall score yet.",
+      "trendsTitle": "How it has changed",
+      "trendsIntro": "The state's Unnati Index in each edition, and key indicators over time against India (dashed)."
     },
     "indicators": {
       "title": "Indicators",

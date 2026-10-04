@@ -142,7 +142,9 @@
       "vsIndia": "India",
       "peerAverage": "Group average",
       "rankOf": "#{rank} of {total} in {group}",
-      "notScored": "Not enough data to compute an overall score yet."
+      "notScored": "Not enough data to compute an overall score yet.",
+      "trendsTitle": "कैसे बदला",
+      "trendsIntro": "हर संस्करण में राज्य का उन्नति सूचकांक, और समय के साथ प्रमुख संकेतक, भारत (डैश रेखा) की तुलना में।"
     },
     "indicators": {
       "title": "Indicators",

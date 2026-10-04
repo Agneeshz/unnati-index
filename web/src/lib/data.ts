@@ -184,6 +184,21 @@ export async function getCompositeHistory(): Promise<{ slug: string; edition: nu
   return rows.map((r) => ({ slug: r.slug, edition: r.edition, score: r.score }));
 }
 
+/** One place's composite and pillar scores in every edition. */
+export async function getPlaceScoreHistory(
+  slug: string,
+): Promise<{ edition: number; key: string; level: string; score: number | null }[]> {
+  "use cache";
+  cacheTag("scores", `state:${slug}`);
+  cacheLife("days");
+  const rows = await sql()`
+    select s.edition, s.key, s.level, s.score
+    from score s join entity e on e.id = s.entity_id
+    where e.slug = ${slug} and s.methodology_version = ${METHODOLOGY} and s.level in ('pillar', 'composite')
+    order by s.edition`;
+  return rows.map((r) => ({ edition: r.edition, key: r.key, level: r.level, score: r.score }));
+}
+
 function toObservation(r: Record<string, unknown>): Observation {
   return {
     slug: r.slug as string,
