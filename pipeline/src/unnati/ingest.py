@@ -53,8 +53,14 @@ def _mospi_plfs_state(today: date) -> Fetched:
 
     with mospi.client() as http:
         rows = mospi.fetch_plfs_state(http)
-    observations, problems = mospi.plfs_observations(rows, load_reference().resolver())
-    return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/plfs/getData")
+        status = mospi.fetch_plfs_status(http)
+    resolver = load_reference().resolver()
+    observations, problems = mospi.plfs_observations(rows, resolver)
+    extra, more = mospi.plfs_status_observations(status, resolver)
+    raw = {"series": rows, "status": status}
+    return Fetched(
+        observations + extra, problems + more, fingerprint_of(raw), f"{mospi.BASE_URL}/api/plfs/getData"
+    )
 
 
 def _mospi_cpi_state(today: date) -> Fetched:
@@ -115,6 +121,50 @@ def _mospi_envstats(today: date) -> Fetched:
     return Fetched(
         observations, problems, fingerprint_of(raw), f"{mospi.BASE_URL}/api/env/getEnvStatsRecords"
     )
+
+
+def _cpcb_aqi_bulletin(today: date) -> Fetched:
+    import os
+
+    from unnati.connectors import cpcb_bulletin
+    from unnati.core.http import PoliteClient
+
+    days = int(os.environ.get("UNNATI_AQI_DAYS", cpcb_bulletin.WINDOW_DAYS))  # larger for a backfill
+    with PoliteClient(timeout=60) as http:
+        bulletins = cpcb_bulletin.fetch(http, today, days)
+    observations, problems = cpcb_bulletin.observations(bulletins)
+    raw = {str(d): hashlib.sha256(b).hexdigest() for d, b in bulletins.items()}
+    return Fetched(
+        observations,
+        problems,
+        fingerprint_of(raw),
+        cpcb_bulletin.URL.format(day=max(bulletins, default=today)),
+    )
+
+
+def _phonepe_pulse(today: date) -> Fetched:
+    from unnati.connectors import phonepe
+    from unnati.core.http import PoliteClient
+    from unnati.reference import population
+
+    with PoliteClient(timeout=60) as http:
+        quarters = phonepe.fetch(http, today)
+    observations, problems = phonepe.observations(quarters, load_reference().resolver(), population())
+    raw = {f"{y}-{q}": v for (y, q), v in quarters.items()}
+    return Fetched(observations, problems, fingerprint_of(raw), "https://github.com/PhonePe/pulse")
+
+
+def _gstn_state_collections(today: date) -> Fetched:
+    from unnati.connectors import gstn
+    from unnati.core.http import PoliteClient
+    from unnati.reference import population
+
+    with PoliteClient(timeout=120) as http:
+        urls = gstn.report_urls(http)
+        reports = [http.get(url).content for url in urls]
+    observations, problems = gstn.observations(reports, load_reference().resolver(), population())
+    raw = {url: hashlib.sha256(pdf).hexdigest() for url, pdf in zip(urls, reports, strict=True)}
+    return Fetched(observations, problems, fingerprint_of(raw), gstn.NEWS)
 
 
 def _rbi_hsis(today: date) -> Fetched:
@@ -325,6 +375,9 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "aishe": _aishe,
     "mospi_hces": _mospi_hces,
     "mospi_envstats": _mospi_envstats,
+    "cpcb_aqi_bulletin": _cpcb_aqi_bulletin,
+    "phonepe_pulse": _phonepe_pulse,
+    "gstn_state_collections": _gstn_state_collections,
     "rbi_hsis": _rbi_hsis,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,

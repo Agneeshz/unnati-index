@@ -164,12 +164,24 @@
   unit: per 1,000 working-age people
   direction: higher_better
   category: jobs
-  pillar: economy-jobs
   dataset: epfo_payroll
   frequency: annual
   decimals: 1
   derived: sum of 12 months of epfo-net-payroll / population-working-age * 1000
   caveat: Counts formal-sector enrolments only; establishments register where they are headquartered, which can over-count some states.
+- id: regular-wage-share
+  name: Workers in regular salaried jobs
+  description: Share of workers (usual status) in regular wage or salaried employment, rather than self-employment or casual labour.
+  unit: "% of workers"
+  direction: higher_better
+  category: jobs
+  pillar: economy-jobs
+  dataset: mospi_plfs_state
+  frequency: annual
+  decimals: 1
+  caveat: Regular jobs are not always good jobs; PLFS also reports that many regular employees lack a written contract or social security.
+  valid_min: 0
+  valid_max: 100
 - id: mpce-rural
   name: Monthly per-capita consumption (rural)
   description: Average monthly per-capita consumption expenditure of rural households (HCES).
@@ -243,7 +255,7 @@
 # --- Business -------------------------------------------------------------------------------
 - id: gst-collection-per-capita
   name: GST collected per person
-  description: State GST collections in the fiscal year divided by population.
+  description: State GST revenue (SGST plus the SGST share of IGST settled to the state) in the fiscal year to date, per person.
   unit: ₹ per person
   direction: higher_better
   category: business
@@ -254,7 +266,7 @@
   valid_min: 0
 - id: gst-collection-growth
   name: GST collection growth
-  description: Year-on-year growth in monthly state GST collections.
+  description: Growth in state GST revenue (post-settlement SGST) in the fiscal year to date over the same months of the previous year.
   unit: "%"
   direction: higher_better
   category: business
@@ -788,11 +800,11 @@
 # --- Environment ----------------------------------------------------------------------------
 - id: aqi-daily-mean
   name: Average air quality index (daily)
-  description: Mean AQI across the state's monitoring stations for the day.
+  description: Average of the day's AQI (24-hour average at 4 PM) across the state's cities in CPCB's daily bulletin.
   unit: AQI
   direction: lower_better
   category: environment
-  dataset: cpcb_aqi_live
+  dataset: cpcb_aqi_bulletin
   frequency: daily
   decimals: 0
   caveat: Reflects monitored cities only; many districts have no continuous monitoring station.

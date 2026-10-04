@@ -65,7 +65,7 @@ sources:
     license: Government publication — reproduced with attribution
     attribution: "Source: DGCI&S, Ministry of Commerce and Industry"
   - id: cpcb
-    name: Central Pollution Control Board (via data.gov.in)
+    name: Central Pollution Control Board
     publisher: Ministry of Environment, Forest and Climate Change
     url: https://data.gov.in/resource/real-time-air-quality-index-various-locations
     license: Government Open Data License – India (GODL)
@@ -294,8 +294,8 @@ datasets:
     title: State-wise GST collections
     connector: gstn
     cadence: monthly
-    landing_url: https://www.gst.gov.in
-    enabled: false
+    landing_url: https://www.gst.gov.in/newsandupdates
+    enabled: true
   - id: dgcis_state_trade
     source: dgcis
     title: Exports by state of origin and imports by state (FTDDP)
@@ -303,6 +303,13 @@ datasets:
     cadence: monthly
     landing_url: https://ftddp.dgciskol.gov.in/dgcis/principalcommditysearch.html
     enabled: false
+  - id: cpcb_aqi_bulletin
+    source: cpcb
+    title: CPCB daily National Air Quality Index bulletin
+    connector: cpcb_bulletin
+    cadence: daily
+    landing_url: https://cpcb.nic.in/AQI_Bulletin.php
+    enabled: true
   - id: cpcb_aqi_live
     source: cpcb
     title: Real-time Air Quality Index from monitoring stations
@@ -323,7 +330,7 @@ datasets:
     connector: phonepe
     cadence: quarterly
     landing_url: https://github.com/PhonePe/pulse
-    enabled: false
+    enabled: true
   - id: niti_mpi
     source: niti
     title: National Multidimensional Poverty Index

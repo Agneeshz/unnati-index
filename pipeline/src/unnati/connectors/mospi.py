@@ -118,6 +118,62 @@ def fetch_plfs_state(http: PoliteClient) -> dict[str, list[dict]]:
     }
 
 
+def fetch_plfs_status(http: PoliteClient) -> list[dict]:
+    """Distribution of workers by broad status in employment (PLFS indicator 4, annual)."""
+    return fetch_all(
+        http,
+        "/api/plfs/getData",
+        {
+            "indicator_code": 4,
+            "frequency_code": 1,
+            "broad_status_employment_code": "1,2,3,4,5,6",
+            "Format": "JSON",
+        },
+    )
+
+
+def plfs_status_observations(
+    rows: list[dict], resolver: EntityResolver
+) -> tuple[list[Observation], list[str]]:
+    """regular-wage-share: share of workers (usual status, all persons, rural + urban) in regular
+    wage/salaried jobs. A place's shares of self-employed, regular and casual workers must add
+    up to about 100, or its row is skipped (MoSPI's All-India rows currently do not)."""
+    groups: dict[tuple[str, str], dict[str, float]] = {}
+    for row in rows:
+        if (row.get("gender"), row.get("sector"), row.get("weekly_status")) != (
+            "person",
+            "rural + urban",
+            "PS+SS",
+        ):
+            continue
+        value = number(row.get("value"))
+        if value is not None:
+            groups.setdefault((row["state"], row["year"]), {})[
+                str(row.get("broad_status_employment"))[:1]
+            ] = value
+    out: list[Observation] = []
+    problems: list[str] = []
+    for (state, year), parts in groups.items():
+        regular = parts.get("4")
+        if regular is None:
+            continue
+        total = parts.get("3", 0) + regular + parts.get("5", 0)
+        if abs(total - 100) > 2:
+            problems.append(f"PLFS status shares for {state} {year} add up to {total:g}, not 100; skipped")
+            continue
+        period = calendar_year(int(year))
+        try:
+            entity = resolver.resolve(state, period)
+        except UnknownEntityError as err:
+            problems.append(str(err))
+            continue
+        if entity is None:
+            continue
+        note = "PLFS, usual status (PS+SS), rural + urban"
+        out.append(Observation("regular-wage-share", entity.slug, period, regular, note=note))
+    return out, sorted(set(problems))
+
+
 PLFS_AGE = {1: "15 years and above", 2: "15-29 years"}
 PLFS_GENDER = {2: "female", 3: "person"}
 
