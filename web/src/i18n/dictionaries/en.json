@@ -112,7 +112,8 @@
       "lowerBetter": "Lower is better",
       "higherBetter": "Higher is better",
       "neutral": "Context only (not ranked)",
-      "outOf100": "out of 100"
+      "outOf100": "out of 100",
+      "notAvailable": "Not available"
     },
     "home": {
       "leadersTitle": "Unnati Index {year}",
@@ -149,7 +150,8 @@
       "latest": "Latest values",
       "history": "Over time",
       "caveat": "Read with care",
-      "allPlaces": "All states and UTs"
+      "allPlaces": "All states and UTs",
+      "coverage": "{n} of {total} states and UTs have data"
     },
     "methodology": {
       "title": "Methodology"

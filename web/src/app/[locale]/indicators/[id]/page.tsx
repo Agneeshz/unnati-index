@@ -43,9 +43,15 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
   const latest = new Map<string, Observation>();
   for (const o of observations) latest.set(o.slug, o); // ordered by period end
   const placeBySlug = new Map(places.map((p) => [p.slug, p]));
-  const rows = [...latest.values()]
-    .filter((o) => placeBySlug.get(o.slug)?.type !== "country" && placeBySlug.has(o.slug))
+  // Every state and UT appears: those with data ranked first, then the rest marked "not available".
+  const states = places.filter((p) => p.type !== "country");
+  const withData = states
+    .filter((p) => latest.has(p.slug))
+    .map((p) => latest.get(p.slug) as Observation)
     .sort((a, b) => (indicator.direction === "lower_better" ? a.value - b.value : b.value - a.value));
+  const withoutData = states.filter((p) => !latest.has(p.slug)).sort((a, b) => a.name.localeCompare(b.name));
+  const rows = withData;
+  const rankOf = (o: Observation) => withData.findIndex((x) => x.value === o.value) + 1; // ties share a rank
   const national = observations.filter((o) => o.slug === "india");
   const max = Math.max(...rows.map((r) => Math.abs(r.value)), ...national.map((r) => Math.abs(r.value)), 0);
   const directionText =
@@ -81,6 +87,9 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
         <h2 id="latest" className="text-xl font-semibold">
           {dict.ui.indicators.latest}
         </h2>
+        <p className="mt-1 text-sm text-muted">
+          {fill(dict.ui.indicators.coverage, { n: withData.length, total: states.length })}
+        </p>
         <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[36rem] text-sm">
             <thead className="border-b border-border text-left text-muted">
@@ -100,11 +109,11 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
               </tr>
             </thead>
             <tbody>
-              {rows.map((o, index) => {
+              {rows.map((o) => {
                 const place = placeBySlug.get(o.slug)!;
                 return (
                   <tr key={o.slug} className="border-b border-border last:border-0">
-                    <td className="px-3 py-2 tabular-nums text-muted">{indicator.rankable ? index + 1 : ""}</td>
+                    <td className="px-3 py-2 tabular-nums text-muted">{indicator.rankable ? rankOf(o) : ""}</td>
                     <th scope="row" className="px-3 py-2 text-left font-medium">
                       <Link href={`/${locale}/states/${o.slug}`} className="hover:underline">
                         {locale === "hi" && place.nameHi ? place.nameHi : place.name}
@@ -117,6 +126,18 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
                   </tr>
                 );
               })}
+              {withoutData.map((place) => (
+                <tr key={place.slug} className="border-b border-border last:border-0">
+                  <td className="px-3 py-2 text-muted">–</td>
+                  <th scope="row" className="px-3 py-2 text-left font-medium">
+                    <Link href={`/${locale}/states/${place.slug}`} className="hover:underline">
+                      {locale === "hi" && place.nameHi ? place.nameHi : place.name}
+                    </Link>
+                  </th>
+                  <td className="px-3 py-2 text-muted italic">{dict.ui.common.notAvailable}</td>
+                  <td className="px-3 py-2 text-muted">–</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

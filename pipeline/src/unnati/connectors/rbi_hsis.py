@@ -266,6 +266,14 @@ def _economy_fill_in(b: _Builder, files: dict[int, Path], mospi_covered: set[str
                     value,
                     "table 20 (per capita NSDP, base 2011-12)",
                 )
+    # GSDP totals (Tables 21 and 22 are in ₹ lakh; the indicators are in ₹ crore like MoSPI's).
+    for table, indicator_id, what in ((21, "gsdp-current", "current"), (22, "gsdp-constant", "constant")):
+        if table in files:
+            to_crore = 1 / 100 if unit_of(files[table]) == "lakh" else 1.0
+            for (slug, _), (value, period, _) in b.fiscal(files[table], ("A",)).items():
+                if slug not in mospi_covered and period.start.year >= 2011:
+                    note = f"table {table} (GSDP at {what} prices, base 2011-12)"
+                    b.add(indicator_id, slug, period, value * to_crore, note)
     if 22 in files:
         series: dict[str, list[tuple[Period, float]]] = {}
         for (slug, _), (value, period, _) in b.fiscal(files[22], ("A",)).items():
