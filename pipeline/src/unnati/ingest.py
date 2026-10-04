@@ -105,6 +105,18 @@ def _mospi_hces(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint_of(rows), f"{mospi.BASE_URL}/api/hces/getHcesRecords")
 
 
+def _mospi_envstats(today: date) -> Fetched:
+    from unnati.connectors import mospi
+
+    with mospi.client() as http:
+        rows = mospi.fetch_envstats(http)
+    observations, problems = mospi.envstats_observations(rows, load_reference().resolver())
+    raw = {str(code): value for code, value in rows.items()}
+    return Fetched(
+        observations, problems, fingerprint_of(raw), f"{mospi.BASE_URL}/api/env/getEnvStatsRecords"
+    )
+
+
 def _rbi_hsis(today: date) -> Fetched:
     """Reads the committed downloads; MoSPI's GSDP fills in where RBI Table 21 is absent."""
     from unnati.connectors import mospi, rbi_hsis
@@ -312,6 +324,7 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "udise_plus": _udise_plus,
     "aishe": _aishe,
     "mospi_hces": _mospi_hces,
+    "mospi_envstats": _mospi_envstats,
     "rbi_hsis": _rbi_hsis,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,

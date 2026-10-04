@@ -128,3 +128,62 @@ def test_hces_gini_takes_headline_series_and_averages():
     values = {o.indicator_id: o.value for o in found}
     assert values == {"consumption-gini-rural": 0.3, "consumption-gini-urban": 0.32, "consumption-gini": 0.31}
     assert found[0].period.start == date(2023, 8, 1) and problems == []
+
+
+def test_envstats_relabels_air_columns_and_merges_dnh_dd():
+    def air(state, city, network, column, value):
+        return {
+            "year": "2023",
+            "state": state,
+            "cities": city,
+            "sub_indicator": network,
+            "emission_source": column,
+            "value": value,
+        }
+
+    rows = {
+        mospi.ENV_AIR: [
+            air("Delhi", "Delhi", "CAAQMS (Integrated)", "SO2", "105"),  # mislabelled: PM2.5
+            air("Delhi", "Delhi", "CAAQMS (Integrated)", "Potash (Potassium)", "205"),  # PM10
+            air("Delhi", "Delhi", "CAAQMS (Integrated)", "Nitrogen", "8"),
+            air("Delhi", "Delhi", "CAAQMS (Integrated)", "Phosphorous", "38"),
+            air("Kerala", "Kochi", "NAMP", "SO2", "30"),
+            air("Kerala", "Kochi", "CAAQMS (Integrated)", "SO2", "24"),  # continuous monitor wins
+            air("Kerala", "Kollam", "NAMP", "SO2", "20"),
+            air("Daman and Diu", "Daman", "NAMP", "SO2", "30"),
+            air("Dadra and Nagar Haveli", "Silvassa", "NAMP", "SO2", "40"),
+        ],
+        mospi.ENV_WASTE: [
+            {"year": "2021-22", "state": s, "sub_indicator": k, "value": v}
+            for s, k, v in (
+                ("Daman and Diu", "Quantity Generated (TPD)", "100"),
+                ("Daman and Diu", "Treated (TPD)", "90"),
+                ("Dadra and Nagar Haveli", "Quantity Generated (TPD)", "100"),
+                ("Dadra and Nagar Haveli", "Treated (TPD)", "70"),
+            )
+        ],
+    }
+    found, problems = mospi.envstats_observations(rows, REF.resolver())
+    values = {(o.indicator_id, o.entity_slug): o.value for o in found}
+    assert problems == []
+    assert values[("pm25-annual", "delhi")] == 105
+    assert values[("pm25-annual", "keralam")] == 22  # (24 + 20) / 2
+    assert values[("pm25-annual", "dadra-and-nagar-haveli-and-daman-and-diu")] == 35
+    assert values[("waste-processed", "dadra-and-nagar-haveli-and-daman-and-diu")] == 80
+
+
+def test_envstats_refuses_unknown_air_labels():
+    rows = {
+        mospi.ENV_AIR: [
+            {
+                "year": "2023",
+                "state": "Delhi",
+                "cities": "Delhi",
+                "sub_indicator": "NAMP",
+                "emission_source": "PM2.5",
+                "value": "100",
+            }
+        ]
+    }
+    found, problems = mospi.envstats_observations(rows, REF.resolver())
+    assert found == [] and "unexpected column labels" in problems[0]

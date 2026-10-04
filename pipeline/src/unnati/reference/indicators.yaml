@@ -797,17 +797,17 @@
   valid_max: 500
 - id: pm25-annual
   name: Annual PM2.5 concentration
-  description: Average PM2.5 across the state's continuous monitoring stations over the year.
+  description: Annual average PM2.5 in the state's monitored cities (continuous monitors where a city has them, otherwise manual stations), averaged across cities.
   unit: µg/m³
   direction: lower_better
   category: environment
   pillar: environment
-  dataset: cpcb_aqi_live
+  dataset: mospi_envstats
   frequency: annual
   decimals: 0
   target: 40
-  derived: annual mean of daily station averages of PM2.5
-  caveat: Reflects monitored cities only; many districts have no continuous monitoring station.
+  derived: mean over monitored cities of each city's annual PM2.5
+  caveat: Covers monitored cities only, so a state with one monitored town is judged on that town. The national standard is 40 µg/m³ a year; WHO's guideline is 5.
   valid_min: 0
   valid_max: 1000
 - id: forest-cover-change
@@ -850,12 +850,12 @@
   valid_max: 500
 - id: waste-processed
   name: Urban solid waste processed
-  description: Share of municipal solid waste generated that is processed.
+  description: Share of municipal solid waste generated each day that is treated (CPCB annual report, via EnviStats).
   unit: "% of waste generated"
   direction: higher_better
   category: environment
   pillar: environment
-  dataset: sbm_urban_waste
+  dataset: mospi_envstats
   frequency: irregular
   decimals: 1
   target: 100

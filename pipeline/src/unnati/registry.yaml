@@ -198,6 +198,13 @@ datasets:
     cadence: annual
     landing_url: https://api.mospi.gov.in
     enabled: true
+  - id: mospi_envstats
+    source: mospi
+    title: Compendium of Environment Statistics (EnviStats India)
+    connector: mospi
+    cadence: annual
+    landing_url: https://api.mospi.gov.in
+    enabled: true
   - id: mospi_hces
     source: mospi
     title: Household Consumption Expenditure Survey

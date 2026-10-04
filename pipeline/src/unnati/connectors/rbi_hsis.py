@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 
-from unnati.core.entities import EntityResolver, UnknownEntityError
+from unnati.core.entities import EntityResolver, UnknownEntityError, normalize_name
 from unnati.core.http import PoliteClient
 from unnati.core.periods import Period, calendar_year, fiscal_year
 from unnati.observations import Observation
@@ -396,9 +396,15 @@ def observations(
                 if star0 != star1 or y0 < 2011:
                     continue
                 period = calendar_year(y1)
-                slug = b.slug(place, period)
-                # J&K's series mixes the UT with and without Ladakh between rounds.
-                if slug and slug not in ("jammu-and-kashmir", "ladakh", "jammu-and-kashmir-state"):
+                if y0 >= 2021 and normalize_name(place) == normalize_name("Dadra & Nagar Haveli"):
+                    # From ISFR 2021 the merged UT is reported under DNH's name (table note 4).
+                    slug = "dadra-and-nagar-haveli-and-daman-and-diu"
+                else:
+                    slug = b.slug(place, period)
+                # J&K's series includes Ladakh except in the 2013, 2021 and 2023 rounds (table note
+                # 2), so for J&K and Ladakh only the 2021 -> 2023 change compares like with like.
+                split = ("jammu-and-kashmir", "ladakh", "jammu-and-kashmir-state")
+                if slug and (slug not in split or y0 >= 2021):
                     note = f"table 99: forest cover in ISFR {y1} vs ISFR {y0}"
                     b.add("forest-cover-change", slug, period, (value - a) / a * 100, note)
 

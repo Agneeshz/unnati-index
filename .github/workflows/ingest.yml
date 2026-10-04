@@ -34,6 +34,7 @@ jobs:
           - udise_plus
           - aishe
           - mospi_hces
+          - mospi_envstats
           - ncrb_cii
           - ncrb_adsi
           - morth_road_accidents

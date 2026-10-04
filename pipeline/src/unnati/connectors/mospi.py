@@ -15,9 +15,9 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from itertools import pairwise
 
-from unnati.core.entities import EntityResolver, UnknownEntityError
+from unnati.core.entities import EntityResolver, UnknownEntityError, normalize_name
 from unnati.core.http import PoliteClient, legacy_renegotiation_context
-from unnati.core.periods import Period, calendar_year, day, month, parse_period, span
+from unnati.core.periods import Period, calendar_year, day, fiscal_year, month, parse_period, span
 from unnati.observations import Observation
 
 BASE_URL = "https://api.mospi.gov.in"
@@ -351,6 +351,106 @@ def hces_observations(rows: list[dict], resolver: EntityResolver) -> tuple[list[
                 )
             )
     return observations, sorted(set(problems))
+
+
+# EnviStats (MoSPI "Compendium of Environment Statistics"), /api/env/getEnvStatsRecords.
+ENV_AIR = 25  # Ambient Air Quality in cities under NAMP & CAAQMS (Integrated)
+ENV_WASTE = 80  # Municipal Solid Waste Generation in India (state-wise, TPD)
+
+# MoSPI's API labels table 25's pollutant columns with fertiliser names. Checked against table 26
+# (correctly labelled, 7 metros): the CAAQMS values match SO2, NO2 and PM10 exactly, so the
+# columns are CPCB's usual order and the one labelled "SO2" is PM2.5.
+ENV_AIR_COLUMNS = {"Nitrogen": "SO2", "Phosphorous": "NO2", "Potash (Potassium)": "PM10", "SO2": "PM2.5"}
+
+
+# EnviStats still lists DNH and Daman & Diu separately after their 26 Jan 2020 merger; here (and
+# only here, since other sources must fail loudly on stale names) their rows are added together.
+ENV_MERGED_NAMES = {normalize_name("Dadra and Nagar Haveli"), normalize_name("Daman and Diu")}
+ENV_MERGED_FROM = date(2020, 1, 26)
+ENV_MERGED_SLUG = "dadra-and-nagar-haveli-and-daman-and-diu"
+
+
+def fetch_envstats(http: PoliteClient) -> dict[int, list[dict]]:
+    return {
+        code: fetch_all(http, "/api/env/getEnvStatsRecords", {"indicator_code": code, "Format": "JSON"})
+        for code in (ENV_AIR, ENV_WASTE)
+    }
+
+
+def envstats_observations(
+    rows_by_code: Mapping[int, list[dict]], resolver: EntityResolver
+) -> tuple[list[Observation], list[str]]:
+    """pm25-annual: per city, the continuous monitors' (CAAQMS) annual PM2.5 where the city has
+    them, else the manual (NAMP) stations'; a state's value is the mean over its monitored
+    cities. waste-processed: municipal solid waste treated / generated (tonnes per day).
+    Rows are grouped by resolved place, so the pre-2020 names of DNH and Daman & Diu, which
+    the source still uses, add up into the merged UT."""
+    out: list[Observation] = []
+    problems: list[str] = []
+    resolved: dict[tuple[str, Period], str | None] = {}
+
+    def slug_of(state: str, period: Period) -> str | None:
+        if (state, period) not in resolved:
+            try:
+                entity = resolver.resolve(state, period)
+                resolved[(state, period)] = entity.slug if entity else None
+            except UnknownEntityError as err:
+                if normalize_name(state) in ENV_MERGED_NAMES and period.start >= ENV_MERGED_FROM:
+                    resolved[(state, period)] = ENV_MERGED_SLUG
+                else:
+                    problems.append(str(err))
+                    resolved[(state, period)] = None
+        return resolved[(state, period)]
+
+    labels = {r.get("emission_source") for r in rows_by_code.get(ENV_AIR, [])}
+    if labels and labels != set(ENV_AIR_COLUMNS):
+        problems.append(f"EnviStats air table: unexpected column labels {sorted(labels)}; not read")
+    else:
+        cities: dict[tuple[Period, str, str], dict[str, float]] = {}
+        for row in rows_by_code.get(ENV_AIR, []):
+            value = number(row.get("value"))
+            if value is None or ENV_AIR_COLUMNS[row["emission_source"]] != "PM2.5":
+                continue
+            period = calendar_year(int(row["year"]))
+            slug = slug_of(row["state"], period)
+            if slug is None:
+                continue
+            network = "CAAQMS" if row["sub_indicator"].startswith("CAAQMS") else "NAMP"
+            cities.setdefault((period, slug, row["cities"]), {})[network] = value
+        by_place: dict[tuple[Period, str], list[float]] = {}
+        for (period, slug, _), networks in cities.items():
+            by_place.setdefault((period, slug), []).append(networks.get("CAAQMS", networks.get("NAMP")))
+        for (period, slug), values in by_place.items():
+            note = (
+                f"EnviStats (CPCB NAMP/CAAQMS): mean of {len(values)} monitored "
+                f"cit{'y' if len(values) == 1 else 'ies'}; MoSPI's API mislabels this column"
+            )
+            out.append(
+                Observation("pm25-annual", slug, period, round(sum(values) / len(values), 1), note=note)
+            )
+
+    waste: dict[tuple[Period, str], dict[str, float]] = {}
+    for row in rows_by_code.get(ENV_WASTE, []):
+        value = number(row.get("value"))
+        if value is None:
+            continue
+        period = fiscal_year(int(row["year"][:4]))
+        slug = slug_of(row["state"], period)
+        if slug is None:
+            continue
+        parts = waste.setdefault((period, slug), {})
+        parts[row["sub_indicator"]] = parts.get(row["sub_indicator"], 0.0) + value
+    for (period, slug), parts in waste.items():
+        generated, treated = parts.get("Quantity Generated (TPD)"), parts.get("Treated (TPD)")
+        if not generated or treated is None:
+            continue
+        note = f"EnviStats (CPCB): {treated:,.0f} of {generated:,.0f} tonnes a day treated"
+        out.append(
+            Observation(
+                "waste-processed", slug, period, round(min(treated / generated, 1) * 100, 1), note=note
+            )
+        )
+    return out, sorted(set(problems))
 
 
 def udise_observations(
