@@ -96,7 +96,8 @@ def ensure_goalposts(
             ids=[k for k in spec if k not in stored],
         )
     }
-    computed = scoring.goalposts(values, {k: s for k, s in spec.items() if k not in stored and k not in inherited})
+    new = {k: s for k, s in spec.items() if k not in stored and k not in inherited}
+    computed = scoring.goalposts(values, new)
     fresh = {**inherited, **computed}
     for indicator_id, post in fresh.items():
         conn.run(
