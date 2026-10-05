@@ -121,9 +121,7 @@ _INDEX_HI = """
 
 def _seed_hindi(conn: Connection, ref: ReferenceData) -> None:
     hi = ref.hindi
-    conn.run(
-        "update indicator set name_hi = null, description_hi = null, caveat_hi = null, unit_hi = null"
-    )
+    conn.run("update indicator set name_hi = null, description_hi = null, caveat_hi = null, unit_hi = null")
     for key, text in hi.indicators.items():
         conn.run(_INDICATOR_HI, id=key, **text.model_dump())
     for unit, text in hi.units.items():
