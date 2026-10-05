@@ -9,7 +9,7 @@ export const contentType = OG_TYPE;
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [indicators, places, observations] = await Promise.all([
-    getIndicators(),
+    getIndicators("en"), // share images are English-only (no Devanagari font)
     getPlaces(),
     getIndicatorObservations(id),
   ]);

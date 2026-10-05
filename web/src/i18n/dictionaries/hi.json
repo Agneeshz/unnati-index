@@ -101,73 +101,104 @@
       "change": "बदलाव",
       "place": "राज्य / केंद्र शासित प्रदेश",
       "noScore": "पर्याप्त डेटा नहीं",
-      "unchanged": "No change",
-      "up": "Up {n} from last edition",
-      "down": "Down {n} from last edition",
+      "unchanged": "कोई बदलाव नहीं",
+      "up": "पिछले संस्करण से {n} ऊपर",
+      "down": "पिछले संस्करण से {n} नीचे",
       "new": "New",
-      "edition": "Edition {year}",
-      "period": "Period",
-      "value": "Value",
-      "source": "Source",
-      "provisional": "provisional",
+      "edition": "संस्करण {year}",
+      "period": "अवधि",
+      "value": "मान",
+      "source": "स्रोत",
+      "provisional": "अनंतिम",
       "india": "भारत",
-      "viewAll": "View all",
-      "lowerBetter": "Lower is better",
-      "higherBetter": "Higher is better",
-      "neutral": "Context only (not ranked)",
+      "viewAll": "सभी देखें",
+      "lowerBetter": "कम बेहतर है",
+      "higherBetter": "अधिक बेहतर है",
+      "neutral": "केवल संदर्भ के लिए (रैंक नहीं)",
       "outOf100": "100 में से",
       "notAvailable": "उपलब्ध नहीं"
     },
     "home": {
-      "leadersTitle": "Unnati Index {year}",
-      "leadersIntro": "Composite scores out of 100, by peer group. A higher score means the state is closer to national and global targets across eight pillars.",
-      "top": "Leading",
-      "bottom": "Catching up",
-      "improvedTitle": "Most improved since {year}",
-      "improvedIntro": "Change in Unnati Index score, using the same methodology and fixed goalposts for both years.",
-      "updatesTitle": "Recently updated data"
+      "leadersTitle": "उन्नति सूचकांक {year}",
+      "leadersIntro": "100 में से समग्र स्कोर, समकक्ष समूह के अनुसार। ऊँचे स्कोर का अर्थ है कि राज्य आठों स्तंभों में राष्ट्रीय और वैश्विक लक्ष्यों के ज़्यादा क़रीब है।",
+      "top": "आगे",
+      "bottom": "पीछे से आगे बढ़ते",
+      "improvedTitle": "{year} से सबसे ज़्यादा सुधार",
+      "improvedIntro": "उन्नति सूचकांक स्कोर में बदलाव, दोनों वर्षों के लिए एक ही कार्यप्रणाली और स्थिर लक्ष्य-बिंदुओं के साथ।",
+      "updatesTitle": "हाल में अपडेट हुआ डेटा"
     },
     "rankings": {
-      "title": "Unnati Index rankings {year}",
-      "intro": "Overall and pillar scores out of 100. Ranks are shown within each peer group, so small Union Territories are not compared directly with large states. Select a state for its full report card.",
-      "overall": "Overall",
+      "title": "उन्नति सूचकांक रैंकिंग {year}",
+      "intro": "100 में से समग्र और स्तंभ स्कोर। रैंक हर समकक्ष समूह के भीतर दिखाए गए हैं, ताकि छोटे केंद्र शासित प्रदेशों की सीधी तुलना बड़े राज्यों से न हो। पूरे रिपोर्ट कार्ड के लिए कोई राज्य चुनें।",
+      "overall": "समग्र",
       "partial": "8 में से {n} स्तंभों पर आधारित"
     },
     "state": {
-      "reportCard": "Report card",
-      "pillarsTitle": "Pillar scores",
-      "strengths": "Strengths",
-      "weaknesses": "Where it lags",
-      "indicatorsTitle": "All indicators",
-      "leadersTitle": "Who was in charge",
-      "leadersIntro": "Office-holders during {period}, the period of the latest data in this report card.",
-      "noLeaders": "No office-holder records for this period yet.",
-      "vsIndia": "India",
-      "peerAverage": "Group average",
-      "rankOf": "#{rank} of {total} in {group}",
-      "notScored": "Not enough data to compute an overall score yet.",
+      "reportCard": "रिपोर्ट कार्ड",
+      "pillarsTitle": "स्तंभ स्कोर",
+      "strengths": "ताक़तें",
+      "weaknesses": "जहाँ पीछे है",
+      "indicatorsTitle": "सभी संकेतक",
+      "leadersTitle": "ज़िम्मेदारी किसके पास थी",
+      "leadersIntro": "{period} के दौरान पदाधिकारी, यानी इस रिपोर्ट कार्ड के नवीनतम डेटा की अवधि।",
+      "noLeaders": "इस अवधि के पदाधिकारियों का रिकॉर्ड अभी नहीं है।",
+      "vsIndia": "भारत",
+      "peerAverage": "समूह औसत",
+      "rankOf": "{group} में {total} में से #{rank}",
+      "notScored": "समग्र स्कोर निकालने के लिए अभी पर्याप्त डेटा नहीं है।",
       "trendsTitle": "कैसे बदला",
-      "trendsIntro": "हर संस्करण में राज्य का उन्नति सूचकांक, और समय के साथ प्रमुख संकेतक, भारत (डैश रेखा) की तुलना में।"
+      "trendsIntro": "हर संस्करण में राज्य का उन्नति सूचकांक, और समय के साथ प्रमुख संकेतक, भारत (डैश रेखा) की तुलना में।",
+      "present": "अब तक"
     },
     "indicators": {
-      "title": "Indicators",
-      "intro": "Every indicator we track, grouped by topic. Indicators in a pillar feed the Unnati Index; the rest are shown for context.",
-      "inPillar": "In pillar: {pillar}",
-      "latest": "Latest values",
-      "history": "Over time",
-      "caveat": "Read with care",
-      "allPlaces": "All states and UTs",
+      "title": "संकेतक",
+      "intro": "हमारे द्वारा ट्रैक किया जाने वाला हर संकेतक, विषय के अनुसार। किसी स्तंभ वाले संकेतक उन्नति सूचकांक में जुड़ते हैं; बाक़ी संदर्भ के लिए दिखाए जाते हैं।",
+      "inPillar": "स्तंभ में: {pillar}",
+      "latest": "नवीनतम मान",
+      "history": "समय के साथ",
+      "caveat": "ध्यान से पढ़ें",
+      "allPlaces": "सभी राज्य और केंद्र शासित प्रदेश",
       "coverage": "{total} में से {n} राज्यों/केंद्र शासित प्रदेशों का डेटा उपलब्ध"
     },
     "methodology": {
-      "title": "Methodology"
+      "title": "कार्यप्रणाली",
+      "rules": [
+        {
+          "title": "कुल संख्या नहीं, दरें",
+          "body": "रैंक होने वाला हर संकेतक एक दर, हिस्सा या प्रति व्यक्ति मान है, ताकि बड़े राज्य केवल आकार के कारण आगे न निकलें।"
+        },
+        {
+          "title": "स्थिर लक्ष्य-बिंदु",
+          "body": "हर संकेतक को दो स्थिर लक्ष्य-बिंदुओं के बीच 0–100 स्कोर दिया जाता है। सबसे अच्छा छोर राष्ट्रीय या SDG लक्ष्य है जहाँ वह मौजूद है, नहीं तो 2015 के बाद के राज्य मानों का 97.5वाँ पर्सेंटाइल; सबसे ख़राब छोर 2.5वाँ पर्सेंटाइल है। किसी कार्यप्रणाली संस्करण में लक्ष्य-बिंदु स्थिर रहते हैं, इसलिए स्कोर तभी बढ़ता है जब राज्य के अपने आँकड़े सुधरते हैं। बहुत असमान प्रति व्यक्ति मान (आय, निर्यात, बिजली) लघुगणकीय पैमाने पर आँके जाते हैं, जैसे UNDP आय के लिए करता है, ताकि 10 से 100 तक जाना 100 से 1,000 तक जाने के बराबर गिना जाए।"
+        },
+        {
+          "title": "सबके लिए एक ही अवधि",
+          "body": "जब कम से कम 80% राज्य किसी संकेतक की रिपोर्ट करते हैं, तो राज्यों की तुलना एक साझा अवधि पर होती है (जैसे, जब तक NFHS-6 ज़्यादातर राज्यों को शामिल न करे, सब NFHS-5 पर)। नहीं तो हर राज्य का नवीनतम मान लिया जाता है, और हर संख्या के साथ उसकी अवधि दिखाई जाती है। छह साल से पुराने मान इस्तेमाल नहीं होते।"
+        },
+        {
+          "title": "स्तंभ और सूचकांक",
+          "body": "स्तंभ उसके संकेतक स्कोर का औसत है, जो तभी निकाला जाता है जब उसके कम से कम 60% संकेतकों का डेटा हो। उन्नति सूचकांक आठ स्तंभों का औसत है, जो तभी निकाला जाता है जब कम से कम छह के स्कोर हों। कमियाँ कभी चुपचाप नहीं भरी जातीं।"
+        },
+        {
+          "title": "रैंक और श्रेणियाँ",
+          "body": "राज्यों को समकक्ष समूहों (बड़े राज्य; पूर्वोत्तर और हिमालयी राज्य; केंद्र शासित प्रदेश) के भीतर और कुल मिलाकर रैंक किया जाता है। एक दशमलव तक बराबर स्कोर वालों का रैंक एक ही होता है। श्रेणियाँ नीति आयोग की तरह हैं: अचीवर (100), फ्रंट रनर (65–99), परफ़ॉर्मर (50–64), एस्पिरेंट (50 से कम)।"
+        },
+        {
+          "title": "प्रगति",
+          "body": "पिछले संस्करण उन्हीं लक्ष्य-बिंदुओं से दोबारा निकाले जाते हैं, केवल उन अवधियों के डेटा से जो तब तक ख़त्म हो चुकी थीं, ताकि 'सबसे ज़्यादा सुधार' में बराबर की तुलना हो।"
+        }
+      ],
+      "goalpostsTitle": "संकेतक और लक्ष्य-बिंदु",
+      "indicator": "संकेतक",
+      "score0": "स्कोर 0 पर",
+      "score100": "स्कोर 100 पर"
     },
     "sources": {
-      "title": "Data sources",
-      "intro": "Every dataset, where it comes from and when we last checked it. The pipeline checks each source daily and loads only new or revised figures.",
-      "lastChecked": "Last checked",
-      "lastChanged": "Last new data",
-      "cadence": "Released"
+      "title": "डेटा स्रोत",
+      "intro": "हर डेटासेट, वह कहाँ से आता है और हमने उसे आख़िरी बार कब जाँचा। पाइपलाइन हर स्रोत को रोज़ जाँचती है और केवल नए या संशोधित आँकड़े लोड करती है।",
+      "lastChecked": "आख़िरी जाँच",
+      "lastChanged": "आख़िरी नया डेटा",
+      "cadence": "जारी होने की आवृत्ति"
     },
     "indices": {
       "title": "सूचकांक",
@@ -211,7 +242,19 @@
       "intro": "जब भी पाइपलाइन नए या संशोधित आधिकारिक आँकड़े लोड करती है, वे यहाँ दिखते हैं: कौन-सा स्रोत, कौन-सी अवधि और कौन-से संकेतक। संशोधन होने पर पुराने आँकड़े भी रिकॉर्ड में रहते हैं।",
       "rss": "सदस्यता लें (RSS)",
       "more": "और {n} अन्य",
-      "all": "सभी अपडेट"
+      "all": "सभी अपडेट",
+      "summary": "{n} संकेतकों में {changes} आँकड़े",
+      "summaryOne": "1 संकेतक में {changes} आँकड़े",
+      "new": "{n} नए",
+      "revised": "{n} संशोधित",
+      "and": " और "
+    },
+    "map": {
+      "disclaimer": "सीमाएँ भारतीय सर्वेक्षण के अनुसार; प्रमाणित मानचित्र नहीं। गोले छोटे राज्यों और केंद्र शासित प्रदेशों को दर्शाते हैं।",
+      "legend": "संकेत",
+      "indexNote": "100 में से उन्नति सूचकांक स्कोर। गहरा रंग यानी ऊँचा स्कोर।",
+      "selectState": "रिपोर्ट कार्ड के लिए कोई राज्य चुनें।",
+      "darkerValue": "गहरा रंग यानी ऊँचा मान।"
     }
   }
 }

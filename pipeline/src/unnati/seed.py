@@ -107,6 +107,35 @@ _UPSERT_INDEX = """
         components = excluded.components, sort = excluded.sort
 """
 
+_INDICATOR_HI = """
+    update indicator set name_hi = :name, description_hi = :description, caveat_hi = :caveat
+    where id = :id
+"""
+
+_INDEX_HI = """
+    update index_definition set name_hi = :name, description_hi = :description, method_hi = :method,
+        caveat_hi = :caveat, inspired_by_hi = :inspired_by, dimensions_hi = cast(:dimensions as jsonb)
+    where id = :id
+"""
+
+
+def _seed_hindi(conn: Connection, ref: ReferenceData) -> None:
+    hi = ref.hindi
+    conn.run(
+        "update indicator set name_hi = null, description_hi = null, caveat_hi = null, unit_hi = null"
+    )
+    for key, text in hi.indicators.items():
+        conn.run(_INDICATOR_HI, id=key, **text.model_dump())
+    for unit, text in hi.units.items():
+        conn.run("update indicator set unit_hi = :hi where unit = :unit", unit=unit, hi=text)
+    for key, text in hi.indices.items():
+        conn.run(
+            _INDEX_HI,
+            id=key,
+            **text.model_dump(exclude={"dimensions"}),
+            dimensions=json.dumps(text.dimensions, ensure_ascii=False),
+        )
+
 
 def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
     with transaction(conn):
@@ -161,6 +190,7 @@ def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
                 components=json.dumps([{"dimension": k, "indicators": v} for k, v in x.components.items()]),
                 sort=sort,
             )
+        _seed_hindi(conn, ref)
 
     return {
         "entities": len(ref.entities),

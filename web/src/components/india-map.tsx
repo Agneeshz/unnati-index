@@ -1,4 +1,7 @@
 import { MapTooltip } from "@/components/map-tooltip";
+import { locale } from "next/root-params";
+import { getDictionary } from "@/i18n/dictionaries";
+import { getPlaces } from "@/lib/data";
 import { breaks, classOf, indiaShapes, MAP_HEIGHT, MAP_WIDTH, RAMP, SMALL_PLACES } from "@/lib/map";
 
 export type MapDatum = { value: number; label: string };
@@ -8,7 +11,7 @@ export type MapDatum = { value: number; label: string };
  * places without data, markers for places too small to see. Every value is also in the table
  * beside the map, so the map is never the only way to read it.
  */
-export function IndiaMap({
+export async function IndiaMap({
   data,
   title,
   formatBreak,
@@ -23,7 +26,10 @@ export function IndiaMap({
   note?: string;
   hrefFor?: (slug: string) => string;
 }) {
-  const shapes = indiaShapes();
+  const [dict, places, lang] = await Promise.all([getDictionary(), getPlaces(), locale()]);
+  const hindi = lang === "hi";
+  const placeName = new Map(places.map((p) => [p.slug, hindi && p.nameHi ? p.nameHi : p.name]));
+  const shapes = indiaShapes().map((s) => ({ ...s, name: placeName.get(s.slug) ?? s.name }));
   const values = Object.values(data).filter((d): d is MapDatum => d != null).map((d) => d.value);
   const cuts = breaks(values);
   const fill = (slug: string) => {
@@ -109,7 +115,7 @@ export function IndiaMap({
         </svg>
       </MapTooltip>
       <figcaption className="mt-2 space-y-2 text-xs text-muted">
-        <ul className="flex flex-wrap gap-x-3 gap-y-1" aria-label="Legend">
+        <ul className="flex flex-wrap gap-x-3 gap-y-1" aria-label={dict.ui.map.legend}>
           {legend.map((item) => (
             <li key={item.text} className="flex items-center gap-1.5">
               <svg aria-hidden="true" width="14" height="14" className="shrink-0">
@@ -120,7 +126,7 @@ export function IndiaMap({
           ))}
         </ul>
         {note && <p>{note}</p>}
-        <p>Boundaries as per Survey of India; not an authenticated map. Circles mark small states and UTs.</p>
+        <p>{dict.ui.map.disclaimer}</p>
       </figcaption>
     </figure>
   );

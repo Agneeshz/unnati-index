@@ -14,7 +14,7 @@ import {
   type Place,
 } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
-import { fill, formatScore, PEER_GROUPS } from "@/lib/present";
+import { fill, formatScore, PEER_GROUPS, releaseSummary } from "@/lib/present";
 
 const PILLARS: (keyof Dictionary["pillars"])[] = [
   "economy-jobs",
@@ -93,7 +93,7 @@ export default async function HomePage() {
               )}
               formatBreak={(v) => formatScore(v, locale)}
               notAvailable={dict.ui.common.noScore}
-              note="Unnati Index score out of 100. Darker means a higher score. Select a state for its report card."
+              note={`${dict.ui.map.indexNote} ${dict.ui.map.selectState}`}
               hrefFor={(slug) => `/${locale}/states/${slug}`}
             />
           </div>
@@ -201,7 +201,7 @@ export default async function HomePage() {
                   </Link>{" "}
                   <span className="text-muted">
                     · {r.periods[0] ?? r.source}
-                    {r.summary ? ` · ${r.summary}` : ""}
+                    {r.summary ? ` · ${releaseSummary(r.summary, dict)}` : ""}
                   </span>
                 </span>
                 <time dateTime={r.happenedAt} className="text-muted">

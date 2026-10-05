@@ -34,6 +34,21 @@ export function formatValue(value: number, indicator: Pick<Indicator, "unit" | "
   return `${number} ${unit}`;
 }
 
+/**
+ * A release summary ("110 new and 155 revised figures across 3 indicators", as the pipeline
+ * writes it) in the page's language; unrecognised text is returned unchanged.
+ */
+export function releaseSummary(summary: string, dict: Dictionary): string {
+  const m = summary.match(/^(?:([\d,]+) new)?(?: and )?(?:([\d,]+) revised)? figures across (\d+) indicators?$/);
+  if (!m) return summary;
+  const parts = [
+    m[1] ? fill(dict.ui.updates.new, { n: m[1] }) : "",
+    m[2] ? fill(dict.ui.updates.revised, { n: m[2] }) : "",
+  ].filter(Boolean);
+  const changes = parts.join(dict.ui.updates.and);
+  return m[3] === "1" ? fill(dict.ui.updates.summaryOne, { changes }) : fill(dict.ui.updates.summary, { changes, n: m[3] });
+}
+
 export function formatScore(score: number, locale: Locale): string {
   return formatNumber(score, 1, locale);
 }

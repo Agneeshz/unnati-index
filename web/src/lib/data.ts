@@ -1,6 +1,7 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { cacheLife, cacheTag } from "next/cache";
+import { locale as rootLocale } from "next/root-params";
 
 /**
  * Read-only queries for the site. Every function is cached and tagged; the pipeline calls
@@ -106,20 +107,53 @@ export async function getPillars(): Promise<Pillar[]> {
   return rows.map((r) => ({ id: r.id, name: r.name, description: r.description }));
 }
 
-export async function getCategories(): Promise<{ id: string; name: string; ranked: boolean }[]> {
-  "use cache";
-  cacheTag("places");
-  cacheLife("max");
-  const rows = await sql()`select id, name, ranked from category order by sort, id`;
-  return rows.map((r) => ({ id: r.id, name: r.name, ranked: r.ranked }));
+export type TextLocale = "en" | "hi";
+
+/**
+ * The language for data text (indicator names, units, index descriptions). Pages pass nothing and
+ * get their route's locale; places without one (route handlers, static params) get English.
+ */
+async function textLocale(requested?: string): Promise<TextLocale> {
+  if (requested) return requested === "hi" ? "hi" : "en";
+  try {
+    return (await rootLocale()) === "hi" ? "hi" : "en";
+  } catch {
+    return "en";
+  }
 }
 
-export async function getIndicators(): Promise<Indicator[]> {
+export async function getCategories(locale?: string): Promise<{ id: string; name: string; ranked: boolean }[]> {
+  return categoriesIn(await textLocale(locale));
+}
+
+async function categoriesIn(locale: TextLocale) {
   "use cache";
   cacheTag("places");
   cacheLife("max");
+  const hi = locale === "hi";
   const rows = await sql()`
-    select i.id, i.name, i.description, i.unit, i.direction, i.category_id, i.decimals, i.caveat,
+    select id, case when ${hi} then coalesce(name_hi, name) else name end as name, ranked
+    from category order by sort, id`;
+  return rows.map((r) => ({ id: r.id as string, name: r.name as string, ranked: r.ranked as boolean }));
+}
+
+export async function getIndicators(locale?: string): Promise<Indicator[]> {
+  return indicatorsIn(await textLocale(locale));
+}
+
+async function indicatorsIn(locale: TextLocale): Promise<Indicator[]> {
+  "use cache";
+  cacheTag("places");
+  cacheLife("max");
+  const hi = locale === "hi";
+  // Hindi text falls back to English column by column.
+  const rows = await sql()`
+    select i.id,
+           case when ${hi} then coalesce(i.name_hi, i.name) else i.name end as name,
+           case when ${hi} then coalesce(i.description_hi, i.description) else i.description end as description,
+           case when ${hi} then coalesce(i.unit_hi, i.unit) else i.unit end as unit,
+           i.direction, i.category_id, i.decimals,
+           case when ${hi} then coalesce(i.caveat_hi, i.caveat) else i.caveat end as caveat,
            i.rankable, mi.pillar_id
     from indicator i
     left join methodology_indicator mi on mi.indicator_id = i.id and mi.version = ${METHODOLOGY}
@@ -292,20 +326,31 @@ export type ThematicIndex = {
   components: { dimension: string; indicators: string[] }[];
 };
 
-export async function getIndices(): Promise<ThematicIndex[]> {
+export async function getIndices(locale?: string): Promise<ThematicIndex[]> {
+  return indicesIn(await textLocale(locale));
+}
+
+async function indicesIn(locale: TextLocale): Promise<ThematicIndex[]> {
   "use cache";
   cacheTag("places");
   cacheLife("max");
   const rows = await sql()`
-    select id, name, description, method, caveat, inspired_by, components from index_definition order by sort`;
+    select id, name, name_hi, description, description_hi, method, method_hi, caveat, caveat_hi,
+           inspired_by, inspired_by_hi, components, dimensions_hi
+    from index_definition order by sort`;
+  const hi = locale === "hi";
+  const pick = (en: string | null, translated: string | null) => (hi && translated ? translated : en);
   return rows.map((r) => ({
     id: r.id,
-    name: r.name,
-    description: r.description,
-    method: r.method,
-    caveat: r.caveat,
-    inspiredBy: r.inspired_by,
-    components: r.components,
+    name: pick(r.name, r.name_hi) as string,
+    description: pick(r.description, r.description_hi) as string,
+    method: pick(r.method, r.method_hi) as string,
+    caveat: pick(r.caveat, r.caveat_hi),
+    inspiredBy: pick(r.inspired_by, r.inspired_by_hi),
+    components: (r.components as ThematicIndex["components"]).map((c) => ({
+      dimension: (hi && r.dimensions_hi?.[c.dimension]) || c.dimension,
+      indicators: c.indicators,
+    })),
   }));
 }
 

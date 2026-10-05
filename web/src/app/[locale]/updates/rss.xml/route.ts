@@ -13,7 +13,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/[locale]
   const { locale } = await params;
   // Route handlers can't read the locale root param yet, so the dictionary is picked directly.
   const dict = locale === "hi" ? hi : en;
-  const [releases, indicators] = await Promise.all([getReleases(50), getIndicators()]);
+  const [releases, indicators] = await Promise.all([getReleases(50), getIndicators(locale)]);
   const names = new Map(indicators.map((i) => [i.id, i.name]));
   const page = `${SITE}/${locale}/updates`;
   const items = releases

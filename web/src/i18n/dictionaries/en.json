@@ -147,7 +147,8 @@
       "rankOf": "#{rank} of {total} in {group}",
       "notScored": "Not enough data to compute an overall score yet.",
       "trendsTitle": "How it has changed",
-      "trendsIntro": "The state's Unnati Index in each edition, and key indicators over time against India (dashed)."
+      "trendsIntro": "The state's Unnati Index in each edition, and key indicators over time against India (dashed).",
+      "present": "present"
     },
     "indicators": {
       "title": "Indicators",
@@ -160,7 +161,37 @@
       "coverage": "{n} of {total} states and UTs have data"
     },
     "methodology": {
-      "title": "Methodology"
+      "title": "Methodology",
+      "rules": [
+        {
+          "title": "Rates, not totals",
+          "body": "Every ranked indicator is a rate, share or per-person value, so large states don't win just by size."
+        },
+        {
+          "title": "Fixed goalposts",
+          "body": "Each indicator is scored 0-100 between two fixed goalposts. The best end is a national or SDG target where one exists, otherwise the 97.5th percentile of state values since 2015; the worst end is the 2.5th percentile. Goalposts stay fixed for a methodology version, so a score only rises when the state's own numbers improve. Very skewed per-person values (income, exports, electricity) are scored on a log scale, as UNDP does for income, so going from 10 to 100 counts as much as from 100 to 1,000."
+        },
+        {
+          "title": "One period for everyone",
+          "body": "Each indicator compares states on a common period when at least 80% of them report it (for example, everyone on NFHS-5 until NFHS-6 covers most states). Otherwise each state's latest value is used, and the period is shown next to every number. Values more than six years old are not used."
+        },
+        {
+          "title": "Pillars and the index",
+          "body": "A pillar is the average of its indicator scores, computed only when at least 60% of its indicators have data. The Unnati Index is the average of the eight pillars, computed only when at least six have scores. Gaps are never filled in silently."
+        },
+        {
+          "title": "Ranks and bands",
+          "body": "States are ranked within peer groups (large states; North-East and Himalayan states; Union Territories) and overall. Equal scores at one decimal share a rank. Bands follow NITI Aayog's: Achiever (100), Front Runner (65-99), Performer (50-64), Aspirant (below 50)."
+        },
+        {
+          "title": "Progress",
+          "body": "Earlier editions are recomputed with the same goalposts, using only data for periods that had ended by then, so 'most improved' compares like with like."
+        }
+      ],
+      "goalpostsTitle": "Indicators and goalposts",
+      "indicator": "Indicator",
+      "score0": "Score 0 at",
+      "score100": "Score 100 at"
     },
     "sources": {
       "title": "Data sources",
@@ -211,7 +242,19 @@
       "intro": "Every time the pipeline loads new or revised official figures, it is listed here: which source, which periods and which indicators. Revisions keep the earlier figures on record.",
       "rss": "Subscribe (RSS)",
       "more": "and {n} more",
-      "all": "All updates"
+      "all": "All updates",
+      "summary": "{changes} figures across {n} indicators",
+      "summaryOne": "{changes} figures across 1 indicator",
+      "new": "{n} new",
+      "revised": "{n} revised",
+      "and": " and "
+    },
+    "map": {
+      "disclaimer": "Boundaries as per Survey of India; not an authenticated map. Circles mark small states and UTs.",
+      "legend": "Legend",
+      "indexNote": "Unnati Index score out of 100. Darker means a higher score.",
+      "selectState": "Select a state for its report card.",
+      "darkerValue": "Darker means a higher value."
     }
   }
 }

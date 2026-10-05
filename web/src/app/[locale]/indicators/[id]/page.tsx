@@ -100,7 +100,7 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
             )}
             formatBreak={(v) => formatNumber(v, indicator.decimals, locale)}
             notAvailable={dict.ui.common.notAvailable}
-            note={`${indicator.unit} · ${directionText}. Darker means a higher value.`}
+            note={`${indicator.unit} · ${directionText}. ${dict.ui.map.darkerValue}`}
             hrefFor={(slug) => `/${locale}/states/${slug}`}
           />
         </div>

@@ -39,7 +39,7 @@ export default async function RankingsPage() {
           )}
           formatBreak={(v) => formatScore(v, locale)}
           notAvailable={dict.ui.common.noScore}
-          note="Unnati Index score out of 100. Darker means a higher score."
+          note={dict.ui.map.indexNote}
           hrefFor={(slug) => `/${locale}/states/${slug}`}
         />
       </div>

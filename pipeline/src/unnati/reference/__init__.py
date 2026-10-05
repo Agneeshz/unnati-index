@@ -126,6 +126,29 @@ class ThematicIndex(_Model):
         return [i for members in self.components.values() for i in members]
 
 
+class HindiText(_Model):
+    name: str
+    description: str
+    caveat: str | None = None
+
+
+class HindiIndex(_Model):
+    name: str
+    description: str
+    inspired_by: str | None = None
+    method: str
+    caveat: str | None = None
+    dimensions: dict[str, str]
+
+
+class Hindi(_Model):
+    """reference/hi.yaml: Hindi text for indicators, units and thematic indices."""
+
+    units: dict[str, str] = {}
+    indicators: dict[str, HindiText] = {}
+    indices: dict[str, HindiIndex] = {}
+
+
 class Source(_Model):
     id: str
     name: str
@@ -169,6 +192,7 @@ class ReferenceData(_Model):
     indicators: list[Indicator]
     indices: list[ThematicIndex] = []
     registry: Registry
+    hindi: Hindi = Hindi()
 
     @model_validator(mode="after")
     def _cross_check(self) -> ReferenceData:
@@ -267,4 +291,11 @@ def load_reference() -> ReferenceData:
         indicators=_yaml(_REFERENCE.joinpath("indicators.yaml")),
         indices=_yaml(_REFERENCE.joinpath("indices.yaml")),
         registry=_yaml(_REGISTRY),
+        hindi=_hindi(),
     )
+
+
+def _hindi() -> dict:
+    data = dict(_yaml(_REFERENCE.joinpath("hi.yaml")))
+    data.pop("_caveats", None)  # YAML anchors for shared caveats, already expanded
+    return data

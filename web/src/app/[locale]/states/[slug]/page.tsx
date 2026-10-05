@@ -405,7 +405,7 @@ function Leaders({
               <p className="text-sm text-muted">{l.title}</p>
               <p className="font-medium">{l.person}</p>
               <p className="text-sm text-muted">
-                {l.start} – {l.end ?? "present"}
+                {l.start} – {l.end ?? dict.ui.state.present}
                 {l.party ? ` · ${l.party}` : ""} ·{" "}
                 <a
                   href={l.sourceUrl}

@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
 import { getIndicators, getReleases } from "@/lib/data";
-import { fill } from "@/lib/present";
+import { fill, releaseSummary } from "@/lib/present";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
@@ -91,7 +91,7 @@ function Release({
       <p className="font-medium">
         {r.title} <span className="font-normal text-muted">· {r.source}</span>
       </p>
-      {r.summary && <p className="mt-1 text-sm">{r.summary}</p>}
+      {r.summary && <p className="mt-1 text-sm">{releaseSummary(r.summary, dict)}</p>}
       {shown.length > 0 && (
         <p className="mt-1 text-sm text-muted">
           {dict.ui.common.period}: {shown.join(", ")}

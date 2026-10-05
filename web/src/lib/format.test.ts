@@ -41,3 +41,16 @@ describe("formatPercent", () => {
     expect(formatPercent(54.44, 1)).toBe("54.4%");
   });
 });
+
+describe("releaseSummary", async () => {
+  const { releaseSummary } = await import("./present");
+  const hi = (await import("@/i18n/dictionaries/hi.json")).default;
+  const en = (await import("@/i18n/dictionaries/en.json")).default;
+  it("rebuilds the pipeline's English summary in the page language", () => {
+    expect(releaseSummary("110 new and 155 revised figures across 3 indicators", hi)).toBe(
+      "3 संकेतकों में 110 नए और 155 संशोधित आँकड़े",
+    );
+    expect(releaseSummary("30 new figures across 1 indicator", en)).toBe("30 new figures across 1 indicator");
+    expect(releaseSummary("something else", hi)).toBe("something else");
+  });
+});

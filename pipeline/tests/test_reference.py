@@ -76,3 +76,18 @@ def test_valid_ranges_contain_targets():
         if i.target is not None:
             assert i.valid_min is None or i.valid_min <= i.target, i.id
             assert i.valid_max is None or i.target <= i.valid_max, i.id
+
+
+def test_every_indicator_unit_and_index_has_hindi_text():
+    ref = load_reference()
+    hi = ref.hindi
+    assert {i.id for i in ref.indicators} - set(hi.indicators) == set()
+    assert {i.unit for i in ref.indicators} - set(hi.units) == set()
+    assert {x.id for x in ref.indices} - set(hi.indices) == set()
+    for i in ref.indicators:
+        assert bool(hi.indicators[i.id].caveat) == bool(i.caveat), f"{i.id}: caveat missing in one language"
+    for x in ref.indices:
+        assert bool(hi.indices[x.id].caveat) == bool(x.caveat), x.id
+    # The site formats percentages by the unit's first character, so Hindi units must keep it.
+    for unit, text in hi.units.items():
+        assert unit.startswith("%") == text.startswith("%"), unit
