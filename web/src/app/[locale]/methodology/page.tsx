@@ -34,6 +34,18 @@ export default async function MethodologyPage() {
         ))}
       </dl>
 
+      <h2 className="mt-12 text-2xl font-semibold">{dict.ui.methodology.changesTitle}</h2>
+      <ol className="mt-4 space-y-3">
+        {dict.ui.methodology.changes.map((c) => (
+          <li key={c.version} className="rounded-lg border border-border bg-surface px-4 py-3">
+            <p className="font-semibold">
+              v{c.version} <span className="font-normal text-muted">· {c.date}</span>
+            </p>
+            <p className="mt-1 text-sm text-muted">{c.body}</p>
+          </li>
+        ))}
+      </ol>
+
       <h2 className="mt-12 text-2xl font-semibold">{dict.ui.methodology.goalpostsTitle}</h2>
       {pillarIds.map((pillarId) => (
         <section key={pillarId} className="mt-6" aria-labelledby={`p-${pillarId}`}>

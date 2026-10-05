@@ -53,11 +53,11 @@ def test_lineage_dates_line_up_with_entity_validity():
         assert after.valid_from == row.event_date
 
 
-def test_composite_has_eight_pillars_with_four_to_six_indicators():
+def test_composite_has_eight_pillars_with_four_to_seven_indicators():
     per_pillar = Counter(i.pillar for i in REF.indicators if i.pillar)
     assert set(per_pillar) == {p.id for p in REF.pillars}
-    assert all(4 <= n <= 6 for n in per_pillar.values()), per_pillar
-    assert sum(per_pillar.values()) == 43  # v1: 42 + trial pendency (NCRB) in safety-justice
+    assert all(4 <= n <= 7 for n in per_pillar.values()), per_pillar
+    assert sum(per_pillar.values()) == 44  # v1.1: adds spousal violence (NFHS) to inclusion
 
 
 def test_unranked_categories_have_no_composite_indicators():

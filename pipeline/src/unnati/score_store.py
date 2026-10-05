@@ -54,13 +54,29 @@ def ensure_goalposts(
 ) -> dict[str, scoring.Goalpost]:
     """Stored goalposts for this version; any indicator without one gets it computed now."""
     version = scoring.METHODOLOGY_VERSION
+    conn.run("update methodology set is_current = false where version <> :v and is_current", v=version)
     conn.run(
         """insert into methodology (version, published_on, is_current, notes)
-           values (:v, :d, true, 'Unnati Index v1: fixed goalposts, 8 equal-weight pillars')
-           on conflict (version) do nothing""",
+           values (:v, :d, true, :notes)
+           on conflict (version) do update set is_current = true, notes = excluded.notes""",
         v=version,
         d=today,
+        notes=scoring.METHODOLOGY_NOTES.get(version),
     )
+    # Membership follows the reference data: drop indicators no longer used and re-point pillars.
+    conn.run(
+        """delete from methodology_indicator
+           where version = :v and not (indicator_id = any(cast(:ids as text[])))""",
+        v=version,
+        ids=list(spec),
+    )
+    for indicator_id, s in spec.items():
+        conn.run(
+            "update methodology_indicator set pillar_id = :p where version = :v and indicator_id = :i",
+            v=version,
+            i=indicator_id,
+            p=s.pillar,
+        )
     stored = {
         row[0]: scoring.Goalpost(row[1], row[2])
         for row in conn.run(
@@ -68,7 +84,20 @@ def ensure_goalposts(
             v=version,
         )
     }
-    fresh = scoring.goalposts(values, {k: s for k, s in spec.items() if k not in stored})
+    # Goalposts carry over from the latest earlier version, so a new version only moves what it changes.
+    inherited = {
+        row[0]: scoring.Goalpost(row[1], row[2])
+        for row in conn.run(
+            """select distinct on (indicator_id) indicator_id, goal_worst, goal_best
+               from methodology_indicator
+               where version <> :v and indicator_id = any(cast(:ids as text[]))
+               order by indicator_id, string_to_array(version, '.')::int[] desc""",
+            v=version,
+            ids=[k for k in spec if k not in stored],
+        )
+    }
+    computed = scoring.goalposts(values, {k: s for k, s in spec.items() if k not in stored and k not in inherited})
+    fresh = {**inherited, **computed}
     for indicator_id, post in fresh.items():
         conn.run(
             """insert into methodology_indicator

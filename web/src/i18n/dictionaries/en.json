@@ -191,7 +191,20 @@
       "goalpostsTitle": "Indicators and goalposts",
       "indicator": "Indicator",
       "score0": "Score 0 at",
-      "score100": "Score 100 at"
+      "score100": "Score 100 at",
+      "changesTitle": "Changes",
+      "changes": [
+        {
+          "version": "1.1",
+          "date": "5 October 2026",
+          "body": "The Inclusion pillar adds violence against women by their husbands, from the NFHS household survey, which counts violence that is never reported to the police. The Gender Equality and Social Progress indices use it instead of registered crimes against women, which are highest where reporting is easiest; the Safety Index keeps registered crime. All other goalposts are unchanged, so only this moves the scores: Andhra Pradesh moves from 8th to 9th among large states, and Assam falls from 50.0 to 49.3."
+        },
+        {
+          "version": "1.0",
+          "date": "4 October 2026",
+          "body": "First published version: fixed goalposts, eight equal-weight pillars."
+        }
+      ]
     },
     "sources": {
       "title": "Data sources",

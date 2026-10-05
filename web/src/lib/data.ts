@@ -16,7 +16,7 @@ function sql() {
 }
 
 export const COMPOSITE = "unnati-index";
-export const METHODOLOGY = "1.0";
+export const METHODOLOGY = "1.1";
 
 export type PeerGroup = "large_state" | "ne_himalayan_state" | "ut";
 

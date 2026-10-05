@@ -41,6 +41,7 @@ INDICATORS = {
     " or mother's recall (%)": "full-immunisation",
     "Children under 5 years who are stunted (height-for-age) (%)": "stunting-under5",
     "Women having a bank or savings account that they themselves use (%)": "women-bank-account",
+    "Ever-married women age 18-49 years who have ever experienced spousal violence (%)": "spousal-violence",
 }
 
 # Headers sometimes come out with stray spaces ("Maharashtra - Ke y Indicators").

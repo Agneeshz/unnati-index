@@ -28,12 +28,12 @@
     Three dimensions with equal weight: basic human needs (sanitation, electricity, clean
     cooking fuel, infant survival, child nutrition), foundations of well-being (secondary
     enrolment, internet access, life expectancy, groundwater stress), and opportunity (women's
-    bank accounts, child marriage, women's work, safety for women, higher education).
+    bank accounts, child marriage, women's work, freedom from violence by husbands, higher education).
   kind: mean
   components:
     Basic human needs: [improved-sanitation, households-with-electricity, clean-cooking-fuel, infant-mortality-rate, stunting-under5]
     Foundations of well-being: [ger-secondary, internet-subscribers-per-100, life-expectancy, groundwater-extraction-stage]
-    Opportunity: [women-bank-account, child-marriage, female-lfpr, crimes-against-women-rate, ger-higher-education]
+    Opportunity: [women-bank-account, child-marriage, female-lfpr, spousal-violence, ger-higher-education]
 
 - id: safety
   name: Safety Index
@@ -55,12 +55,12 @@
   method: >-
     Three dimensions with equal weight: economic (women's labour-force participation, women's
     own bank accounts), health and autonomy (anaemia among women, child marriage, sex ratio at
-    birth), and safety (crimes against women).
+    birth), and safety (violence by husbands, measured by NFHS rather than police records).
   kind: mean
   components:
     Economic: [female-lfpr, women-bank-account]
     Health and autonomy: [anaemia-women, child-marriage, sex-ratio-at-birth-nfhs]
-    Safety: [crimes-against-women-rate]
+    Safety: [spousal-violence]
 
 - id: child-wellbeing
   name: Child Well-being Index

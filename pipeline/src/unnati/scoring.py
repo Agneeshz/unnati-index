@@ -26,7 +26,15 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import date
 
-METHODOLOGY_VERSION = "1.0"
+METHODOLOGY_VERSION = "1.1"
+# Published changes, newest first. A new version inherits the previous version's goalposts for
+# every indicator it keeps, so only what changed moves the scores.
+METHODOLOGY_NOTES = {
+    "1.1": "Inclusion pillar adds violence against women by husbands (NFHS), a survey measure "
+    "unaffected by police reporting; the Gender Equality and Social Progress indices use it instead "
+    "of registered crimes against women.",
+    "1.0": "Unnati Index v1: fixed goalposts, 8 equal-weight pillars",
+}
 COMPOSITE_KEY = "unnati-index"
 GOALPOST_BASE = date(2015, 1, 1)
 COMMON_PERIOD_SHARE = 0.8

@@ -1060,6 +1060,20 @@
   target: 100
   valid_min: 0
   valid_max: 100
+- id: spousal-violence
+  name: Violence against women by their husbands
+  description: Share of ever-married women aged 18–49 who have ever experienced physical, sexual or emotional violence from their husband (NFHS).
+  unit: "% of ever-married women"
+  direction: lower_better
+  category: inclusion
+  pillar: inclusion
+  dataset: nfhs
+  frequency: irregular
+  decimals: 1
+  target: 0
+  caveat: A household survey asked privately, so it counts violence that is never reported to the police, unlike registered crimes against women. It covers violence by husbands only, and some women do not disclose even to an interviewer.
+  valid_min: 0
+  valid_max: 100
 - id: child-marriage
   name: Child marriage
   description: Share of women aged 20–24 who were married before age 18 (NFHS).

@@ -246,8 +246,12 @@ NFHS_INDICATORS = {
     "Women (age 15-49 years) having a bank or savings account that they themselves use (%)": (
         "women-bank-account"
     ),
+    "Ever-married women age 18-49 years who have ever experienced spousal violence (%)": "spousal-violence",
 }
-NFHS_SECTIONS = (1, 3, 9, 10, 12, 14, 19)
+NFHS_SECTIONS = (1, 3, 9, 10, 12, 14, 19, 20)
+# MoSPI's NFHS-4 rows under "ever experienced spousal violence" carry another item's figures
+# (they match NFHS-4's "women having a mobile phone": Kerala 81.2, Goa 80.9), so only NFHS-5 is used.
+NFHS_SKIP_ROUNDS = {"spousal-violence": {"nfhs-4"}}
 _FOOTNOTE = re.compile(r"(?<=[^\d\s])\d+(?:,\s*\d+)*(?=\s*\(%\)$)")
 
 
@@ -270,6 +274,8 @@ def nfhs_observations(rows: list[dict], resolver: EntityResolver) -> tuple[list[
         indicator_id = NFHS_INDICATORS.get(nfhs_label(row["sub_indicator"]))
         period = NFHS_ROUNDS.get(row.get("survey", "").lower())
         if not indicator_id or period is None or row.get("sector") != "Rural + Urban (Combined)":
+            continue
+        if row.get("survey", "").lower() in NFHS_SKIP_ROUNDS.get(indicator_id, set()):
             continue
         if row.get("value") in (None, "", "NA", "-", "*"):
             continue

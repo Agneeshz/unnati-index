@@ -1,7 +1,8 @@
-# Methodology (draft v1)
+# Methodology (v1.1)
 
-This describes how the Unnati Index will score and rank states. It is a draft: goalposts are set
-once enough data is loaded, and every change after publication is versioned and logged.
+This describes how the Unnati Index scores and ranks states. Every change is versioned: a new
+version keeps the previous goalposts for the indicators it doesn't change, recomputes all
+editions, and is logged under [Changes](#changes) below and on the site's methodology page.
 
 ## What gets ranked
 
@@ -13,18 +14,22 @@ once enough data is loaded, and every change after publication is versioned and 
 - Boundary changes (Andhra Pradesh/Telangana 2014, J&K/Ladakh 2019, DNH + DD 2020) create
   separate entities. Time series show a break rather than inventing continuity.
 
-## The composite: 8 pillars, 42 indicators
+## The composite: 8 pillars, 44 indicators
 
 | Pillar | Indicators |
 |---|---|
-| Economy & Jobs | real per-capita income, 3-year real GSDP growth, unemployment rate, merchandise exports per person, new formal jobs (EPFO) per 1,000 working-age people |
+| Economy & Jobs | real per-capita income, 3-year real GSDP growth, unemployment rate, workers in regular salaried jobs, merchandise exports per person |
 | Health | infant mortality, maternal mortality, life expectancy, child stunting, anaemia in women, full immunisation |
-| Education | secondary GER, secondary dropout, secondary pupil–teacher ratio, schools with internet, PARAKH Grade 6 maths, higher-education GER |
-| Safety & Justice | murder rate, road deaths per lakh, conviction rate, court cases pending over 5 years, police vacancy rate |
+| Education | secondary GER, secondary dropout, secondary pupil–teacher ratio, schools with computers, PARAKH learning outcomes (Grades 3, 6 and 9), higher-education GER |
+| Safety & Justice | murder rate, road deaths per lakh, conviction rate, criminal trials pending, police vacancy rate, court cases pending over 5 years (no data yet) |
 | Governance & Fiscal Health | fiscal deficit, debt, own tax revenue (all % of GSDP), capital expenditure share |
 | Infrastructure & Digital | rural tap water, per-capita electricity, clean cooking fuel, improved sanitation, internet subscribers per 100 |
 | Environment | annual PM2.5, forest cover change, renewable share of capacity, groundwater extraction stage, urban waste processed |
-| Inclusion & Equality | multidimensional poverty, sex ratio at birth, female labour force participation, women's bank-account use, child marriage, consumption inequality |
+| Inclusion & Equality | multidimensional poverty, sex ratio at birth, female labour force participation, women's bank-account use, child marriage, consumption inequality, violence against women by husbands (NFHS) |
+
+Each pillar has 4–7 indicators, each measuring something different, with equal weights. Variants
+of an indicator already used, close duplicates, and measures that mislead when ranked are shown on
+the site for context but kept out of the pillars.
 
 The full definitions, units, sources and caveats are in
 [`pipeline/src/unnati/reference/indicators.yaml`](../pipeline/src/unnati/reference/indicators.yaml).
@@ -32,6 +37,12 @@ The full definitions, units, sources and caveats are in
 **Why murder rate and not total crime?** Registered crime depends on how easily people can report
 it, so a higher rate can mean better reporting. Murder is the crime least affected by
 under-reporting. Other crime indicators are shown with that caveat but kept out of the composite.
+
+**Why spousal violence (NFHS) and not registered crimes against women?** Registered crimes against
+women are highest where reporting is easiest (Delhi, Telangana, Kerala) and lowest in states such
+as Nagaland and Manipur, so ranking on them would reward under-reporting. NFHS asks women
+privately, in the same way in every state, so it counts violence that never reaches the police.
+It covers violence by husbands only.
 
 ## Scoring
 
@@ -72,3 +83,13 @@ Every dataset declares its release cadence in the
 [registry](../pipeline/src/unnati/registry.yaml). The pipeline checks sources daily (air quality
 hourly), loads new releases automatically, keeps every revision, and flags a dataset when it is
 overdue by half its cadence or more. The site's sources page will show each dataset's status.
+
+## Changes
+
+- **1.1 (5 October 2026).** The Inclusion pillar adds violence against women by their husbands
+  (NFHS-5, moving to NFHS-6 once 80% of states have readable figures). The Gender Equality and
+  Social Progress indices use it instead of registered crimes against women; the Safety Index
+  keeps registered crime. Pillars may now have up to 7 indicators. All other goalposts are carried
+  over from 1.0, so only this change moves the scores: Andhra Pradesh moves from 8th to 9th among
+  large states, and Assam's score falls from 50.0 to 49.3.
+- **1.0 (4 October 2026).** First published version: fixed goalposts, 8 equal-weight pillars.
