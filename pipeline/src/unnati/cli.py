@@ -298,6 +298,15 @@ _REVALIDATE_TAGS = typer.Argument(None, help="Cache tags; default: everything da
 
 
 @app.command()
+def releases() -> None:
+    """Record release events (the site's updates feed) for loaded runs that have none."""
+    from unnati.db import connect
+    from unnati.runs import backfill_releases
+
+    typer.echo(f"release events added: {backfill_releases(connect())}")
+
+
+@app.command()
 def revalidate(tags: list[str] = _REVALIDATE_TAGS) -> None:
     """Ask the website to refresh cached pages (POST $SITE_URL/api/revalidate)."""
     import os

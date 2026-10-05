@@ -280,7 +280,12 @@ async function Comparison({
             <tbody>
               {scoreRow(dict.site.name, "composite", COMPOSITE, `/${locale}/rankings`)}
               {pillars.map((p) =>
-                scoreRow(dict.pillars[p.id as keyof Dictionary["pillars"]]?.name ?? p.name, "pillar", p.id),
+                scoreRow(
+                  dict.pillars[p.id as keyof Dictionary["pillars"]]?.name ?? p.name,
+                  "pillar",
+                  p.id,
+                  `/${locale}/pillars/${p.id}`,
+                ),
               )}
             </tbody>
           </table>

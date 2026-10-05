@@ -72,3 +72,58 @@ def mark_checked(conn: Connection, dataset_id: str, fingerprint: str, changed: b
         fingerprint=fingerprint,
         changed=changed,
     )
+
+
+def record_release(conn: Connection, run_id: int) -> int | None:
+    """Write the release event for a loaded run: which indicators and periods got new or revised
+    figures. Feeds the site's updates page and RSS. Runs that changed nothing get no event."""
+    stats = conn.run(
+        """select count(*),
+                  count(*) filter (where exists (
+                      select 1 from observation p
+                      where p.indicator_id = o.indicator_id and p.entity_id = o.entity_id
+                        and p.period_start = o.period_start and p.period_end = o.period_end
+                        and p.run_id < o.run_id)),
+                  array_agg(distinct o.indicator_id order by o.indicator_id)
+           from observation o where o.run_id = :run""",
+        run=run_id,
+    )[0]
+    total, revised, indicators = stats
+    if not total:
+        return None
+    periods = [
+        row[0]
+        for row in conn.run(
+            """select period_label from observation where run_id = :run
+               group by period_label order by max(period_end) desc limit 6""",
+            run=run_id,
+        )
+    ]
+    new = total - revised
+    parts = [f"{new:,} new" if new else "", f"{revised:,} revised" if revised else ""]
+    noun = "indicator" if len(indicators) == 1 else "indicators"
+    summary = f"{' and '.join(p for p in parts if p)} figures across {len(indicators)} {noun}"
+    return scalar(
+        conn,
+        """insert into release_event (dataset_id, run_id, happened_at, title, summary, indicators, periods)
+           select r.dataset_id, r.id, coalesce(r.finished_at, now()), d.title, :summary, :indicators, :periods
+           from ingestion_run r join dataset d on d.id = r.dataset_id
+           where r.id = :run
+             and not exists (select 1 from release_event e where e.run_id = r.id)
+           returning id""",
+        run=run_id,
+        summary=summary,
+        indicators=indicators,
+        periods=periods,
+    )
+
+
+def backfill_releases(conn: Connection) -> int:
+    """Release events for loaded runs from before events were recorded."""
+    runs = conn.run(
+        """select r.id from ingestion_run r
+           where r.status = 'loaded'
+             and not exists (select 1 from release_event e where e.run_id = r.id)
+           order by r.id"""
+    )
+    return sum(1 for (run_id,) in runs if record_release(conn, run_id) is not None)

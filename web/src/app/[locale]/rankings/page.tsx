@@ -79,7 +79,9 @@ export default async function RankingsPage() {
                     </th>
                     {pillars.map((p) => (
                       <th key={p.id} scope="col" className="px-2 py-2 text-right font-medium" title={p.name}>
-                        {dict.pillars[p.id as keyof typeof dict.pillars]?.name ?? p.name}
+                        <Link href={`/${locale}/pillars/${p.id}`} className="hover:underline">
+                          {dict.pillars[p.id as keyof typeof dict.pillars]?.name ?? p.name}
+                        </Link>
                       </th>
                     ))}
                   </tr>

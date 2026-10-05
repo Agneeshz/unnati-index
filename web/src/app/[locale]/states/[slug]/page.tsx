@@ -240,8 +240,13 @@ async function ReportCard({
                     className="border-b border-border last:border-0"
                   >
                     <th scope="row" className="px-3 py-2 text-left font-medium">
-                      {dict.pillars[p.id as keyof Dictionary["pillars"]]
-                        ?.name ?? p.name}
+                      <Link
+                        href={`/${locale}/pillars/${p.id}`}
+                        className="hover:underline"
+                      >
+                        {dict.pillars[p.id as keyof Dictionary["pillars"]]
+                          ?.name ?? p.name}
+                      </Link>
                     </th>
                     <td className="px-3 py-2">
                       {s?.score != null ? (

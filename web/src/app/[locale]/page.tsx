@@ -7,7 +7,7 @@ import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
 import {
   COMPOSITE,
   getCompositeHistory,
-  getDatasets,
+  getReleases,
   getLatestEdition,
   getPlaces,
   getScores,
@@ -32,11 +32,11 @@ export default async function HomePage() {
   const lang = await rootLocale();
   const locale: Locale = isLocale(lang) ? lang : "en";
   const edition = await getLatestEdition();
-  const [places, scores, history, datasets] = await Promise.all([
+  const [places, scores, history, releases] = await Promise.all([
     getPlaces(),
     edition != null ? getScores(edition, "composite") : Promise.resolve([]),
     getCompositeHistory(),
-    getDatasets(),
+    getReleases(60),
   ]);
   const name = (p: Place) => (locale === "hi" && p.nameHi ? p.nameHi : p.name);
   const placeBySlug = new Map(places.map((p) => [p.slug, p]));
@@ -173,7 +173,11 @@ export default async function HomePage() {
           {PILLARS.map((id, index) => (
             <li key={id} className="rounded-lg border border-border bg-surface p-4">
               <span className="text-sm font-medium text-accent">{index + 1}</span>
-              <h3 className="mt-1 font-semibold">{dict.pillars[id].name}</h3>
+              <h3 className="mt-1 font-semibold">
+                <Link href={`/${locale}/pillars/${id}`} className="hover:underline">
+                  {dict.pillars[id].name}
+                </Link>
+              </h3>
               <p className="mt-1 text-sm text-muted">{dict.pillars[id].description}</p>
             </li>
           ))}
@@ -185,21 +189,32 @@ export default async function HomePage() {
           {dict.ui.home.updatesTitle}
         </h2>
         <ul className="mt-4 divide-y divide-border rounded-lg border border-border bg-surface">
-          {datasets
-            .filter((d) => d.lastChanged)
+          {releases
+            // The latest release of each dataset, so daily feeds don't crowd out the rest.
+            .filter((r, i, all) => all.findIndex((x) => x.datasetId === r.datasetId) === i)
             .slice(0, 6)
-            .map((d) => (
-              <li key={d.id} className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-2 text-sm">
+            .map((r) => (
+              <li key={r.id} className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-2 text-sm">
                 <span>
-                  <span className="font-medium">{d.title}</span> <span className="text-muted">· {d.source}</span>
+                  <Link href={`/${locale}/updates#release-${r.id}`} className="font-medium hover:underline">
+                    {r.title}
+                  </Link>{" "}
+                  <span className="text-muted">
+                    · {r.periods[0] ?? r.source}
+                    {r.summary ? ` · ${r.summary}` : ""}
+                  </span>
                 </span>
-                <time dateTime={d.lastChanged!} className="text-muted">
-                  {d.lastChanged!.slice(0, 10)}
+                <time dateTime={r.happenedAt} className="text-muted">
+                  {r.happenedAt.slice(0, 10)}
                 </time>
               </li>
             ))}
         </ul>
         <p className="mt-3 text-sm">
+          <Link href={`/${locale}/updates`} className="underline underline-offset-2">
+            {dict.ui.updates.all}
+          </Link>{" "}
+          ·{" "}
           <Link href={`/${locale}/sources`} className="underline underline-offset-2">
             {dict.ui.nav.sources}
           </Link>

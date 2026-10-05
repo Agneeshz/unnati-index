@@ -293,3 +293,22 @@ def test_aishe_keeps_all_categories_both_sexes():
         ("india", "2021-22", 28.4),
         ("ladakh", "2018-19", 7.0),
     ]
+
+
+def test_release_events_count_new_and_revised_figures_once_per_run(db):
+    from unnati.runs import backfill_releases, record_release
+
+    seed(db, REF)
+    first = start_run(db, "mospi_nas_state")
+    obs.load(db, [o(100.0), o(200.0, slug="goa")], first)
+    second = start_run(db, "mospi_nas_state")
+    obs.load(db, [o(100.0), o(250.0, slug="goa"), o(90.0, year=2024)], second)
+    assert record_release(db, second) is not None
+    assert record_release(db, second) is None  # never twice for the same run
+    summary, periods, indicators = db.run(
+        "select summary, periods, indicators from release_event where run_id = :r", r=second
+    )[0]
+    assert summary == "1 new and 1 revised figures across 1 indicator"
+    assert periods == ["2024-25", "2023-24"] and indicators == ["per-capita-nsdp-constant"]
+    db.run("update ingestion_run set status = 'loaded'")
+    assert backfill_releases(db) == 1  # only the first run was missing

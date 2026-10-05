@@ -15,7 +15,7 @@ from pathlib import Path
 from unnati import observations as obs
 from unnati.db import Connection
 from unnati.reference import load_reference
-from unnati.runs import finish_run, last_fingerprint, mark_checked, start_run
+from unnati.runs import finish_run, last_fingerprint, mark_checked, record_release, start_run
 
 
 @dataclass
@@ -508,6 +508,7 @@ def run(
             source_url=report.fetched.source_url,
             validation=details,
         )
+        record_release(conn, run_id)
         report.status = "loaded"
         return report
     except Exception as err:

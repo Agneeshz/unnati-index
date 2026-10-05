@@ -338,3 +338,42 @@ export async function getDatasets(): Promise<DatasetStatus[]> {
     landingUrl: r.landing_url,
   }));
 }
+
+export type ReleaseEvent = {
+  id: number;
+  datasetId: string;
+  happenedAt: string;
+  title: string;
+  source: string;
+  summary: string | null;
+  indicators: string[];
+  periods: string[];
+  sourceUrl: string | null;
+};
+
+/** Data releases loaded by the pipeline, newest first (the updates page, RSS and home page). */
+export async function getReleases(limit = 100): Promise<ReleaseEvent[]> {
+  "use cache";
+  cacheTag("observations");
+  cacheLife("hours");
+  const rows = await sql()`
+    select e.id, e.dataset_id, e.happened_at, e.title, s.name as source, e.summary, e.indicators, e.periods,
+           r.source_url
+    from release_event e
+    join dataset d on d.id = e.dataset_id
+    join source s on s.id = d.source_id
+    left join ingestion_run r on r.id = e.run_id
+    order by e.happened_at desc
+    limit ${limit}`;
+  return rows.map((r) => ({
+    id: Number(r.id),
+    datasetId: r.dataset_id,
+    happenedAt: new Date(r.happened_at).toISOString(),
+    title: r.title,
+    source: r.source,
+    summary: r.summary,
+    indicators: r.indicators,
+    periods: r.periods,
+    sourceUrl: r.source_url,
+  }));
+}

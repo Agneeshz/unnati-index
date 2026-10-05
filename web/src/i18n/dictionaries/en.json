@@ -80,7 +80,8 @@
       "methodology": "Methodology",
       "sources": "Sources",
       "indices": "Indices",
-      "compare": "Compare"
+      "compare": "Compare",
+      "updates": "Updates"
     },
     "peerGroups": {
       "large_state": "Large states",
@@ -199,6 +200,18 @@
       "indicesTitle": "Other indices",
       "rank": "#{rank} of {total} in {group}",
       "compareThis": "Compare with other states"
+    },
+    "pillar": {
+      "eyebrow": "Pillar of the Unnati Index",
+      "method": "The pillar score is the average of these indicators' scores. Each indicator is scaled from 0 to 100 between fixed goalposts, so a score rises only when the state's own figure improves. A state needs data for at least 60% of the indicators to get a pillar score.",
+      "goalposts": "0 at {worst}, 100 at {best}"
+    },
+    "updates": {
+      "title": "Data updates",
+      "intro": "Every time the pipeline loads new or revised official figures, it is listed here: which source, which periods and which indicators. Revisions keep the earlier figures on record.",
+      "rss": "Subscribe (RSS)",
+      "more": "and {n} more",
+      "all": "All updates"
     }
   }
 }
