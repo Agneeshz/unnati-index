@@ -86,7 +86,10 @@ def fetch(http: PoliteClient, today: date, days: int = WINDOW_DAYS) -> dict[date
 
 
 def observations(bulletins: dict[date, bytes]) -> tuple[list[Observation], list[str]]:
+    from unnati.reference import city_names
+
     states = city_states()
+    cities = city_names("cpcb")
     out: list[Observation] = []
     problems: list[str] = []
     for when, pdf in sorted(bulletins.items()):
@@ -101,6 +104,11 @@ def observations(bulletins: dict[date, bytes]) -> tuple[list[Observation], list[
                 problems.append(f"CPCB bulletin: city {r.city!r} has no state in cpcb_cities.csv")
                 continue
             by_state.setdefault(slug, []).append(r)
+        for r in readings:
+            city = cities.get(normalize_name(r.city))
+            if city:
+                note = f"CPCB AQI bulletin: {r.category}; main pollutant {r.pollutant}; stations {r.stations}"
+                out.append(Observation("aqi-daily-mean", city, day(when), float(r.aqi), note=note))
         everyone = [r.aqi for r in readings]
         for slug, rows in [*by_state.items(), ("india", None)]:
             values = [r.aqi for r in rows] if rows else everyone

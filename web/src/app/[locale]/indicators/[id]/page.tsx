@@ -6,7 +6,15 @@ import { Suspense } from "react";
 import { IndiaMap } from "@/components/india-map";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
-import { getIndicatorObservations, getIndicators, getPlaces, type Observation } from "@/lib/data";
+import {
+  type City,
+  getCities,
+  getIndicatorObservations,
+  getIndicators,
+  getPlaces,
+  type Indicator,
+  type Observation,
+} from "@/lib/data";
 import { formatNumber } from "@/lib/format";
 import { fill, formatValue } from "@/lib/present";
 
@@ -34,10 +42,11 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
   const dict = await getDictionary();
   const lang = await rootLocale();
   const locale: Locale = isLocale(lang) ? lang : "en";
-  const [indicators, places, observations] = await Promise.all([
+  const [indicators, places, observations, cities] = await Promise.all([
     getIndicators(),
     getPlaces(),
     getIndicatorObservations(id),
+    getCities(),
   ]);
   const indicator = indicators.find((i) => i.id === id);
   if (!indicator) notFound();
@@ -157,6 +166,18 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
         </div>
       </section>
 
+      <CityTable
+        cities={cities}
+        latest={latest}
+        indicator={indicator}
+        locale={locale}
+        dict={dict}
+        stateName={(slug) => {
+          const s = placeBySlug.get(slug);
+          return s ? (locale === "hi" && s.nameHi ? s.nameHi : s.name) : "";
+        }}
+      />
+
       {national.length > 0 && (
         <section aria-labelledby="history" className="mt-10">
           <h2 id="history" className="text-xl font-semibold">
@@ -211,5 +232,56 @@ function ValueBar({
         </span>
       )}
     </span>
+  );
+}
+
+/** Metropolitan cities with a value for this indicator (not ranked against states). */
+function CityTable({
+  cities,
+  latest,
+  indicator,
+  locale,
+  dict,
+  stateName,
+}: {
+  cities: City[];
+  latest: Map<string, Observation>;
+  indicator: Indicator;
+  locale: Locale;
+  dict: Dictionary;
+  stateName: (slug: string) => string;
+}) {
+  const rows = cities
+    .filter((c) => latest.has(c.slug))
+    .map((c) => ({ city: c, o: latest.get(c.slug) as Observation }))
+    .sort((a, b) => (indicator.direction === "lower_better" ? a.o.value - b.o.value : b.o.value - a.o.value));
+  if (!rows.length) return null;
+  const max = Math.max(...rows.map((r) => Math.abs(r.o.value)));
+  return (
+    <section aria-labelledby="cities" className="mt-10">
+      <h2 id="cities" className="text-xl font-semibold">
+        {dict.ui.cities.citiesTitle}
+      </h2>
+      <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+        <table className="w-full min-w-[34rem] text-sm">
+          <tbody>
+            {rows.map(({ city, o }) => (
+              <tr key={city.slug} className="border-b border-border last:border-0">
+                <th scope="row" className="px-3 py-2 text-left font-medium">
+                  <Link href={`/${locale}/cities/${city.slug}`} className="hover:underline">
+                    {locale === "hi" && city.nameHi ? city.nameHi : city.name}
+                  </Link>
+                  <span className="block text-xs font-normal text-muted">{stateName(city.stateSlug)}</span>
+                </th>
+                <td className="px-3 py-2">
+                  <ValueBar o={o} max={max} indicator={indicator} locale={locale} dict={dict} />
+                </td>
+                <td className="px-3 py-2 text-muted">{o.label}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

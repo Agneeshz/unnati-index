@@ -49,6 +49,18 @@ export function releaseSummary(summary: string, dict: Dictionary): string {
   return m[3] === "1" ? fill(dict.ui.updates.summaryOne, { changes }) : fill(dict.ui.updates.summary, { changes, n: m[3] });
 }
 
+export type AqiCategory = keyof Dictionary["ui"]["aqi"];
+
+/** CPCB's National AQI categories. */
+export function aqiCategory(aqi: number): AqiCategory {
+  if (aqi <= 50) return "good";
+  if (aqi <= 100) return "satisfactory";
+  if (aqi <= 200) return "moderate";
+  if (aqi <= 300) return "poor";
+  if (aqi <= 400) return "veryPoor";
+  return "severe";
+}
+
 export function formatScore(score: number, locale: Locale): string {
   return formatNumber(score, 1, locale);
 }

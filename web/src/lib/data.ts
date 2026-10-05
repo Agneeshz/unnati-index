@@ -422,3 +422,32 @@ export async function getReleases(limit = 100): Promise<ReleaseEvent[]> {
     sourceUrl: r.source_url,
   }));
 }
+
+export type City = { slug: string; name: string; nameHi: string | null; stateSlug: string };
+
+/** Cities with their own data (phase 4 starts with NCRB's 19 metropolitan cities). */
+export async function getCities(): Promise<City[]> {
+  "use cache";
+  cacheTag("places");
+  cacheLife("max");
+  const rows = await sql()`
+    select c.slug, c.name, c.name_hi, s.slug as state_slug
+    from entity c join entity s on s.id = c.parent_id
+    where c.type = 'city' and c.valid_to is null
+    order by c.name`;
+  return rows.map((r) => ({ slug: r.slug, name: r.name, nameHi: r.name_hi, stateSlug: r.state_slug }));
+}
+
+/** Every city value for the given indicators (all periods), for the cities overview. */
+export async function getCityObservations(indicatorIds: string[]): Promise<Observation[]> {
+  "use cache";
+  cacheTag("observations");
+  cacheLife("hours");
+  const rows = await sql()`
+    select e.slug, o.indicator_id, o.period_start, o.period_end, o.period_label, o.value,
+           o.ci_low, o.ci_high, o.is_provisional, o.note
+    from latest_observation o join entity e on e.id = o.entity_id
+    where e.type = 'city' and o.indicator_id = any(${indicatorIds})
+    order by o.period_end`;
+  return rows.map(toObservation);
+}

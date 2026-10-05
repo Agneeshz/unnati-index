@@ -43,7 +43,7 @@ def load_values(conn: Connection, indicator_ids: list[str]) -> list[scoring.Valu
     rows = conn.run(
         """select o.indicator_id, e.slug, o.period_start, o.period_end, o.period_label, o.value
            from latest_observation o join entity e on e.id = o.entity_id
-           where o.indicator_id = any(cast(:ids as text[]))""",
+           where o.indicator_id = any(cast(:ids as text[])) and e.type <> 'city'""",
         ids=indicator_ids,
     )
     return [scoring.Value(*row) for row in rows]

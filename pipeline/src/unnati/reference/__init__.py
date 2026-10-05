@@ -272,6 +272,18 @@ def population() -> dict[tuple[str, int], Population]:
 
 
 @cache
+def city_names(source: Literal["ncrb", "cpcb"]) -> dict[str, str]:
+    """Normalised name a source uses for a city -> the city's slug (reference/cities.csv)."""
+    from unnati.core.entities import normalize_name
+
+    return {
+        normalize_name(row[f"{source}_name"]): row["slug"]
+        for row in _csv_rows("cities.csv")
+        if row[f"{source}_name"]
+    }
+
+
+@cache
 def state_area() -> dict[str, float]:
     """Geographical area in km² by entity slug: the sum of the land-cover classes in MoSPI's
     EnviStats (table 12, 2015-16), which matches the Census 2011 areas. Jammu & Kashmir and

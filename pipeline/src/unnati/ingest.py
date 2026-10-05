@@ -285,6 +285,8 @@ def _ncrb_cii(today: date) -> Fetched:
     for year, volumes in local.items():
         pdfs.setdefault(year, {}).update(volumes)
     observations, problems = ncrb.observations(pdfs, load_reference().resolver())
+    cities, city_problems = ncrb.city_observations(pdfs)
+    observations, problems = observations + cities, problems + city_problems
     latest = found[-1]
     url = latest.volumes.get(1, ncrb.CKAN_PACKAGE)
     return Fetched(observations, problems, _ncrb_fingerprint(found, local), url)
@@ -473,24 +475,40 @@ def check(dataset_id: str, today: date) -> IngestReport:
 
 
 def run(
-    conn: Connection, dataset_id: str, today: date, trigger: str = "manual", force: bool = False
+    connect: Callable[[], Connection],
+    dataset_id: str,
+    today: date,
+    trigger: str = "manual",
+    force: bool = False,
 ) -> IngestReport:
-    run_id = start_run(conn, dataset_id, trigger)
+    """Fetch, validate and load one dataset. The fetch can take minutes (large PDFs), longer than
+    an idle database connection survives, so no connection is held open while it runs."""
+    conn = connect()
     try:
+        run_id = start_run(conn, dataset_id, trigger)
         if dataset_id in PROBES and not force:
             probed = PROBES[dataset_id](today)
             if probed == last_fingerprint(conn, dataset_id):
                 mark_checked(conn, dataset_id, probed, changed=False)
                 finish_run(conn, run_id, "unchanged", fingerprint=probed)
                 return IngestReport(dataset_id, Fetched([], [], probed, ""), obs.Validation(), "unchanged")
+        previous = last_fingerprint(conn, dataset_id)
+    finally:
+        conn.close()
+    try:
         report = check(dataset_id, today)
+    except Exception as err:
+        _finish(connect, run_id, "failed", error=str(err))
+        raise
+    conn = connect()
+    try:
         details = {**report.validation.as_dict(), "problems": report.fetched.problems}
         if not report.validation.ok:
             report.status = "rejected"
             finish_run(conn, run_id, "rejected", validation=details, source_url=report.fetched.source_url)
             return report
         fingerprint = report.fetched.fingerprint
-        if fingerprint == last_fingerprint(conn, dataset_id) and not force:
+        if fingerprint == previous and not force:
             mark_checked(conn, dataset_id, fingerprint, changed=False)
             finish_run(
                 conn, run_id, "unchanged", fingerprint=fingerprint, source_url=report.fetched.source_url
@@ -512,5 +530,16 @@ def run(
         report.status = "loaded"
         return report
     except Exception as err:
-        finish_run(conn, run_id, "failed", error=str(err))
+        _finish(connect, run_id, "failed", error=str(err))
         raise
+    finally:
+        conn.close()
+
+
+def _finish(connect: Callable[[], Connection], run_id: int, status: str, **kwargs) -> None:
+    """Record a failure on a fresh connection (the old one may be the thing that failed)."""
+    conn = connect()
+    try:
+        finish_run(conn, run_id, status, **kwargs)
+    finally:
+        conn.close()

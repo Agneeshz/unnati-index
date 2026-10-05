@@ -237,11 +237,9 @@ def ingest(
     else:
         from unnati.db import connect
 
-        conn = connect(database_url)
-        try:
-            report = ingest_module.run(conn, dataset, today, trigger=trigger, force=force)
-        finally:
-            conn.close()
+        report = ingest_module.run(
+            lambda: connect(database_url), dataset, today, trigger=trigger, force=force
+        )
 
     per_indicator = Counter(o.indicator_id for o in report.fetched.observations)
     typer.echo(f"status: {report.status}")

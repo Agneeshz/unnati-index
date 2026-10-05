@@ -234,6 +234,93 @@ def observations(
     return out, problems
 
 
+# --- Metropolitan cities (Volume 1) ---------------------------------------------------------
+# Tables 1B.3 (total IPC/BNS + SLL crime), 2B.1 (murder) and 3B.1 (crime against women) list the
+# 19 cities over 2 million people: SL, city (its state in brackets on the next line), cases in
+# the last three years, population in lakh (Census 2011; women only for 3B.1), the latest
+# year's rate and charge-sheeting rate. Earlier years' rates use the same 2011 population.
+
+CITY_TABLES = {
+    "1B.3": ("crime-rate-total", "chargesheeting-rate"),
+    "2B.1": ("murder-rate", None),
+    "3B.1": ("crimes-against-women-rate", None),
+}
+CITY_NOTE = (
+    "rate on the city's 2011 Census population, as NCRB publishes it, so it overstates crime "
+    "where the city has grown since"
+)
+_CITY_ROW = re.compile(r"^(\d{1,2})\s+(.*)$")
+
+
+def city_rows(text: str) -> Iterable[tuple[str, list[str]]]:
+    """(city name, [cases y-2, y-1, y, population lakh, rate, charge-sheeting rate])."""
+    lines = [line.strip() for line in text.split("\n")]
+    for i, line in enumerate(lines):
+        match = _CITY_ROW.match(line)
+        if not match:
+            continue
+        name, values = _split(match.group(2))
+        if len(values) != 6:
+            continue
+        yield (name or (lines[i - 1] if i else "")).strip(), values
+
+
+def city_observations(pdfs: dict[int, dict[int, bytes]]) -> tuple[list[Observation], list[str]]:
+    from unnati.core.entities import normalize_name
+    from unnati.reference import city_names
+
+    slugs = city_names("ncrb")
+    by_key: dict[tuple[str, str, int], Observation] = {}
+    problems: list[str] = []
+    for year, volumes in sorted(pdfs.items()):
+        if 1 not in volumes:
+            continue
+        texts = table_text(volumes[1], CITY_TABLES)
+        for table_id, (indicator_id, chargesheet_id) in CITY_TABLES.items():
+            if table_id not in texts:
+                problems.append(f"{year} vol 1: city table {table_id} not found")
+                continue
+            seen = set()
+            for name, values in city_rows(texts[table_id]):
+                slug = slugs.get(normalize_name(name))
+                if slug is None:
+                    problems.append(f"{year} table {table_id}: unknown city {name!r}")
+                    continue
+                seen.add(slug)
+                cases, population = [number(v) for v in values[:3]], number(values[3])
+                note = f"Crime in India {year}, table {table_id}; {CITY_NOTE}"
+                rate = number(values[4])
+                if rate is not None:
+                    by_key[(indicator_id, slug, year)] = Observation(
+                        indicator_id, slug, calendar_year(year), rate, note=note
+                    )
+                # Earlier years from this edition fill gaps only; their own edition wins.
+                for back, count in zip((2, 1), cases[:2], strict=True):
+                    if count is not None and population:
+                        key = (indicator_id, slug, year - back)
+                        by_key.setdefault(
+                            key,
+                            Observation(
+                                indicator_id,
+                                slug,
+                                calendar_year(year - back),
+                                round(count / population, 1),  # population in lakh
+                                note=note,
+                            ),
+                        )
+                if chargesheet_id and number(values[5]) is not None:
+                    by_key[(chargesheet_id, slug, year)] = Observation(
+                        chargesheet_id,
+                        slug,
+                        calendar_year(year),
+                        number(values[5]),
+                        note=f"Crime in India {year}, table {table_id}",
+                    )
+            if len(seen) < len(set(slugs.values())):
+                problems.append(f"{year} table {table_id}: only {len(seen)} cities read")
+    return list(by_key.values()), problems
+
+
 # --- Accidental Deaths & Suicides in India (ADSI) ---------------------------------------------
 # Table 2.2, "Incidence and Rate of Suicides (State/UT-wise)", is published as its own PDF from
 # the 2023 edition on (2022 is only in the full report). Rows run SL, State/UT, suicides, share

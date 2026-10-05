@@ -81,7 +81,8 @@
       "sources": "Sources",
       "indices": "Indices",
       "compare": "Compare",
-      "updates": "Updates"
+      "updates": "Updates",
+      "cities": "Cities"
     },
     "peerGroups": {
       "large_state": "Large states",
@@ -268,6 +269,29 @@
       "indexNote": "Unnati Index score out of 100. Darker means a higher score.",
       "selectState": "Select a state for its report card.",
       "darkerValue": "Darker means a higher value."
+    },
+    "cities": {
+      "title": "Cities",
+      "intro": "India's 19 cities with more than 2 million people, as covered by NCRB's metropolitan-city tables. Air quality updates daily from CPCB's bulletin; crime figures come from Crime in India. More cities and topics (cleanliness, municipal finances, metro rail) will follow.",
+      "city": "City",
+      "state": "State / UT",
+      "aqiToday": "Air quality (latest day)",
+      "aqi30": "Air quality, 30-day average",
+      "crimeCaveat": "NCRB calculates city crime rates on each city's 2011 Census population, so rates are overstated for cities that have grown since. Registered crime also depends on how easily people can report it.",
+      "noAqi": "No CPCB monitoring station in the daily bulletin",
+      "eyebrow": "City report card",
+      "trendsTitle": "Over time",
+      "stateDashed": "{state} (dashed) for comparison",
+      "inState": "Cities in {state}",
+      "citiesTitle": "Metropolitan cities"
+    },
+    "aqi": {
+      "good": "Good",
+      "satisfactory": "Satisfactory",
+      "moderate": "Moderate",
+      "poor": "Poor",
+      "veryPoor": "Very poor",
+      "severe": "Severe"
     }
   }
 }

@@ -11,6 +11,7 @@ import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
 import {
   COMPOSITE,
   getIndicators,
+  getCities,
   getIndices,
   getLatestEdition,
   getOfficeHolders,
@@ -79,10 +80,12 @@ async function ReportCard({
       getPlaceObservations(slug),
       getIndices(),
     ]);
-  const [history, national] = await Promise.all([
+  const [history, national, allCities] = await Promise.all([
     getPlaceScoreHistory(slug),
     getPlaceObservations("india"),
+    getCities(),
   ]);
+  const cities = allCities.filter((c) => c.stateSlug === slug);
 
   const mine = scores.filter((s) => s.slug === slug);
   const composite = mine.find(
@@ -164,6 +167,22 @@ async function ReportCard({
           {dict.ui.compare.compareThis}
         </Link>
       </p>
+
+      {cities.length > 0 && (
+        <p className="mt-2 text-sm">
+          <span className="text-muted">
+            {fill(dict.ui.cities.inState, { state: placeName(place, locale) })}:
+          </span>{" "}
+          {cities.map((c, i) => (
+            <span key={c.slug}>
+              {i > 0 && ", "}
+              <Link href={`/${locale}/cities/${c.slug}`} className="underline underline-offset-2">
+                {locale === "hi" && c.nameHi ? c.nameHi : c.name}
+              </Link>
+            </span>
+          ))}
+        </p>
+      )}
 
       <section
         aria-label={dict.site.name}
