@@ -5,6 +5,7 @@ import { feature } from "topojson-client";
 import { presimplify, quantile, simplify } from "topojson-simplify";
 import type { Topology } from "topojson-specification";
 import topology from "../../public/geo/india-states.topo.json";
+import detailedTopology from "../geo/india-states-detailed.topo.json";
 
 export const MAP_WIDTH = 560;
 export const MAP_HEIGHT = 640;
@@ -34,10 +35,11 @@ type StateFeatures = FeatureCollection<Geometry, { slug: string; name: string }>
  */
 const featureCache = new Map<string, StateFeatures>();
 
-function stateFeatures(detail: "full" | "national" = "full"): StateFeatures {
+function stateFeatures(detail: "full" | "national" | "detailed" = "full"): StateFeatures {
   const cached = featureCache.get(detail);
   if (cached) return cached;
-  let topo = topology as unknown as Topology;
+  // "detailed" keeps 20% of the source's points (server-only, ~1 MB) for zoomed-in maps.
+  let topo = (detail === "detailed" ? detailedTopology : topology) as unknown as Topology;
   if (detail === "national") {
     const weighted = presimplify(JSON.parse(JSON.stringify(topo)) as Parameters<typeof presimplify>[0]);
     topo = simplify(weighted, quantile(weighted, 0.3)) as unknown as Topology;
@@ -89,58 +91,106 @@ export function classOf(value: number, cuts: number[]): number {
   return classes === 1 ? RAMP.length - 1 : Math.round((index * (RAMP.length - 1)) / (classes - 1));
 }
 
-export type StateView = {
+export type MapView = {
   width: number;
   height: number;
-  /** The state itself, then its surroundings (drawn faintly for context). */
-  shape: Shape;
+  /** The highlighted state (state maps only), and every other state reaching into the frame. */
+  shape: Shape | null;
   others: Shape[];
   project: (longitude: number, latitude: number) => [number, number];
 };
+/** @deprecated name kept for callers: a state map is a MapView with a highlighted shape. */
+export type StateView = MapView;
 
-const views = new Map<string, StateView>();
+const views = new Map<string, MapView>();
 
-/** One state fitted to the frame, with neighbouring states clipped around it. */
-export function stateView(slug: string, width = 560, height = 420): StateView | null {
-  const key = `${slug}:${width}x${height}`;
-  if (views.has(key)) return views.get(key) ?? null;
-  const full = stateFeatures();
-  const fullTarget = full.features.find((f) => f.properties.slug === slug);
-  if (!fullTarget) return null;
-  const pad = Math.round(Math.min(width, height) * 0.08);
+/** Outlines fitted to a frame and clipped to it, so off-frame geometry costs nothing. */
+function frameView(
+  fit: GeoJSON.Feature | GeoJSON.FeatureCollection,
+  width: number,
+  height: number,
+  highlight: string | null,
+  padShare = 0.08,
+): MapView {
+  const pad = Math.round(Math.min(width, height) * padShare);
   const projection = geoMercator().fitExtent(
     [
       [pad, pad],
       [width - pad, height - pad],
     ],
-    fullTarget,
+    fit,
   );
-  // Zoomed in past 3x the national map (small states), simplified outlines would show; otherwise
-  // they are indistinguishable and far lighter. The state and its neighbours use the same set,
-  // so shared borders line up.
+  // Detail follows zoom: simplified outlines for state-sized views, the national file past 3x, and
+  // the detailed file past 8x (city close-ups, crowded-area insets). Every shape in a frame uses the same set, so shared
+  // borders line up.
   indiaShapes();
   const zoom = projection.scale() / (indiaProjection as GeoProjection).scale();
-  const states = zoom > 3 ? full : stateFeatures("national");
-  const target = states.features.find((f) => f.properties.slug === slug) ?? fullTarget;
-  const path = geoPath(projection).digits(1);
+  const states = zoom > 8 ? stateFeatures("detailed") : zoom > 3 ? stateFeatures() : stateFeatures("national");
+  // Outlines are clipped to the frame; points use the same projection unclipped, so a city just
+  // outside the frame keeps its true position.
+  const clipped = geoMercator()
+    .scale(projection.scale())
+    .translate(projection.translate())
+    .clipExtent([
+      [-2, -2],
+      [width + 2, height + 2],
+    ]);
+  const path = geoPath(clipped).digits(1);
   const toShape = (f: (typeof states.features)[number]): Shape => {
     const [cx, cy] = path.centroid(f);
     return { slug: f.properties.slug, name: f.properties.name, d: path(f) ?? "", cx, cy, area: path.area(f) };
   };
-  const view: StateView = {
+  const shapes = states.features.map(toShape).filter((s) => s.d);
+  return {
     width,
     height,
-    shape: toShape(target),
-    // Only neighbours that reach into the frame (all 36 at full detail made a map ~380 KB).
-    others: states.features
-      .filter((f) => {
-        if (f === target) return false;
-        const [[x0, y0], [x1, y1]] = path.bounds(f);
-        return x1 >= 0 && y1 >= 0 && x0 <= width && y0 <= height;
-      })
-      .map(toShape),
+    shape: shapes.find((s) => s.slug === highlight) ?? null,
+    others: shapes.filter((s) => s.slug !== highlight),
     project: (longitude, latitude) => projection([longitude, latitude]) ?? [0, 0],
   };
+}
+
+/** One state fitted to the frame, with neighbouring states around it. */
+export function stateView(slug: string, width = 560, height = 420): MapView | null {
+  const key = `state:${slug}:${width}x${height}`;
+  if (views.has(key)) return views.get(key) ?? null;
+  const target = stateFeatures().features.find((f) => f.properties.slug === slug);
+  if (!target) return null;
+  const view = frameView(target, width, height, slug);
   views.set(key, view);
   return view;
+}
+
+export type Bounds = [[number, number], [number, number]]; // [[west, south], [east, north]]
+
+/** Any area (a crowded part of a state, the surroundings of a city) fitted to the frame. */
+export function regionView(bounds: Bounds, width = 300, height = 240, highlight: string | null = null): MapView {
+  const key = `region:${bounds.flat().map((n) => n.toFixed(3)).join(",")}:${width}x${height}:${highlight}`;
+  const cached = views.get(key);
+  if (cached) return cached;
+  const [[west, south], [east, north]] = bounds;
+  const box: GeoJSON.Feature = {
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "MultiPoint",
+      coordinates: [
+        [west, south],
+        [east, north],
+      ],
+    },
+  };
+  const view = frameView(box, width, height, highlight, 0.04);
+  views.set(key, view);
+  return view;
+}
+
+/** A square-ish box of about `km` kilometres around a point. */
+export function boundsAround(longitude: number, latitude: number, km: number): Bounds {
+  const dLat = km / 111;
+  const dLon = km / (111 * Math.cos((latitude * Math.PI) / 180));
+  return [
+    [longitude - dLon, latitude - dLat],
+    [longitude + dLon, latitude + dLat],
+  ];
 }

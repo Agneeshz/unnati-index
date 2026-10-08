@@ -287,11 +287,10 @@ async function ReportCard({
             <p className="mt-1 text-sm text-muted">{fill(dict.ui.cities.stateMapIntro, { n: cities.length })}</p>
             <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <CityMap
-                view={slug}
+                view={{ state: slug }}
                 points={cityPoints(cities, cityAir, locale)}
                 title={dict.ui.cities.mapTitle}
                 hrefFor={(c) => `/${locale}/cities/${c}`}
-                labels={8}
               />
               <ul className="flex flex-wrap content-start gap-2">
                 {cities.map((c) => (

@@ -1,4 +1,7 @@
-// Builds web/public/geo/india-states.topo.json: state/UT boundaries for the choropleth maps.
+// Builds the state/UT boundaries for the site's maps, from one source at two levels of detail:
+// web/public/geo/india-states.topo.json (2%, national maps) and
+// web/src/geo/india-states-detailed.topo.json (server-only, for zoomed state and city maps, which
+// clip it to the frame so pages only carry the detail they show).
 //
 // Source: DataMeet `States/Admin2` (CC BY 4.0), pinned to the commit that aligned the J&K and
 // Ladakh boundaries with the latest Survey of India map and reflects the January 2020 status
@@ -15,7 +18,10 @@ const PARTS = ['Admin2.shp', 'Admin2.shx', 'Admin2.dbf', 'Admin2.prj', 'Admin2.c
 
 const here = import.meta.dirname
 const cacheDir = path.join(here, 'build')
-const output = path.join(here, '..', 'web', 'public', 'geo', 'india-states.topo.json')
+const LEVELS = [
+  { percent: '2%', output: path.join(here, '..', 'web', 'public', 'geo', 'india-states.topo.json') },
+  { percent: '20%', output: path.join(here, '..', 'web', 'src', 'geo', 'india-states-detailed.topo.json') },
+]
 const entitiesCsv = path.join(here, '..', 'pipeline', 'src', 'unnati', 'reference', 'entities.csv')
 
 // Names used in the shapefile that differ from our entity names.
@@ -59,32 +65,34 @@ const inputs = Object.fromEntries(
 // 1. Repair topology, then simplify for the web (keeping every small UT and island group), and
 //    export as GeoJSON so shapes can be keyed by slug. `-clean` must run before `-simplify`:
 //    run after it, it rebuilds the full-detail geometry.
-const simplified = await mapshaper.applyCommands(
-  '-i Admin2.shp encoding=utf8 -clean -simplify 2% weighted keep-shapes -o states.json format=geojson precision=0.00001',
-  inputs,
-)
-const geojson = JSON.parse(simplified['states.json'])
+for (const level of LEVELS) {
+  const simplified = await mapshaper.applyCommands(
+    `-i Admin2.shp encoding=utf8 -clean -simplify ${level.percent} weighted keep-shapes -o states.json format=geojson precision=0.00001`,
+    inputs,
+  )
+  const geojson = JSON.parse(simplified['states.json'])
 
-const entities = await currentEntities()
-const known = new Map(entities.map((e) => [e.slug, e]))
-const seen = new Set()
-for (const feature of geojson.features) {
-  const sourceName = feature.properties.ST_NM
-  const slug = NAME_FIXES[sourceName] ?? slugify(sourceName)
-  if (!known.has(slug)) throw new Error(`shape "${sourceName}" does not match any current entity (${slug})`)
-  if (seen.has(slug)) throw new Error(`more than one shape for ${slug}`)
-  seen.add(slug)
-  feature.properties = { slug, name: known.get(slug).name }
+  const entities = await currentEntities()
+  const known = new Map(entities.map((e) => [e.slug, e]))
+  const seen = new Set()
+  for (const feature of geojson.features) {
+    const sourceName = feature.properties.ST_NM
+    const slug = NAME_FIXES[sourceName] ?? slugify(sourceName)
+    if (!known.has(slug)) throw new Error(`shape "${sourceName}" does not match any current entity (${slug})`)
+    if (seen.has(slug)) throw new Error(`more than one shape for ${slug}`)
+    seen.add(slug)
+    feature.properties = { slug, name: known.get(slug).name }
+  }
+  const missing = [...known.keys()].filter((slug) => !seen.has(slug))
+  if (missing.length) throw new Error(`no shape for: ${missing.join(', ')}`)
+
+  // 2. Convert to compact TopoJSON (shared borders stored once).
+  const topo = await mapshaper.applyCommands(
+    '-i states.json -rename-layers states -o india-states.topo.json format=topojson quantization=100000',
+    { 'states.json': JSON.stringify(geojson) },
+  )
+  await mkdir(path.dirname(level.output), { recursive: true })
+  await writeFile(level.output, topo['india-states.topo.json'])
+  const { size } = await stat(level.output)
+  console.log(`wrote ${path.relative(process.cwd(), level.output)}: ${seen.size} states/UTs, ${(size / 1024).toFixed(0)} KB`)
 }
-const missing = [...known.keys()].filter((slug) => !seen.has(slug))
-if (missing.length) throw new Error(`no shape for: ${missing.join(', ')}`)
-
-// 2. Convert to compact TopoJSON (shared borders stored once).
-const topo = await mapshaper.applyCommands(
-  '-i states.json -rename-layers states -o india-states.topo.json format=topojson quantization=100000',
-  { 'states.json': JSON.stringify(geojson) },
-)
-await mkdir(path.dirname(output), { recursive: true })
-await writeFile(output, topo['india-states.topo.json'])
-const { size } = await stat(output)
-console.log(`wrote ${path.relative(process.cwd(), output)}: ${seen.size} states/UTs, ${(size / 1024).toFixed(0)} KB`)

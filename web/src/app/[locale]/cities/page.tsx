@@ -79,11 +79,11 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <CityMap
-          view={state || "india"}
+          view={state ? { state } : "india"}
           points={cityPoints(shown, observations, locale)}
           title={state ? fill(dict.ui.cities.stateMapTitle, { state: stateName.get(state) ?? state }) : dict.ui.cities.mapTitle}
           hrefFor={(slug) => `/${locale}/cities/${slug}`}
-          labels={state ? 8 : 6}
+          maxLabels={state ? undefined : 30}
         />
         <div className="overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[36rem] text-sm">

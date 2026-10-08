@@ -1,10 +1,23 @@
 import { locale as rootLocale } from "next/root-params";
 import { MapTooltip } from "@/components/map-tooltip";
-import { getDictionary } from "@/i18n/dictionaries";
+import type { Locale } from "@/i18n/config";
+import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
+import { clusters, type Label, placeLabels } from "@/lib/city-layout";
 import { getPlaces } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
-import { indiaShapes, MAP_HEIGHT, MAP_WIDTH, projectIndia, RAMP, stateView } from "@/lib/map";
-import { type AqiCategory, aqiCategory } from "@/lib/present";
+import {
+  type Bounds,
+  boundsAround,
+  indiaShapes,
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  type MapView,
+  projectIndia,
+  RAMP,
+  regionView,
+  stateView,
+} from "@/lib/map";
+import { type AqiCategory, aqiCategory, fill } from "@/lib/present";
 
 export type CityPoint = {
   slug: string;
@@ -14,6 +27,9 @@ export type CityPoint = {
   population: number | null;
   aqi: number | null; // 30-day average
 };
+
+/** Where a map looks: all of India, one state, or the area around a city. */
+export type CityMapView = "india" | { state: string } | { around: string; km: number; state?: string };
 
 /** AQI categories on the site's sequential ramp; the two worst share the darkest step. */
 const AQI_FILL: Record<AqiCategory, string> = {
@@ -25,44 +41,17 @@ const AQI_FILL: Record<AqiCategory, string> = {
   severe: RAMP[4],
 };
 const LARGEST = 12_442_373; // Mumbai, Census 2011: the size scale is the same on every map
+const MAX_INSETS = 3;
+const INSET = { width: 560, height: 360 };
+const AROUND_KM = [45, 30, 20]; // a city close-up zooms in until every nearby city can be named
 
-/**
- * Cities as dots on India or on one state: size by population, fill by 30-day average air
- * quality, every dot a link with a hover label. Neighbouring states are drawn faintly so a
- * state map keeps its context. The same values are in the table beside it.
- */
-export async function CityMap({
-  view,
-  points,
-  title,
-  highlight,
-  hrefFor,
-  labels = 6,
-}: {
-  view: "india" | string;
-  points: CityPoint[];
-  title: string;
-  highlight?: string;
-  hrefFor: (slug: string) => string;
-  labels?: number;
-}) {
-  const [dict, lang, places] = await Promise.all([getDictionary(), rootLocale(), getPlaces()]);
-  const locale = lang === "hi" ? "hi" : "en";
-  const stateName = new Map(places.map((p) => [p.slug, locale === "hi" && p.nameHi ? p.nameHi : p.name]));
+type Dot = CityPoint & { x: number; y: number; r: number; category: AqiCategory | null; tip: string };
+type Frame = { view: MapView; dots: Dot[]; labels: Map<string, Label> };
 
-  const india = view === "india";
-  const frame = india ? null : stateView(view);
-  if (!india && !frame) return null;
-  const width = frame?.width ?? MAP_WIDTH;
-  const height = frame?.height ?? MAP_HEIGHT;
-  const project = frame ? frame.project : projectIndia;
-  const target = frame?.shape;
-  const others = frame ? frame.others : indiaShapes();
-  const scale = india ? 1 : 1.35;
-
-  const dots = points
+function dotsFor(view: MapView, points: CityPoint[], scale: number, dict: Dictionary, locale: Locale): Dot[] {
+  return points
     .map((p) => {
-      const [x, y] = project(p.longitude, p.latitude);
+      const [x, y] = view.project(p.longitude, p.latitude);
       const r = scale * (4 + 8 * Math.sqrt((p.population ?? 150_000) / LARGEST));
       const category = p.aqi != null ? aqiCategory(p.aqi) : null;
       const air = category
@@ -71,18 +60,103 @@ export async function CityMap({
       const people = p.population ? ` · ${formatNumber(p.population, 0, locale)} (2011)` : "";
       return { ...p, x, y, r, category, tip: `${p.name}${people} · ${air}` };
     })
-    .filter((d) => d.x >= -20 && d.x <= width + 20 && d.y >= -20 && d.y <= height + 20)
-    .sort((a, b) => (b.population ?? 0) - (a.population ?? 0)); // big first, so small dots stay on top
+    .filter((d) => d.x >= 0 && d.x <= view.width && d.y >= 0 && d.y <= view.height)
+    .sort((a, b) => (b.population ?? 0) - (a.population ?? 0));
+}
 
-  // Direct labels for the largest cities (and the highlighted one), skipping any that collide.
-  const placed: { x: number; y: number }[] = [];
-  const labelled = new Set<string>();
-  for (const d of [...dots.filter((d) => d.slug === highlight), ...dots]) {
-    if (labelled.size >= labels + (highlight ? 1 : 0) && d.slug !== highlight) break;
-    if (labelled.has(d.slug)) continue;
-    if (placed.some((p) => Math.abs(p.y - d.y) < 14 && Math.abs(p.x - d.x) < 70)) continue;
-    placed.push({ x: d.x, y: d.y });
-    labelled.add(d.slug);
+/** Highlighted city first, then by population: the order labels are given room. */
+function byPriority(dots: Dot[], highlight?: string): Dot[] {
+  return [...dots.filter((d) => d.slug === highlight), ...dots.filter((d) => d.slug !== highlight)];
+}
+
+/**
+ * Cities as dots: size by population, fill by 30-day average air quality (named in every hover
+ * label and in the legend), every dot a link. Every city whose label fits is named; where
+ * cities are too crowded to name, the busiest areas are repeated as enlarged insets with
+ * full-detail borders, outlined on the main map. The same values are in the table beside it.
+ */
+export async function CityMap({
+  view,
+  points,
+  title,
+  highlight,
+  hrefFor,
+  maxLabels,
+}: {
+  view: CityMapView;
+  points: CityPoint[];
+  title: string;
+  highlight?: string;
+  hrefFor: (slug: string) => string;
+  maxLabels?: number;
+}) {
+  const [dict, lang, places] = await Promise.all([getDictionary(), rootLocale(), getPlaces()]);
+  const locale: Locale = lang === "hi" ? "hi" : "en";
+  const stateName = new Map(places.map((p) => [p.slug, locale === "hi" && p.nameHi ? p.nameHi : p.name]));
+
+  let main: MapView | null;
+  if (view === "india") {
+    main = {
+      width: MAP_WIDTH,
+      height: MAP_HEIGHT,
+      shape: null,
+      others: indiaShapes(),
+      project: projectIndia,
+    };
+  } else if (!("around" in view)) {
+    main = stateView(view.state);
+  } else {
+    main = null;
+  }
+  const scale = view === "india" ? 1 : 1.35;
+  let frame: Frame | null = null;
+  if (typeof view === "object" && "around" in view) {
+    const centre = points.find((p) => p.slug === view.around);
+    if (!centre) return null;
+    for (const km of AROUND_KM.filter((k) => k <= view.km)) {
+      const candidate = regionView(boundsAround(centre.longitude, centre.latitude, km), 560, 420, view.state ?? null);
+      const cityDots = dotsFor(candidate, points, scale, dict, locale);
+      const named = placeLabels(byPriority(cityDots, highlight), candidate.width, candidate.height, maxLabels);
+      if (!frame || named.size > frame.labels.size || named.size === cityDots.length) {
+        frame = { view: candidate, dots: cityDots, labels: named };
+      }
+      if (named.size === cityDots.length) break;
+    }
+  } else if (main) {
+    const dots = dotsFor(main, points, scale, dict, locale);
+    frame = { view: main, dots, labels: placeLabels(byPriority(dots, highlight), main.width, main.height, maxLabels) };
+  }
+  if (!frame) return null;
+  main = frame.view;
+  const { dots, labels } = frame;
+
+  // Crowded areas: cities left unnamed that sit close together get an enlarged inset.
+  const insets: { frame: Frame; bounds: Bounds; title: string }[] = [];
+  if (typeof view === "object" && !("around" in view)) {
+    // Groups of nearby cities (named or not) with at least one city left unnamed.
+    const unnamed = (g: Dot[]) => g.filter((d) => !labels.has(d.slug)).length;
+    const crowded = clusters(dots, 40)
+      .filter((g) => g.length >= 2 && unnamed(g) > 0)
+      .sort((a, b) => unnamed(b) - unnamed(a))
+      .slice(0, MAX_INSETS);
+    for (const group of crowded) {
+      const lons = group.map((d) => d.longitude);
+      const lats = group.map((d) => d.latitude);
+      const padLon = Math.max(0.12, (Math.max(...lons) - Math.min(...lons)) * 0.35);
+      const padLat = Math.max(0.1, (Math.max(...lats) - Math.min(...lats)) * 0.35);
+      const bounds: Bounds = [
+        [Math.min(...lons) - padLon, Math.min(...lats) - padLat],
+        [Math.max(...lons) + padLon, Math.max(...lats) + padLat],
+      ];
+      const inset = regionView(bounds, INSET.width, INSET.height, view.state);
+      const insetDots = dotsFor(inset, points, 1, dict, locale);
+      const biggest = insetDots[0] ?? group[0];
+      insets.push({
+        frame: { view: inset, dots: insetDots, labels: placeLabels(byPriority(insetDots, highlight), inset.width, inset.height) },
+        bounds,
+        title: fill(dict.ui.cities.insetTitle, { n: insets.length + 1, city: biggest.name }),
+      });
+    }
   }
 
   const legend: { text: string; fill: string; dashed?: boolean }[] = [
@@ -94,63 +168,56 @@ export async function CityMap({
     { text: dict.ui.common.notAvailable, fill: "var(--surface)", dashed: true },
   ];
 
+  const boxes = insets.map((inset, i) => {
+    const [[west, south], [east, north]] = inset.bounds;
+    const [x0, y1] = main.project(west, south);
+    const [x1, y0] = main.project(east, north);
+    return { n: i + 1, x0, y0, x1, y1 };
+  });
+
   return (
     <figure className="rounded-lg border border-border bg-surface p-3">
       <figcaption className="mb-2 text-sm font-medium">{title}</figcaption>
       <MapTooltip>
-        <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} className="mx-auto h-auto w-full">
-          {others.map((s) => (
-            <path
-              key={s.slug}
-              d={s.d}
-              className={india ? "fill-bg stroke-border" : "fill-bg stroke-border opacity-60"}
-              strokeWidth={0.8}
-              data-tip={stateName.get(s.slug) ?? s.name}
-            />
-          ))}
-          {target && (
-            <path d={target.d} className="fill-accent-soft stroke-muted" strokeWidth={1.2}>
-              <title>{stateName.get(target.slug) ?? target.name}</title>
-            </path>
-          )}
-          {dots.map((d) => (
-            <a key={d.slug} href={hrefFor(d.slug)} aria-label={d.tip}>
-              {/* Surface halo keeps overlapping dots apart; an outline keeps the lightest step visible. */}
-              <circle cx={d.x} cy={d.y} r={d.r + 2} className="fill-surface" />
-              <circle
-                cx={d.x}
-                cy={d.y}
-                r={d.r}
-                fill={d.category ? AQI_FILL[d.category] : "var(--surface)"}
+        <FrameSvg frame={frame} label={title} highlight={highlight} hrefFor={hrefFor} stateName={stateName}>
+          {boxes.map((b) => (
+            <g key={`box-${b.n}`} pointerEvents="none">
+              <rect
+                x={b.x0}
+                y={b.y0}
+                width={b.x1 - b.x0}
+                height={b.y1 - b.y0}
+                rx={4}
+                fill="none"
                 className="stroke-fg"
-                strokeWidth={d.slug === highlight ? 2.5 : 0.75}
-                strokeDasharray={d.category ? undefined : "2 2"}
-                data-tip={d.tip}
-                tabIndex={0}
-              >
-                <title>{d.tip}</title>
-              </circle>
-            </a>
-          ))}
-          {dots
-            .filter((d) => labelled.has(d.slug))
-            .map((d) => (
-              <text
-                key={`l-${d.slug}`}
-                // Labels sit right of the dot, or left of it near the right edge.
-                x={d.x > width - 110 ? d.x - d.r - 4 : d.x + d.r + 4}
-                textAnchor={d.x > width - 110 ? "end" : "start"}
-                y={d.y + 4}
-                className={`fill-fg stroke-surface text-[12px] ${d.slug === highlight ? "font-bold" : "font-medium"}`}
-                strokeWidth={3}
-                paintOrder="stroke"
-                pointerEvents="none"
-              >
-                {d.name}
+                strokeWidth={1}
+                strokeDasharray="4 3"
+              />
+              <text x={b.x0 + 3} y={b.y0 - 4} className="fill-fg stroke-surface text-[11px] font-semibold" strokeWidth={3} paintOrder="stroke">
+                {b.n}
               </text>
-            ))}
-        </svg>
+            </g>
+          ))}
+        </FrameSvg>
       </MapTooltip>
+      {insets.length > 0 && (
+        <div className="mt-3 grid gap-3">
+          {insets.map((inset) => (
+            <div key={inset.title} className="rounded-md border border-border p-2">
+              <p className="mb-1 text-xs font-medium">{inset.title}</p>
+              <MapTooltip>
+                <FrameSvg
+                  frame={inset.frame}
+                  label={inset.title}
+                  highlight={highlight}
+                  hrefFor={hrefFor}
+                  stateName={stateName}
+                />
+              </MapTooltip>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="mt-2 space-y-1 text-xs text-muted">
         <ul className="flex flex-wrap gap-x-3 gap-y-1" aria-label={dict.ui.map.legend}>
           {legend.map((item) => (
@@ -170,8 +237,88 @@ export async function CityMap({
             </li>
           ))}
         </ul>
-        <p>{dict.ui.cities.mapNote}</p>
+        <p>
+          {dict.ui.cities.mapNote}
+          {insets.length > 0 ? ` ${dict.ui.cities.insetNote}` : ""}
+        </p>
+        <p>{dict.ui.map.disclaimer}</p>
       </div>
     </figure>
+  );
+}
+
+function FrameSvg({
+  frame,
+  label,
+  highlight,
+  hrefFor,
+  stateName,
+  children,
+}: {
+  frame: Frame;
+  label: string;
+  highlight?: string;
+  hrefFor: (slug: string) => string;
+  stateName: Map<string, string>;
+  children?: React.ReactNode;
+}) {
+  const { view, dots, labels } = frame;
+  const focused = view.shape != null;
+  return (
+    <svg viewBox={`0 0 ${view.width} ${view.height}`} role="img" aria-label={label} className="mx-auto h-auto w-full">
+      {view.others.map((s) => (
+        <path
+          key={s.slug}
+          d={s.d}
+          className={focused ? "fill-bg stroke-border opacity-60" : "fill-bg stroke-border"}
+          strokeWidth={0.8}
+          data-tip={stateName.get(s.slug) ?? s.name}
+        />
+      ))}
+      {view.shape && (
+        <path d={view.shape.d} className="fill-accent-soft stroke-muted" strokeWidth={1.2}>
+          <title>{stateName.get(view.shape.slug) ?? view.shape.name}</title>
+        </path>
+      )}
+      {dots.map((d) => (
+        <a key={d.slug} href={hrefFor(d.slug)} aria-label={d.tip}>
+          {/* Surface halo keeps overlapping dots apart; an outline keeps the lightest step visible. */}
+          <circle cx={d.x} cy={d.y} r={d.r + 2} className="fill-surface" />
+          <circle
+            cx={d.x}
+            cy={d.y}
+            r={d.r}
+            fill={d.category ? AQI_FILL[d.category] : "var(--surface)"}
+            className="stroke-fg"
+            strokeWidth={d.slug === highlight ? 2.5 : 0.75}
+            strokeDasharray={d.category ? undefined : "2 2"}
+            data-tip={d.tip}
+            tabIndex={0}
+          >
+            <title>{d.tip}</title>
+          </circle>
+        </a>
+      ))}
+      {dots
+        .filter((d) => labels.has(d.slug))
+        .map((d) => {
+          const l = labels.get(d.slug) as Label;
+          return (
+            <text
+              key={`l-${d.slug}`}
+              x={l.x}
+              y={l.y}
+              textAnchor={l.anchor}
+              className={`fill-fg stroke-surface text-[12px] ${d.slug === highlight ? "font-bold" : "font-medium"}`}
+              strokeWidth={3}
+              paintOrder="stroke"
+              pointerEvents="none"
+            >
+              {d.name}
+            </text>
+          );
+        })}
+      {children}
+    </svg>
   );
 }

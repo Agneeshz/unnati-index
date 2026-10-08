@@ -299,7 +299,10 @@
       "stateMapIntro": "{n} cities. Select one for its report card.",
       "noCities": "No city in {state} is in the roster yet (cities over 4 lakh people, plus capitals).",
       "whereTitle": "Where it is",
-      "pm25Note": "India's annual standard is 40 µg/m³; WHO's guideline is 5."
+      "pm25Note": "India's annual standard is 40 µg/m³; WHO's guideline is 5.",
+      "insetTitle": "{n} · Around {city} (enlarged)",
+      "insetNote": "Crowded areas are repeated below, enlarged.",
+      "aroundTitle": "Around {city}"
     },
     "aqi": {
       "good": "Good",

@@ -150,35 +150,43 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
         )}
       </section>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <section aria-labelledby="where">
-          <h2 id="where" className="sr-only">
-            {dict.ui.cities.whereTitle}
-          </h2>
+      <section aria-labelledby="where" className="mt-6">
+        <h2 id="where" className="sr-only">
+          {dict.ui.cities.whereTitle}
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Close-up with full-detail borders: neighbouring cities, whichever state they are in. */}
           <CityMap
-            view={city.stateSlug}
+            view={{ around: slug, km: 45, state: city.stateSlug }}
+            points={cityPoints(cities, cityAir, locale)}
+            title={fill(dict.ui.cities.aroundTitle, { city: cityName })}
+            highlight={slug}
+            hrefFor={(c) => `/${locale}/cities/${c}`}
+          />
+          <CityMap
+            view={{ state: city.stateSlug }}
             points={cityPoints(neighbours, cityAir, locale)}
             title={fill(dict.ui.cities.stateMapTitle, { state: stateName })}
             highlight={slug}
             hrefFor={(c) => `/${locale}/cities/${c}`}
-            labels={5}
           />
+        </div>
+      </section>
+
+      {pm25 && pm25Indicator && (
+        <section aria-labelledby="pm25" className="mt-6 rounded-lg border border-border bg-surface p-5">
+          <h2 id="pm25" className="text-sm text-muted">
+            <Link href={`/${locale}/indicators/pm25-annual`} className="hover:underline">
+              {pm25Indicator.name}
+            </Link>
+          </h2>
+          <p className="mt-2 text-4xl font-bold tabular-nums">
+            {formatNumber(pm25.value, 0, locale)} <span className="text-base font-normal text-muted">µg/m³</span>
+            <span className="ml-2 text-sm font-normal text-muted">{pm25.label}</span>
+          </p>
+          <p className="mt-2 text-sm">{dict.ui.cities.pm25Note}</p>
         </section>
-        {pm25 && pm25Indicator && (
-          <section aria-labelledby="pm25" className="rounded-lg border border-border bg-surface p-5">
-            <h2 id="pm25" className="text-sm text-muted">
-              <Link href={`/${locale}/indicators/pm25-annual`} className="hover:underline">
-                {pm25Indicator.name}
-              </Link>
-            </h2>
-            <p className="mt-2 text-4xl font-bold tabular-nums">
-              {formatNumber(pm25.value, 0, locale)} <span className="text-base font-normal text-muted">µg/m³</span>
-            </p>
-            <p className="mt-1 text-sm text-muted">{pm25.label}</p>
-            <p className="mt-3 text-sm">{dict.ui.cities.pm25Note}</p>
-          </section>
-        )}
-      </div>
+      )}
 
       {crimeCharts.length > 0 && (
         <section aria-labelledby="crime" className="mt-10">
