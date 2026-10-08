@@ -2,7 +2,7 @@ import { locale as rootLocale } from "next/root-params";
 import { MapTooltip } from "@/components/map-tooltip";
 import type { Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
-import { clusters, type Label, placeLabels } from "@/lib/city-layout";
+import { type Box, clusters, type Label, placeLabels } from "@/lib/city-layout";
 import { getPlaces } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
 import {
@@ -128,7 +128,8 @@ export async function CityMap({
   }
   if (!frame) return null;
   main = frame.view;
-  const { dots, labels } = frame;
+  const { dots } = frame;
+  let labels = frame.labels;
 
   // Crowded areas: cities left unnamed that sit close together get an enlarged inset.
   const insets: { frame: Frame; bounds: Bounds; title: string }[] = [];
@@ -174,6 +175,31 @@ export async function CityMap({
     const [x1, y0] = main.project(east, north);
     return { n: i + 1, x0, y0, x1, y1 };
   });
+  if (boxes.length) {
+    // Relabel the main map around the inset outlines: cities inside an outlined area are named in
+    // its inset (only the largest keeps a label here, to orient the reader), and no other label
+    // may cross an outline or its number.
+    const inside = (d: Dot, b: Box) => d.x >= b.x0 && d.x <= b.x1 && d.y >= b.y0 && d.y <= b.y1;
+    const badges: Box[] = boxes.map((b) => ({ x0: b.x0 - 1, y0: b.y0 - 15, x1: b.x0 + 14, y1: b.y0 + 1 }));
+    const anchors = boxes.map((b) => dots.find((d) => inside(d, b))).filter((d): d is Dot => Boolean(d));
+    // The outlines' edges, as thin strips: a label may sit beside an outlined area, not across it.
+    const edges: Box[] = boxes.flatMap((b) => [
+      { x0: b.x0 - 1, y0: b.y0 - 1, x1: b.x1 + 1, y1: b.y0 + 1 },
+      { x0: b.x0 - 1, y0: b.y1 - 1, x1: b.x1 + 1, y1: b.y1 + 1 },
+      { x0: b.x0 - 1, y0: b.y0 - 1, x1: b.x0 + 1, y1: b.y1 + 1 },
+      { x0: b.x1 - 1, y0: b.y0 - 1, x1: b.x1 + 1, y1: b.y1 + 1 },
+    ]);
+    const first = placeLabels(anchors, main.width, main.height, undefined, [...badges, ...edges]);
+    const rest = byPriority(dots, highlight).filter((d) => !boxes.some((b) => inside(d, b)));
+    const second = placeLabels(rest, main.width, main.height, maxLabels, [
+      ...badges,
+      ...boxes,
+      ...[...first.values()].map((l) => l.box),
+      ...anchors.map((d) => ({ x0: d.x - d.r, y0: d.y - d.r, x1: d.x + d.r, y1: d.y + d.r })),
+    ]);
+    labels = new Map([...first, ...second]);
+    frame.labels = labels;
+  }
 
   return (
     <figure className="rounded-lg border border-border bg-surface p-3">
@@ -241,7 +267,7 @@ export async function CityMap({
           {dict.ui.cities.mapNote}
           {insets.length > 0 ? ` ${dict.ui.cities.insetNote}` : ""}
         </p>
-        <p>{dict.ui.map.disclaimer}</p>
+        <p>{dict.ui.map.boundaryNote}</p>
       </div>
     </figure>
   );

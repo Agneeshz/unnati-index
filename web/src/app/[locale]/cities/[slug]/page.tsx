@@ -154,7 +154,7 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
         <h2 id="where" className="sr-only">
           {dict.ui.cities.whereTitle}
         </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid items-start gap-4 md:grid-cols-2">
           {/* Close-up with full-detail borders: neighbouring cities, whichever state they are in. */}
           <CityMap
             view={{ around: slug, km: 45, state: city.stateSlug }}

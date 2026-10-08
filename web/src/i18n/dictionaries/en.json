@@ -268,7 +268,8 @@
       "legend": "Legend",
       "indexNote": "Unnati Index score out of 100. Darker means a higher score.",
       "selectState": "Select a state for its report card.",
-      "darkerValue": "Darker means a higher value."
+      "darkerValue": "Darker means a higher value.",
+      "boundaryNote": "Boundaries as per Survey of India; not an authenticated map."
     },
     "cities": {
       "title": "Cities",

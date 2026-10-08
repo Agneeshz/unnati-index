@@ -1,8 +1,8 @@
 /** Label placement and crowding detection for city maps (pure geometry, no rendering). */
 
 export type LayoutDot = { slug: string; name: string; x: number; y: number; r: number };
-export type Label = { x: number; y: number; anchor: "start" | "middle" | "end" };
-type Box = { x0: number; y0: number; x1: number; y1: number };
+export type Box = { x0: number; y0: number; x1: number; y1: number };
+export type Label = { x: number; y: number; anchor: "start" | "middle" | "end"; box: Box };
 
 const FONT_PX = 12;
 
@@ -17,22 +17,23 @@ const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 &
 /**
  * Labels for as many dots as fit, in priority order (the order given): each tries right, left,
  * above and below its dot, then the diagonals, and is placed only where it stays inside the frame
- * and clear of every other label and dot.
+ * and clear of every other label, dot and obstacle (such as an inset's outline on the map).
  */
 export function placeLabels(
   dots: LayoutDot[],
   width: number,
   height: number,
   max = Number.POSITIVE_INFINITY,
+  obstacles: Box[] = [],
 ): Map<string, Label> {
   const placed = new Map<string, Label>();
-  const taken: Box[] = [];
+  const taken: Box[] = [...obstacles];
   const dotBox = (d: LayoutDot): Box => ({ x0: d.x - d.r, y0: d.y - d.r, x1: d.x + d.r, y1: d.y + d.r });
   for (const d of dots) {
     if (placed.size >= max) break;
     const w = labelWidth(d.name);
     const gap = 4;
-    const candidates: (Label & { box: Box })[] = [
+    const candidates: Label[] = [
       { x: d.x + d.r + gap, y: d.y + 4, anchor: "start", box: { x0: d.x + d.r + gap - 1, y0: d.y - 9, x1: d.x + d.r + gap + w, y1: d.y + 5 } },
       { x: d.x - d.r - gap, y: d.y + 4, anchor: "end", box: { x0: d.x - d.r - gap - w, y0: d.y - 9, x1: d.x - d.r - gap + 1, y1: d.y + 5 } },
       { x: d.x, y: d.y - d.r - 5, anchor: "middle", box: { x0: d.x - w / 2, y0: d.y - d.r - 18, x1: d.x + w / 2, y1: d.y - d.r - 2 } },
@@ -53,7 +54,7 @@ export function placeLabels(
         !dots.some((o) => o !== d && overlaps(dotBox(o), c.box)),
     );
     if (fits) {
-      placed.set(d.slug, { x: fits.x, y: fits.y, anchor: fits.anchor });
+      placed.set(d.slug, fits);
       taken.push(fits.box);
     }
   }

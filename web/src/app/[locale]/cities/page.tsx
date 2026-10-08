@@ -77,14 +77,16 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
         <span className="pb-1.5 text-muted">{fill(dict.ui.cities.shown, { n: shown.length, total: cities.length })}</span>
       </form>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <CityMap
-          view={state ? { state } : "india"}
-          points={cityPoints(shown, observations, locale)}
-          title={state ? fill(dict.ui.cities.stateMapTitle, { state: stateName.get(state) ?? state }) : dict.ui.cities.mapTitle}
-          hrefFor={(slug) => `/${locale}/cities/${slug}`}
-          maxLabels={state ? undefined : 30}
-        />
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="lg:sticky lg:top-4">
+          <CityMap
+            view={state ? { state } : "india"}
+            points={cityPoints(shown, observations, locale)}
+            title={state ? fill(dict.ui.cities.stateMapTitle, { state: stateName.get(state) ?? state }) : dict.ui.cities.mapTitle}
+            hrefFor={(slug) => `/${locale}/cities/${slug}`}
+            maxLabels={state ? undefined : 30}
+          />
+        </div>
         <div className="overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[36rem] text-sm">
             <thead className="border-b border-border text-left text-muted">
