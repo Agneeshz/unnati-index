@@ -156,10 +156,11 @@ def resolve_titles(http: PoliteClient, titles: list[str]) -> dict[str, str]:
     """Wikipedia title -> the article it redirects to (or itself)."""
     out = {t: t for t in titles}
     for chunk in (titles[i : i + 50] for i in range(0, len(titles), 50)):
-        query = http.get(
+        response = http.get(
             "https://en.wikipedia.org/w/api.php",
             params={"action": "query", "titles": "|".join(chunk), "redirects": 1, "format": "json"},
-        ).json().get("query", {})
+        )
+        query = response.json().get("query", {})
         steps = {s["from"]: s["to"] for s in query.get("normalized", []) + query.get("redirects", [])}
         for title in chunk:
             target = title
