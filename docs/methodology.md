@@ -67,6 +67,19 @@ It covers violence by husbands only.
 
 Readers can re-weight pillars on the rankings page; the published index uses equal weights.
 
+## Cities
+
+The city roster (`pipeline/src/unnati/reference/cities.csv`, rebuilt with `unnati cities build`)
+is every city with more than 4 lakh people in the 2011 Census, plus each state and UT capital, so
+every state map has at least one city: 124 cities. City populations, states and coordinates come
+from the Census figures as listed on Wikipedia; Hindi names from Wikidata. Places that have since
+merged into another city (Ambattur, Rajarhat-Gopalpur) are left out.
+
+City data so far: daily air quality (CPCB bulletin), annual PM2.5 (CPCB monitoring, via
+EnviStats) and, for NCRB's 19 metropolitan cities, crime rates. NCRB computes city rates on 2011
+Census populations, which overstates crime in cities that have grown since. Cities are not yet
+ranked or scored, and their values never affect state scores.
+
 ## Leadership and accountability
 
 Each state shows its office-holders: Governor or Lieutenant Governor, Chief Minister, Deputy Chief

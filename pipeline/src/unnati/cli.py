@@ -16,6 +16,8 @@ manual_app = typer.Typer(help="Sources that need a manual download.", no_args_is
 app.add_typer(manual_app, name="manual")
 population_app = typer.Typer(help="Population denominators.", no_args_is_help=True)
 app.add_typer(population_app, name="population")
+cities_app = typer.Typer(help="The city roster (reference/cities.csv).", no_args_is_help=True)
+app.add_typer(cities_app, name="cities")
 
 
 @app.command()
@@ -216,6 +218,33 @@ def population_build(
         writer.writeheader()
         writer.writerows(rows)
     typer.echo(f"wrote {len(rows)} rows to {out}")
+
+
+@cities_app.command("build")
+def cities_build() -> None:
+    """Rebuild reference/cities.csv: Census 2011 cities over 4 lakh plus capitals, with
+    coordinates and Hindi names. Review the diff before committing."""
+    import csv
+    from importlib.resources import files
+
+    from unnati.connectors import cities
+    from unnati.core.entities import normalize_name
+    from unnati.core.http import PoliteClient
+
+    ref = load_reference()
+    path = files("unnati.reference").joinpath("cities.csv")
+    with path.open(encoding="utf-8", newline="") as fh:
+        existing = list(csv.DictReader(fh))
+    with files("unnati.reference").joinpath("cpcb_cities.csv").open(encoding="utf-8", newline="") as fh:
+        cpcb = {normalize_name(r["city"]): r["state_slug"] for r in csv.DictReader(fh)}
+    taken = {e.slug for e in ref.entities if e.type != "city"}
+    with PoliteClient(timeout=120) as http:
+        rows, problems = cities.build(http, ref.resolver(), taken, existing, cpcb)
+    with open(str(path), "w", encoding="utf-8", newline="") as fh:
+        fh.write(cities.to_csv(rows))
+    typer.echo(f"cities: {len(rows)} ({sum(1 for r in rows if r.cpcb_name)} in the CPCB bulletin)")
+    for line in problems:
+        typer.echo(f"problem: {line}")
 
 
 @app.command()

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
 import { BandLabel, RankChange, ScoreBar } from "@/components/score";
+import { CityMap } from "@/components/city-map";
+import { cityName, cityPoints } from "@/lib/cities";
 import { compareHref, neighbours } from "@/lib/compare";
 import { TrendChart } from "@/components/trend-chart";
 import { isLocale, type Locale } from "@/i18n/config";
@@ -12,6 +14,7 @@ import {
   COMPOSITE,
   getIndicators,
   getCities,
+  getCityObservations,
   getIndices,
   getLatestEdition,
   getOfficeHolders,
@@ -80,10 +83,11 @@ async function ReportCard({
       getPlaceObservations(slug),
       getIndices(),
     ]);
-  const [history, national, allCities] = await Promise.all([
+  const [history, national, allCities, cityAir] = await Promise.all([
     getPlaceScoreHistory(slug),
     getPlaceObservations("india"),
     getCities(),
+    getCityObservations(["aqi-daily-mean"]),
   ]);
   const cities = allCities.filter((c) => c.stateSlug === slug);
 
@@ -167,22 +171,6 @@ async function ReportCard({
           {dict.ui.compare.compareThis}
         </Link>
       </p>
-
-      {cities.length > 0 && (
-        <p className="mt-2 text-sm">
-          <span className="text-muted">
-            {fill(dict.ui.cities.inState, { state: placeName(place, locale) })}:
-          </span>{" "}
-          {cities.map((c, i) => (
-            <span key={c.slug}>
-              {i > 0 && ", "}
-              <Link href={`/${locale}/cities/${c.slug}`} className="underline underline-offset-2">
-                {locale === "hi" && c.nameHi ? c.nameHi : c.name}
-              </Link>
-            </span>
-          ))}
-        </p>
-      )}
 
       <section
         aria-label={dict.site.name}
@@ -288,6 +276,40 @@ async function ReportCard({
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section aria-labelledby="cities" className="mt-10">
+        <h2 id="cities" className="text-xl font-semibold">
+          {fill(dict.ui.cities.stateMapTitle, { state: placeName(place, locale) })}
+        </h2>
+        {cities.length ? (
+          <>
+            <p className="mt-1 text-sm text-muted">{fill(dict.ui.cities.stateMapIntro, { n: cities.length })}</p>
+            <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <CityMap
+                view={slug}
+                points={cityPoints(cities, cityAir, locale)}
+                title={dict.ui.cities.mapTitle}
+                hrefFor={(c) => `/${locale}/cities/${c}`}
+                labels={8}
+              />
+              <ul className="flex flex-wrap content-start gap-2">
+                {cities.map((c) => (
+                  <li key={c.slug}>
+                    <Link
+                      href={`/${locale}/cities/${c.slug}`}
+                      className="block rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-accent-soft"
+                    >
+                      {cityName(c, locale)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-muted">{fill(dict.ui.cities.noCities, { state: placeName(place, locale) })}</p>
+        )}
       </section>
 
       <Trends

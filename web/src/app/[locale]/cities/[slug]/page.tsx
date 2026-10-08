@@ -6,13 +6,15 @@ import { Suspense } from "react";
 import { TrendChart } from "@/components/trend-chart";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { aqiSummary, CITY_CRIME } from "@/lib/cities";
-import { getCities, getIndicators, getPlaceObservations, getPlaces } from "@/lib/data";
+import { CityMap } from "@/components/city-map";
+import { aqiSummary, CITY_CRIME, cityPoints, latestFor } from "@/lib/cities";
+import { getCities, getCityObservations, getIndicators, getPlaceObservations, getPlaces } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
 import { aqiCategory, fill, formatValue } from "@/lib/present";
 
+// Million-plus cities are prerendered; the rest render on first visit and are cached after that.
 export async function generateStaticParams() {
-  return (await getCities()).map((c) => ({ slug: c.slug }));
+  return (await getCities()).filter((c) => c.millionPlus).map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/cities/[slug]">): Promise<Metadata> {
@@ -41,9 +43,16 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
   const locale: Locale = isLocale(lang) ? lang : "en";
   const city = cities.find((c) => c.slug === slug);
   if (!city) notFound();
-  const state = places.find((p) => p.slug === city.stateSlug);
-  const [own, stateObs] = await Promise.all([getPlaceObservations(slug), getPlaceObservations(city.stateSlug)]);
   const byId = new Map(indicators.map((i) => [i.id, i]));
+  const state = places.find((p) => p.slug === city.stateSlug);
+  const [own, stateObs, cityAir] = await Promise.all([
+    getPlaceObservations(slug),
+    getPlaceObservations(city.stateSlug),
+    getCityObservations(["aqi-daily-mean"]),
+  ]);
+  const neighbours = cities.filter((c) => c.stateSlug === city.stateSlug);
+  const pm25 = latestFor(own, slug, "pm25-annual");
+  const pm25Indicator = byId.get("pm25-annual");
   const cityName = locale === "hi" && city.nameHi ? city.nameHi : city.name;
   const stateName = state ? (locale === "hi" && state.nameHi ? state.nameHi : state.name) : "";
   const aqi = aqiSummary(own, slug);
@@ -96,7 +105,10 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
         )}
       </p>
       <h1 className="mt-1 text-3xl font-bold tracking-tight">{cityName}</h1>
-      <p className="text-muted">{dict.ui.cities.eyebrow}</p>
+      <p className="text-muted">
+        {dict.ui.cities.eyebrow}
+        {city.population ? ` · ${dict.ui.cities.population}: ${formatNumber(city.population, 0, locale)}` : ""}
+      </p>
 
       <section aria-labelledby="air" className="mt-6 rounded-lg border border-border bg-surface p-5">
         <h2 id="air" className="text-sm text-muted">
@@ -137,6 +149,36 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
           <p className="mt-2 text-muted">{dict.ui.cities.noAqi}</p>
         )}
       </section>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <section aria-labelledby="where">
+          <h2 id="where" className="sr-only">
+            {dict.ui.cities.whereTitle}
+          </h2>
+          <CityMap
+            view={city.stateSlug}
+            points={cityPoints(neighbours, cityAir, locale)}
+            title={fill(dict.ui.cities.stateMapTitle, { state: stateName })}
+            highlight={slug}
+            hrefFor={(c) => `/${locale}/cities/${c}`}
+            labels={5}
+          />
+        </section>
+        {pm25 && pm25Indicator && (
+          <section aria-labelledby="pm25" className="rounded-lg border border-border bg-surface p-5">
+            <h2 id="pm25" className="text-sm text-muted">
+              <Link href={`/${locale}/indicators/pm25-annual`} className="hover:underline">
+                {pm25Indicator.name}
+              </Link>
+            </h2>
+            <p className="mt-2 text-4xl font-bold tabular-nums">
+              {formatNumber(pm25.value, 0, locale)} <span className="text-base font-normal text-muted">µg/m³</span>
+            </p>
+            <p className="mt-1 text-sm text-muted">{pm25.label}</p>
+            <p className="mt-3 text-sm">{dict.ui.cities.pm25Note}</p>
+          </section>
+        )}
+      </div>
 
       {crimeCharts.length > 0 && (
         <section aria-labelledby="crime" className="mt-10">

@@ -14,14 +14,16 @@ from unnati.reference import ReferenceData
 
 _UPSERT_ENTITY = """
     insert into entity (slug, name, name_hi, type, lgd_code, census2011_code,
-                        peer_group, valid_from, valid_to, wikidata_qid)
+                        peer_group, valid_from, valid_to, wikidata_qid, latitude, longitude, population_2011)
     values (:slug, :name, :name_hi, :type, :lgd_code, :census2011_code,
-            :peer_group, :valid_from, :valid_to, :wikidata_qid)
+            :peer_group, :valid_from, :valid_to, :wikidata_qid, :latitude, :longitude, :population_2011)
     on conflict (slug) do update set
         name = excluded.name, name_hi = excluded.name_hi, type = excluded.type,
         lgd_code = excluded.lgd_code, census2011_code = excluded.census2011_code,
         peer_group = excluded.peer_group, valid_from = excluded.valid_from,
-        valid_to = excluded.valid_to, wikidata_qid = excluded.wikidata_qid
+        valid_to = excluded.valid_to, wikidata_qid = excluded.wikidata_qid,
+        latitude = excluded.latitude, longitude = excluded.longitude,
+        population_2011 = excluded.population_2011
 """
 
 _SET_PARENT = """

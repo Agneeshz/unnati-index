@@ -423,19 +423,38 @@ export async function getReleases(limit = 100): Promise<ReleaseEvent[]> {
   }));
 }
 
-export type City = { slug: string; name: string; nameHi: string | null; stateSlug: string };
+export type City = {
+  slug: string;
+  name: string;
+  nameHi: string | null;
+  stateSlug: string;
+  latitude: number;
+  longitude: number;
+  population: number | null; // Census 2011
+  millionPlus: boolean;
+};
 
-/** Cities with their own data (phase 4 starts with NCRB's 19 metropolitan cities). */
+/** The city roster (Census 2011 cities over 4 lakh, plus state capitals), largest first. */
 export async function getCities(): Promise<City[]> {
   "use cache";
   cacheTag("places");
   cacheLife("max");
   const rows = await sql()`
-    select c.slug, c.name, c.name_hi, s.slug as state_slug
+    select c.slug, c.name, c.name_hi, s.slug as state_slug, c.latitude, c.longitude, c.population_2011,
+           c.peer_group
     from entity c join entity s on s.id = c.parent_id
     where c.type = 'city' and c.valid_to is null
-    order by c.name`;
-  return rows.map((r) => ({ slug: r.slug, name: r.name, nameHi: r.name_hi, stateSlug: r.state_slug }));
+    order by c.population_2011 desc nulls last, c.name`;
+  return rows.map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    nameHi: r.name_hi,
+    stateSlug: r.state_slug,
+    latitude: r.latitude,
+    longitude: r.longitude,
+    population: r.population_2011,
+    millionPlus: r.peer_group === "city_million_plus",
+  }));
 }
 
 /** Every city value for the given indicators (all periods), for the cities overview. */

@@ -40,6 +40,9 @@ class EntityRow(_Model):
     valid_from: date | None = None
     valid_to: date | None = None
     wikidata_qid: str | None = Field(default=None, pattern=r"^Q\d+$")
+    latitude: float | None = None
+    longitude: float | None = None
+    population_2011: int | None = None
 
     def to_entity(self) -> Entity:
         return Entity(
@@ -284,6 +287,27 @@ def city_names(source: Literal["ncrb", "cpcb"]) -> dict[str, str]:
 
 
 @cache
+def city_lookup() -> dict[tuple[str, str], str]:
+    """(state slug, normalised name) -> city slug, for sources that name cities their own way:
+    the roster name, its CPCB and NCRB names, each half of a twin city ("Kalyan-Dombivli") and
+    the city's former name (Gurgaon, Mysore, Aurangabad...)."""
+    import re
+
+    from unnati.connectors.cities import ALT_NAMES, RENAMES
+    from unnati.core.entities import normalize_name
+
+    former = {new: old for old, new in RENAMES.items()}
+    out: dict[tuple[str, str], str] = {}
+    for row in _csv_rows("cities.csv"):
+        names = [row["name"], row["cpcb_name"], row["ncrb_name"], former.get(row["name"])]
+        names += re.split(r"\s*[-–&]\s*", row["name"])
+        names += ALT_NAMES.get(row["slug"], [])
+        for name in filter(None, names):
+            out.setdefault((row["state_slug"], normalize_name(re.sub(r"\s*\(.*\)$", "", name))), row["slug"])
+    return out
+
+
+@cache
 def state_area() -> dict[str, float]:
     """Geographical area in km² by entity slug: the sum of the land-cover classes in MoSPI's
     EnviStats (table 12, 2015-16), which matches the Census 2011 areas. Jammu & Kashmir and
@@ -295,7 +319,7 @@ def state_area() -> dict[str, float]:
 @cache
 def load_reference() -> ReferenceData:
     return ReferenceData(
-        entities=_csv_rows("entities.csv"),
+        entities=_csv_rows("entities.csv") + _city_entities(),
         lineage=_csv_rows("lineage.csv"),
         aliases=_csv_rows("aliases.csv"),
         categories=_yaml(_REFERENCE.joinpath("categories.yaml")),
@@ -305,6 +329,33 @@ def load_reference() -> ReferenceData:
         registry=_yaml(_REGISTRY),
         hindi=_hindi(),
     )
+
+
+def _city_entities() -> list[dict]:
+    """Entity rows for the city roster (reference/cities.csv, built by `unnati cities build`)."""
+    from unnati.connectors.cities import MILLION_PLUS
+
+    state_qids = {row["slug"]: row["wikidata_qid"] for row in _csv_rows("entities.csv")}
+    out = []
+    for row in _csv_rows("cities.csv"):
+        population = int(row["population_2011"]) if row["population_2011"] else None
+        qid = row["wikidata_qid"]
+        out.append(
+            {
+                "slug": row["slug"],
+                "name": row["name"],
+                "name_hi": row["name_hi"],
+                "type": "city",
+                "parent_slug": row["state_slug"],
+                "peer_group": "city_million_plus" if (population or 0) >= MILLION_PLUS else "city_other",
+                # Delhi and Chandigarh share their Wikidata item with the state/UT of the same name.
+                "wikidata_qid": None if qid == state_qids.get(row["state_slug"]) else qid,
+                "latitude": float(row["latitude"]),
+                "longitude": float(row["longitude"]),
+                "population_2011": population,
+            }
+        )
+    return out
 
 
 def _hindi() -> dict:

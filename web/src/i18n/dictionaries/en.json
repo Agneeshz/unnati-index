@@ -272,7 +272,7 @@
     },
     "cities": {
       "title": "Cities",
-      "intro": "India's 19 cities with more than 2 million people, as covered by NCRB's metropolitan-city tables. Air quality updates daily from CPCB's bulletin; crime figures come from Crime in India. More cities and topics (cleanliness, municipal finances, metro rail) will follow.",
+      "intro": "Every city with more than 4 lakh people in the 2011 Census, plus each state and UT capital: {n} cities. Air quality updates daily from CPCB's bulletin and annual PM2.5 comes from CPCB's monitoring networks; crime figures cover NCRB's 19 metropolitan cities. Cleanliness, municipal finances and metro rail will follow.",
       "city": "City",
       "state": "State / UT",
       "aqiToday": "Air quality (latest day)",
@@ -283,7 +283,23 @@
       "trendsTitle": "Over time",
       "stateDashed": "{state} (dashed) for comparison",
       "inState": "Cities in {state}",
-      "citiesTitle": "Metropolitan cities"
+      "citiesTitle": "Metropolitan cities",
+      "mapTitle": "Cities by air quality (30-day average)",
+      "mapNote": "Dot size shows population (Census 2011). Darker means worse air. Select a city for its report card.",
+      "population": "Population (2011)",
+      "pm25": "PM2.5, annual average",
+      "crimeTitle": "Crime in the metropolitan cities",
+      "crimeIntro": "NCRB publishes city crime figures only for the 19 cities over 2 million people.",
+      "allStates": "All states and UTs",
+      "allSizes": "All sizes",
+      "millionPlus": "Over 10 lakh people",
+      "filter": "Show",
+      "shown": "{n} of {total} cities",
+      "stateMapTitle": "Cities in {state}",
+      "stateMapIntro": "{n} cities. Select one for its report card.",
+      "noCities": "No city in {state} is in the roster yet (cities over 4 lakh people, plus capitals).",
+      "whereTitle": "Where it is",
+      "pm25Note": "India's annual standard is 40 µg/m³; WHO's guideline is 5."
     },
     "aqi": {
       "good": "Good",

@@ -492,6 +492,16 @@ def envstats_observations(
         by_place: dict[tuple[Period, str], list[float]] = {}
         for (period, slug, _), networks in cities.items():
             by_place.setdefault((period, slug), []).append(networks.get("CAAQMS", networks.get("NAMP")))
+        # Each city's own value too, for the cities in the roster.
+        from unnati.reference import city_lookup
+
+        lookup = city_lookup()
+        for (period, slug, city), networks in cities.items():
+            city_slug = lookup.get((slug, normalize_name(city)))
+            if city_slug:
+                network = "CAAQMS" if "CAAQMS" in networks else "NAMP"
+                note = f"EnviStats (CPCB {network} monitors); MoSPI's API mislabels this column"
+                out.append(Observation("pm25-annual", city_slug, period, networks[network], note=note))
         for (period, slug), values in by_place.items():
             note = (
                 f"EnviStats (CPCB NAMP/CAAQMS): mean of {len(values)} monitored "
