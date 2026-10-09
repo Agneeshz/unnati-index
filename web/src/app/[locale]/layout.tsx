@@ -3,6 +3,7 @@ import { Noto_Sans, Noto_Sans_Devanagari } from "next/font/google";
 import Link from "next/link";
 import { locale } from "next/root-params";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { SearchBox } from "@/components/search-box";
 import { isLocale, locales } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import "../globals.css";
@@ -39,7 +40,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
     <html lang={current} className={`${latin.variable} ${devanagari.variable}`}>
       <body className="flex min-h-dvh flex-col bg-bg font-sans text-fg antialiased">
         <header className="border-b border-border bg-surface">
-          <div className="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 pt-2">
             <Link href={`/${current}`} className="flex items-center gap-2 font-semibold">
               <svg aria-hidden="true" viewBox="0 0 32 32" className="size-7">
                 <rect width="32" height="32" rx="7" className="fill-accent" />
@@ -49,7 +50,19 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
               </svg>
               {dict.site.name}
             </Link>
-            <nav aria-label="Main" className="flex items-center gap-1 overflow-x-auto text-sm">
+            <SearchBox
+              locale={current}
+              labels={{
+                label: dict.ui.search.label,
+                placeholder: dict.ui.search.placeholder,
+                seeAll: dict.ui.search.seeAll,
+                hint: dict.ui.search.hint,
+                types: dict.ui.search.types,
+              }}
+            />
+          </div>
+          <div className="mx-auto max-w-6xl px-4 pb-1">
+            <nav aria-label="Main" className="-mx-2 flex items-center gap-1 overflow-x-auto text-sm">
               {(["rankings", "cities", "compare", "indices", "indicators", "updates", "methodology", "sources"] as const).map((key) => (
                 <Link
                   key={key}

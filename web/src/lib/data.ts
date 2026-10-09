@@ -470,3 +470,35 @@ export async function getCityObservations(indicatorIds: string[]): Promise<Obser
     order by o.period_end`;
   return rows.map(toObservation);
 }
+
+export type SearchPlace = {
+  slug: string;
+  name: string;
+  nameHi: string | null;
+  type: "state" | "ut" | "city";
+  stateSlug: string | null; // a city's state
+  aliases: string[]; // normalised other names (Orissa, Gurgaon, Bangalore...)
+};
+
+/** Current states, UTs and cities with every other name they go by, for the site search. */
+export async function getSearchPlaces(): Promise<SearchPlace[]> {
+  "use cache";
+  cacheTag("places");
+  cacheLife("max");
+  const rows = await sql()`
+    select e.slug, e.name, e.name_hi, e.type, p.slug as parent_slug,
+           coalesce(array_agg(distinct a.alias_norm) filter (where a.alias_norm is not null), '{}') as aliases
+    from entity e
+    left join entity p on p.id = e.parent_id
+    left join entity_alias a on a.entity_id = e.id
+    where e.type in ('state', 'ut', 'city') and e.valid_to is null
+    group by e.slug, e.name, e.name_hi, e.type, p.slug`;
+  return rows.map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    nameHi: r.name_hi,
+    type: r.type,
+    stateSlug: r.type === "city" ? r.parent_slug : null,
+    aliases: r.aliases,
+  }));
+}

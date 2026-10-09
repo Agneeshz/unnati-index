@@ -312,6 +312,25 @@
       "poor": "Poor",
       "veryPoor": "Very poor",
       "severe": "Severe"
+    },
+    "search": {
+      "label": "Search",
+      "placeholder": "Search states, cities, topics…",
+      "title": "Search",
+      "intro": "States and UTs, cities, indicators, pillars and indices, by their current or former names, in English or Hindi.",
+      "resultsFor": "Results for “{q}”",
+      "noResults": "Nothing found for “{q}”. Try a state, a city or a topic such as “literacy” or “air”.",
+      "seeAll": "See all results",
+      "hint": "Press / to search",
+      "types": {
+        "state": "State",
+        "ut": "Union Territory",
+        "city": "City",
+        "pillar": "Pillar",
+        "index": "Index",
+        "indicator": "Indicator",
+        "page": "Page"
+      }
     }
   }
 }

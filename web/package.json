@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
@@ -22,6 +23,7 @@
     "topojson-simplify": "^3.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4",
     "@types/d3-geo": "^3.1.1",
     "@types/geojson": "^7946.0.16",

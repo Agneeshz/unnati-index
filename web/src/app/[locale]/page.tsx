@@ -97,7 +97,7 @@ export default async function HomePage() {
               hrefFor={(slug) => `/${locale}/states/${slug}`}
             />
           </div>
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
             {PEER_GROUPS.map((group) => {
               const ranked = places
                 .filter((p) => p.peerGroup === group && composite.get(p.slug)?.score != null)
@@ -105,7 +105,7 @@ export default async function HomePage() {
               const top = ranked.slice(0, 3);
               const bottom = ranked.length > 6 ? ranked.slice(-3) : [];
               return (
-                <div key={group} className="rounded-lg border border-border bg-surface p-4">
+                <div key={group} className="min-w-0 rounded-lg border border-border bg-surface p-4">
                   <h3 className="font-semibold">{dict.ui.peerGroups[group]}</h3>
                   {[
                     { label: dict.ui.home.top, list: top },
@@ -120,7 +120,7 @@ export default async function HomePage() {
                             const s = composite.get(p.slug)!;
                             return (
                               <li key={p.slug} className="flex items-center justify-between gap-2 text-sm">
-                                <Link href={`/${locale}/states/${p.slug}`} className="truncate hover:underline">
+                                <Link href={`/${locale}/states/${p.slug}`} className="min-w-0 truncate hover:underline">
                                   <span className="tabular-nums text-muted">{s.rankPeer}.</span> {name(p)}
                                 </Link>
                                 <ScoreBar score={s.score} locale={locale} />

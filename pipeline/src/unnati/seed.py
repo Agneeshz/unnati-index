@@ -10,7 +10,7 @@ import json
 
 from unnati.core.entities import normalize_name
 from unnati.db import Connection, transaction
-from unnati.reference import ReferenceData
+from unnati.reference import ReferenceData, city_lookup
 
 _UPSERT_ENTITY = """
     insert into entity (slug, name, name_hi, type, lgd_code, census2011_code,
@@ -158,6 +158,10 @@ def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
                 period_from=a.period_from,
                 period_to=a.period_to,
             )
+        # Cities' other names (former names, source spellings, each half of a twin city), so the
+        # site's search finds "Gurgaon" or "Bangalore". The pipeline resolves cities separately.
+        for (_, alias_norm), city in sorted(city_lookup().items()):
+            conn.run(_INSERT_ALIAS, alias_norm=alias_norm, entity_slug=city, period_from=None, period_to=None)
 
         for s in ref.registry.sources:
             conn.run(_UPSERT_SOURCE, **s.model_dump())
@@ -195,7 +199,7 @@ def seed(conn: Connection, ref: ReferenceData) -> dict[str, int]:
     return {
         "entities": len(ref.entities),
         "lineage": len(ref.lineage),
-        "aliases": len(ref.aliases),
+        "aliases": len(ref.aliases) + len(city_lookup()),
         "sources": len(ref.registry.sources),
         "datasets": len(ref.registry.datasets),
         "categories": len(ref.categories),

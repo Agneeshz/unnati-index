@@ -99,7 +99,7 @@ async function ReportCard({
     .filter((p) => p.peerGroup === place.peerGroup)
     .map((p) => p.slug);
   const peerTotal = scores.filter(
-    (s) => s.level === "composite" && s.score != null && peers.includes(s.slug),
+    (s) => s.level === "composite" && s.key === COMPOSITE && s.score != null && peers.includes(s.slug),
   ).length;
   const indicatorById = new Map(indicators.map((i) => [i.id, i]));
 
