@@ -70,9 +70,12 @@ for (const path of ["/en/states/maharashtra", "/en/states/west-bengal", "/en/sta
 
 test("search finds a state by its former name, from the keyboard", async ({ page }) => {
   await page.goto("/en/rankings");
-  await page.keyboard.press("/");
   const box = page.getByRole("combobox");
-  await expect(box).toBeFocused();
+  // The "/" shortcut works once the page's JavaScript has loaded; retry until it has.
+  await expect(async () => {
+    await page.keyboard.press("/");
+    await expect(box).toBeFocused({ timeout: 500 });
+  }).toPass({ timeout: 15_000 });
   await box.fill("orissa");
   await expect(page.getByRole("option", { name: /Odisha/ })).toBeVisible();
   await box.press("ArrowDown");
