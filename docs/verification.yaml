@@ -25,3 +25,5 @@
 - {indicator: parakh-grade6-maths, place: punjab, period: "PRS 2024", expected: 62, source: "PARAKH Rashtriya Sarvekshan 2024, State Report Punjab, Grade 6 comparison (national 46%)"}
 - {indicator: crime-rate-total, place: delhi-city, period: "2024", expected: 1824.5, source: "Crime in India 2024, Table 1B.3 (Metropolitan Cities), Delhi City"}
 - {indicator: murder-rate, place: patna, period: "2024", expected: 5.2, source: "Crime in India 2024, Table 2B.1 (Metropolitan Cities), Patna"}
+- {indicator: swachh-survekshan-score, place: ahmedabad, period: "SS 2024-25", expected: 12079, source: "Swachh Survekshan 2024-25 report, ranking of million-plus cities (rank 1)"}
+- {indicator: swachh-survekshan-score, place: delhi-city, period: "SS 2024-25", expected: 7920, source: "Swachh Survekshan 2024-25 report, ranking of million-plus cities: Municipal Corporation of Delhi"}

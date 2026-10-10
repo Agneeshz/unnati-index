@@ -916,6 +916,30 @@
   valid_min: 0
 
 # --- Environment ----------------------------------------------------------------------------
+- id: swachh-survekshan-score
+  name: Swachh Survekshan cleanliness score
+  description: Total score in Swachh Survekshan, the national urban cleanliness survey, out of 12,500 (the survey's assessment out of 10,000, plus garbage-free city star rating and open-defecation-free certification). Cities of 3 lakh people or more.
+  unit: points (of 12,500)
+  direction: higher_better
+  category: environment
+  dataset: swachh_survekshan
+  frequency: annual
+  decimals: 0
+  caveat: Past top performers (Indore, Surat, Navi Mumbai and others) are in the Super Swachh League, assessed separately without a score. West Bengal's cities are not in the 2024-25 report. Totals are as published; a few, such as Ludhiana's, do not equal the sum of their parts in the report.
+  valid_min: 0
+  valid_max: 12500
+- id: swachh-super-league
+  name: Swachh Survekshan Super Swachh League
+  description: Cities that ranked in the top three of their category at least once in the last three years and stayed in its top 20%; they are assessed separately and not ranked.
+  unit: member
+  direction: neutral
+  category: environment
+  dataset: swachh_survekshan
+  frequency: annual
+  decimals: 0
+  rankable: false
+  valid_min: 0
+  valid_max: 1
 - id: aqi-daily-mean
   name: Average air quality index (daily)
   description: Average of the day's AQI (24-hour average at 4 PM) across the state's cities in CPCB's daily bulletin.

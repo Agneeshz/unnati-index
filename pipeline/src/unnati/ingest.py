@@ -216,6 +216,26 @@ def _aai_traffic(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint, url)
 
 
+def _swachh_survekshan(today: date) -> Fetched:
+    from unnati.connectors import swachh
+    from unnati.core.http import PoliteClient
+    from unnati.reference import city_lookup
+
+    with PoliteClient(timeout=180) as http:
+        resource = swachh.report_resource(http)
+        pdf = http.get(resource["url"]).content
+    observations, problems = swachh.observations(pdf, load_reference().resolver(), city_lookup())
+    return Fetched(observations, problems, fingerprint_of(swachh.fingerprint(resource)), resource["url"])
+
+
+def _swachh_probe(today: date) -> str:
+    from unnati.connectors import swachh
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=60) as http:
+        return fingerprint_of(swachh.fingerprint(swachh.report_resource(http)))
+
+
 def _rbi_hsis(today: date) -> Fetched:
     """Reads the committed downloads; MoSPI's GSDP fills in where RBI Table 21 is absent."""
     from unnati.connectors import mospi, rbi_hsis
@@ -432,6 +452,7 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "jjm_tap_water": _jjm_tap_water,
     "parakh": _parakh,
     "aai_traffic": _aai_traffic,
+    "swachh_survekshan": _swachh_survekshan,
     "rbi_hsis": _rbi_hsis,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,
@@ -450,6 +471,7 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
 # fingerprint as its probe.
 PROBES: dict[str, Callable[[date], str]] = {
     "ncrb_cii": _ncrb_probe,
+    "swachh_survekshan": _swachh_probe,
     "rgi_srs": _srs_probe,
     "trai_subscriptions": _trai_probe,
     "bprd_dopo": _bprd_probe,

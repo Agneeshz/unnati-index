@@ -14,8 +14,14 @@ automatically. Monorepo: `pipeline/` (Python), `web/` (Next.js), `db/migrations/
   policy (Postgres only, `neon deploy`). Neon agent skill: `neon skills -s neon --agent claude-code -y`
   (git-ignored); `.mcp.json` adds the Neon MCP server via OAuth.
 - `pipeline/`: `uv run pytest`, `uv run ruff check . && uv run ruff format --check .`,
-  `uv run unnati check|seed|resolve "<name>" --period 2023-24`.
-- `web/`: `npm run dev|build|lint|typecheck|test`.
+  `uv run unnati check|seed|resolve "<name>" --period 2023-24`. Where Application Control blocks
+  the generated launchers (`unnati.exe`, `pytest.exe`, ruff), use `uv run python -m unnati ...`
+  and `uv run python -m pytest`; ruff runs in CI.
+- `web/`: `npm run dev|build|lint|typecheck|test`; `npm run test:e2e` runs the Playwright browser
+  checks against a production build (`PW_CHANNEL=msedge` uses the installed Edge locally).
+- Cities: the roster is `pipeline/src/unnati/reference/cities.csv` (`unnati cities build`); city
+  sources name cities their own way, so match through `city_lookup()` (former names and source
+  spellings in `connectors/cities.py` `ALT_NAMES`), within the city's state.
 
 ## Conventions
 

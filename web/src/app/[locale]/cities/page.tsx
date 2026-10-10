@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { CityMap } from "@/components/city-map";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { aqiSummary, CITY_CRIME, cityName, cityPoints, latestFor } from "@/lib/cities";
+import { aqiSummary, CITY_CRIME, cityName, cityPoints, latestFor, SWACHH } from "@/lib/cities";
 import { getCities, getCityObservations, getIndicators, getPlaces } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
 import { aqiCategory, fill } from "@/lib/present";
@@ -32,7 +32,7 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
     getCities(),
     getPlaces(),
     getIndicators(),
-    getCityObservations(["aqi-daily-mean", "pm25-annual", ...CITY_CRIME]),
+    getCityObservations(["aqi-daily-mean", "pm25-annual", ...SWACHH, ...CITY_CRIME]),
     searchParams,
   ]);
   const locale: Locale = isLocale(lang) ? lang : "en";
@@ -105,12 +105,19 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
                     {dict.ui.cities.pm25}
                   </Link>
                 </th>
+                <th scope="col" className="px-3 py-2 text-right font-medium">
+                  <Link href={`/${locale}/indicators/swachh-survekshan-score`} className="hover:underline">
+                    {dict.ui.cities.swachh}
+                  </Link>
+                </th>
               </tr>
             </thead>
             <tbody>
               {shown.map((c) => {
                 const aqi = aqiSummary(observations, c.slug);
                 const pm = latestFor(observations, c.slug, "pm25-annual");
+                const clean = latestFor(observations, c.slug, "swachh-survekshan-score");
+                const league = latestFor(observations, c.slug, "swachh-super-league");
                 return (
                   <tr key={c.slug} className="border-b border-border last:border-0">
                     <th scope="row" className="px-3 py-2 text-left font-medium">
@@ -137,6 +144,15 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
                         <>
                           {formatNumber(pm.value, 0, locale)} <span className="text-xs text-muted">({pm.label})</span>
                         </>
+                      ) : (
+                        "–"
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {clean ? (
+                        formatNumber(clean.value, 0, locale)
+                      ) : league ? (
+                        <span className="text-xs font-medium text-accent">{dict.ui.cities.superLeague}</span>
                       ) : (
                         "–"
                       )}

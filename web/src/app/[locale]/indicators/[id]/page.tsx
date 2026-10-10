@@ -94,77 +94,79 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
         </aside>
       )}
 
-      <section aria-labelledby="latest" className="mt-8">
-        <h2 id="latest" className="text-xl font-semibold">
-          {dict.ui.indicators.latest}
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          {fill(dict.ui.indicators.coverage, { n: withData.length, total: states.length })}
-        </p>
-        <div className="mt-4 max-w-xl">
-          <IndiaMap
-            title={`${indicator.name}: map of states and UTs`}
-            data={Object.fromEntries(
-              withData.map((o) => [o.slug, { value: o.value, label: `${formatValue(o.value, indicator, locale)} (${o.label})` }]),
-            )}
-            formatBreak={(v) => formatNumber(v, indicator.decimals, locale)}
-            notAvailable={dict.ui.common.notAvailable}
-            note={`${indicator.unit} · ${directionText}. ${dict.ui.map.darkerValue}`}
-            hrefFor={(slug) => `/${locale}/states/${slug}`}
-          />
-        </div>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
-          <table className="w-full min-w-[36rem] text-sm">
-            <thead className="border-b border-border text-left text-muted">
-              <tr>
-                <th scope="col" className="w-12 px-3 py-2 font-medium">
-                  #
-                </th>
-                <th scope="col" className="px-3 py-2 font-medium">
-                  {dict.ui.common.place}
-                </th>
-                <th scope="col" className="px-3 py-2 font-medium">
-                  {dict.ui.common.value}
-                </th>
-                <th scope="col" className="px-3 py-2 font-medium">
-                  {dict.ui.common.period}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((o) => {
-                const place = placeBySlug.get(o.slug)!;
-                return (
-                  <tr key={o.slug} className="border-b border-border last:border-0">
-                    <td className="px-3 py-2 tabular-nums text-muted">{indicator.rankable ? rankOf(o) : ""}</td>
+      {(withData.length > 0 || !cities.some((c) => latest.has(c.slug))) && (
+        <section aria-labelledby="latest" className="mt-8">
+          <h2 id="latest" className="text-xl font-semibold">
+            {dict.ui.indicators.latest}
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            {fill(dict.ui.indicators.coverage, { n: withData.length, total: states.length })}
+          </p>
+          <div className="mt-4 max-w-xl">
+            <IndiaMap
+              title={`${indicator.name}: map of states and UTs`}
+              data={Object.fromEntries(
+                withData.map((o) => [o.slug, { value: o.value, label: `${formatValue(o.value, indicator, locale)} (${o.label})` }]),
+              )}
+              formatBreak={(v) => formatNumber(v, indicator.decimals, locale)}
+              notAvailable={dict.ui.common.notAvailable}
+              note={`${indicator.unit} · ${directionText}. ${dict.ui.map.darkerValue}`}
+              hrefFor={(slug) => `/${locale}/states/${slug}`}
+            />
+          </div>
+          <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+            <table className="w-full min-w-[36rem] text-sm">
+              <thead className="border-b border-border text-left text-muted">
+                <tr>
+                  <th scope="col" className="w-12 px-3 py-2 font-medium">
+                    #
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {dict.ui.common.place}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {dict.ui.common.value}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {dict.ui.common.period}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((o) => {
+                  const place = placeBySlug.get(o.slug)!;
+                  return (
+                    <tr key={o.slug} className="border-b border-border last:border-0">
+                      <td className="px-3 py-2 tabular-nums text-muted">{indicator.rankable ? rankOf(o) : ""}</td>
+                      <th scope="row" className="px-3 py-2 text-left font-medium">
+                        <Link href={`/${locale}/states/${o.slug}`} className="hover:underline">
+                          {locale === "hi" && place.nameHi ? place.nameHi : place.name}
+                        </Link>
+                      </th>
+                      <td className="px-3 py-2">
+                        <ValueBar o={o} max={max} indicator={indicator} locale={locale} dict={dict} />
+                      </td>
+                      <td className="px-3 py-2 text-muted">{o.label}</td>
+                    </tr>
+                  );
+                })}
+                {withoutData.map((place) => (
+                  <tr key={place.slug} className="border-b border-border last:border-0">
+                    <td className="px-3 py-2 text-muted">–</td>
                     <th scope="row" className="px-3 py-2 text-left font-medium">
-                      <Link href={`/${locale}/states/${o.slug}`} className="hover:underline">
+                      <Link href={`/${locale}/states/${place.slug}`} className="hover:underline">
                         {locale === "hi" && place.nameHi ? place.nameHi : place.name}
                       </Link>
                     </th>
-                    <td className="px-3 py-2">
-                      <ValueBar o={o} max={max} indicator={indicator} locale={locale} dict={dict} />
-                    </td>
-                    <td className="px-3 py-2 text-muted">{o.label}</td>
+                    <td className="px-3 py-2 text-muted italic">{dict.ui.common.notAvailable}</td>
+                    <td className="px-3 py-2 text-muted">–</td>
                   </tr>
-                );
-              })}
-              {withoutData.map((place) => (
-                <tr key={place.slug} className="border-b border-border last:border-0">
-                  <td className="px-3 py-2 text-muted">–</td>
-                  <th scope="row" className="px-3 py-2 text-left font-medium">
-                    <Link href={`/${locale}/states/${place.slug}`} className="hover:underline">
-                      {locale === "hi" && place.nameHi ? place.nameHi : place.name}
-                    </Link>
-                  </th>
-                  <td className="px-3 py-2 text-muted italic">{dict.ui.common.notAvailable}</td>
-                  <td className="px-3 py-2 text-muted">–</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       <CityTable
         cities={cities}

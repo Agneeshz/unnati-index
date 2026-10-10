@@ -1,6 +1,9 @@
 import type { CityPoint } from "@/components/city-map";
 import type { City, Observation } from "@/lib/data";
 
+/** Swachh Survekshan: the score, or membership of the Super Swachh League (assessed, not scored). */
+export const SWACHH = ["swachh-survekshan-score", "swachh-super-league"];
+
 /** City indicators from NCRB's metropolitan-city tables, in display order. */
 export const CITY_CRIME = ["murder-rate", "crime-rate-total", "crimes-against-women-rate", "chargesheeting-rate"];
 

@@ -284,7 +284,7 @@
       "trendsTitle": "Over time",
       "stateDashed": "{state} (dashed) for comparison",
       "inState": "Cities in {state}",
-      "citiesTitle": "Metropolitan cities",
+      "citiesTitle": "Cities",
       "mapTitle": "Cities by air quality (30-day average)",
       "mapNote": "Dot size shows population (Census 2011). Darker means worse air. Select a city for its report card.",
       "population": "Population (2011)",
@@ -303,7 +303,12 @@
       "pm25Note": "India's annual standard is 40 µg/m³; WHO's guideline is 5.",
       "insetTitle": "{n} · Around {city} (enlarged)",
       "insetNote": "Crowded areas are repeated below, enlarged.",
-      "aroundTitle": "Around {city}"
+      "aroundTitle": "Around {city}",
+      "swachh": "Cleanliness (Swachh Survekshan)",
+      "superLeague": "Super Swachh League",
+      "swachhCard": "Swachh Survekshan 2024-25",
+      "outOf": "out of {max}",
+      "superLeagueNote": "One of the past top performers, assessed separately and not scored."
     },
     "aqi": {
       "good": "Good",

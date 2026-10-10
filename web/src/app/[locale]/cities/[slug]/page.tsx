@@ -53,6 +53,8 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
   const neighbours = cities.filter((c) => c.stateSlug === city.stateSlug);
   const pm25 = latestFor(own, slug, "pm25-annual");
   const pm25Indicator = byId.get("pm25-annual");
+  const clean = latestFor(own, slug, "swachh-survekshan-score");
+  const league = latestFor(own, slug, "swachh-super-league");
   const cityName = locale === "hi" && city.nameHi ? city.nameHi : city.name;
   const stateName = state ? (locale === "hi" && state.nameHi ? state.nameHi : state.name) : "";
   const aqi = aqiSummary(own, slug);
@@ -173,20 +175,43 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
         </div>
       </section>
 
-      {pm25 && pm25Indicator && (
-        <section aria-labelledby="pm25" className="mt-6 rounded-lg border border-border bg-surface p-5">
-          <h2 id="pm25" className="text-sm text-muted">
-            <Link href={`/${locale}/indicators/pm25-annual`} className="hover:underline">
-              {pm25Indicator.name}
-            </Link>
-          </h2>
-          <p className="mt-2 text-4xl font-bold tabular-nums">
-            {formatNumber(pm25.value, 0, locale)} <span className="text-base font-normal text-muted">µg/m³</span>
-            <span className="ml-2 text-sm font-normal text-muted">{pm25.label}</span>
-          </p>
-          <p className="mt-2 text-sm">{dict.ui.cities.pm25Note}</p>
-        </section>
-      )}
+      <div className="mt-6 grid items-start gap-4 sm:grid-cols-2">
+        {pm25 && pm25Indicator && (
+          <section aria-labelledby="pm25" className="rounded-lg border border-border bg-surface p-5">
+            <h2 id="pm25" className="text-sm text-muted">
+              <Link href={`/${locale}/indicators/pm25-annual`} className="hover:underline">
+                {pm25Indicator.name}
+              </Link>
+            </h2>
+            <p className="mt-2 text-4xl font-bold tabular-nums">
+              {formatNumber(pm25.value, 0, locale)} <span className="text-base font-normal text-muted">µg/m³</span>
+              <span className="ml-2 text-sm font-normal text-muted">{pm25.label}</span>
+            </p>
+            <p className="mt-2 text-sm">{dict.ui.cities.pm25Note}</p>
+          </section>
+        )}
+        {(clean || league) && (
+          <section aria-labelledby="swachh" className="rounded-lg border border-border bg-surface p-5">
+            <h2 id="swachh" className="text-sm text-muted">
+              <Link href={`/${locale}/indicators/swachh-survekshan-score`} className="hover:underline">
+                {dict.ui.cities.swachhCard}
+              </Link>
+            </h2>
+            {clean ? (
+              <p className="mt-2 text-4xl font-bold tabular-nums">
+                {formatNumber(clean.value, 0, locale)}{" "}
+                <span className="text-base font-normal text-muted">{fill(dict.ui.cities.outOf, { max: formatNumber(12500, 0, locale) })}</span>
+              </p>
+            ) : (
+              <>
+                <p className="mt-2 text-2xl font-bold text-accent">{dict.ui.cities.superLeague}</p>
+                <p className="mt-2 text-sm">{dict.ui.cities.superLeagueNote}</p>
+              </>
+            )}
+            {clean?.note?.includes("mean of") && <p className="mt-2 text-sm text-muted">{clean.note.split("; ")[1]}</p>}
+          </section>
+        )}
+      </div>
 
       {crimeCharts.length > 0 && (
         <section aria-labelledby="crime" className="mt-10">

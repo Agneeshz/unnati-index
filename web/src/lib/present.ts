@@ -25,12 +25,16 @@ export function fill(template: string, values: Record<string, string | number>):
   return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? `{${key}}`));
 }
 
+const STATUS_UNITS = new Set(["member", "सदस्य"]);
+
 /** An indicator value with its unit, Indian digit grouping and the indicator's decimals. */
 export function formatValue(value: number, indicator: Pick<Indicator, "unit" | "decimals">, locale: Locale): string {
   const number = formatNumber(value, indicator.decimals, locale);
   const unit = indicator.unit;
   if (unit === "%" || unit.startsWith("% ")) return `${number}%`;
   if (unit === "persons") return number;
+  // A status rather than a quantity (value 1): "Member" of the Super Swachh League.
+  if (STATUS_UNITS.has(unit)) return unit.charAt(0).toUpperCase() + unit.slice(1);
   return `${number} ${unit}`;
 }
 

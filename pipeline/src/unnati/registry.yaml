@@ -260,6 +260,13 @@ datasets:
     cadence: annual
     landing_url: https://censusindia.gov.in/nada/index.php/catalog/?sk=abridged+life+tables
     enabled: true
+  - id: swachh_survekshan
+    source: mohua
+    title: Swachh Survekshan 2024-25 city rankings
+    connector: swachh
+    cadence: annual
+    landing_url: https://data.opencity.in/dataset/swachh-survekshan-ss-results
+    enabled: true
   - id: nfhs
     source: iips
     title: NFHS-6 (2023-24) state fact sheets (IIPS compendium and OpenCity CSVs)

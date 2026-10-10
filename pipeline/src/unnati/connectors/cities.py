@@ -76,8 +76,6 @@ HI_NAMES = {
 }
 # Other spellings sources use (EnviStats especially), matched within the city's state.
 ALT_NAMES = {
-    "bengaluru": ["Bangalore"],
-    "visakhapatnam": ["Vishakhapatnam"],
     "vijayawada": ["Vijaywada"],
     "bareilly": ["Bareily"],
     "bhubaneswar": ["Bhubneshwar"],
@@ -90,6 +88,15 @@ ALT_NAMES = {
     "malegaon": ["Malegao"],
     "asansol": ["Asansol+Raniganj"],
     "sri-vijaya-puram": ["Port Blair"],
+    # Swachh Survekshan names the municipal body.
+    "mumbai": ["Greater Mumbai"],
+    "hyderabad": ["Greater Hyderabad"],
+    "bengaluru": ["Bangalore", "Bruhat Bengaluru Mahanagara Palike"],
+    "delhi-city": ["Municipal Corporation of Delhi"],
+    "visakhapatnam": ["Vishakhapatnam", "GVMC Visakhapatnam"],
+    "kalyan-dombivli": ["Kalyan Dombivali"],
+    "bhilai": ["Bhilai Nagar"],
+    "bhiwandi": ["Bhiwandi Nizampur"],
 }
 # CPCB bulletin names that automatic matching cannot find.
 CPCB_NAMES = {"chhatrapati-sambhajinagar": "Aurangabad (Maharashtra)"}
