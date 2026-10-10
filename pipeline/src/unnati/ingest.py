@@ -216,6 +216,18 @@ def _aai_traffic(today: date) -> Fetched:
     return Fetched(observations, problems, fingerprint, url)
 
 
+def _rbi_municipal_finances(today: date) -> Fetched:
+    from unnati.connectors import rbi_municipal
+    from unnati.core.http import PoliteClient
+
+    with PoliteClient(timeout=60) as http:
+        url = rbi_municipal.statement_url(http)
+        page = http.get(url).text
+    observations, problems = rbi_municipal.observations(page, load_reference().resolver())
+    table = rbi_municipal.table(page)
+    return Fetched(observations, problems, fingerprint_of({"url": url, "table": table}), url)
+
+
 def _swachh_survekshan(today: date) -> Fetched:
     from unnati.connectors import swachh
     from unnati.core.http import PoliteClient
@@ -453,6 +465,7 @@ INGESTERS: dict[str, Callable[[date], Fetched]] = {
     "parakh": _parakh,
     "aai_traffic": _aai_traffic,
     "swachh_survekshan": _swachh_survekshan,
+    "rbi_municipal_finances": _rbi_municipal_finances,
     "rbi_hsis": _rbi_hsis,
     "nfhs": _nfhs_factsheets,  # on demand: a 49 MB one-off release, not on the daily schedule
     "ncrb_cii": _ncrb_cii,

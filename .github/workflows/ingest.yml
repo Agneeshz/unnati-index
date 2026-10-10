@@ -41,6 +41,7 @@ jobs:
           - jjm_tap_water
           - aai_traffic
           - swachh_survekshan
+          - rbi_municipal_finances
           - ncrb_cii
           - ncrb_adsi
           - morth_road_accidents

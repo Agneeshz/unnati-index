@@ -260,6 +260,13 @@ datasets:
     cadence: annual
     landing_url: https://censusindia.gov.in/nada/index.php/catalog/?sk=abridged+life+tables
     enabled: true
+  - id: rbi_municipal_finances
+    source: rbi
+    title: Report on Municipal Finances, Statement 3 (own revenue of municipal corporations)
+    connector: rbi_municipal
+    cadence: annual
+    landing_url: https://www.rbi.org.in/Scripts/AnnualPublications.aspx?head=Report%20on%20Municipal%20Finances
+    enabled: true
   - id: swachh_survekshan
     source: mohua
     title: Swachh Survekshan 2024-25 city rankings

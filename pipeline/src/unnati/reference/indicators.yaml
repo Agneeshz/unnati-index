@@ -325,6 +325,18 @@
   decimals: 1
   valid_min: 0
   valid_max: 50
+- id: municipal-own-revenue-share
+  name: Municipal self-reliance
+  description: Share of municipal corporations' revenue that they raise themselves (property and other own taxes, fees and user charges) rather than receive as grants and assigned revenue from the state.
+  unit: "% of revenue receipts"
+  direction: higher_better
+  category: public-finance
+  dataset: rbi_municipal_finances
+  frequency: annual
+  decimals: 0
+  caveat: Covers municipal corporations only, not smaller municipalities, totalled by state; RBI publishes no figures for individual cities. Revised estimates are provisional.
+  valid_min: 0
+  valid_max: 100
 - id: capex-share
   name: Capital expenditure share
   description: Capital outlay as a share of total state expenditure.
