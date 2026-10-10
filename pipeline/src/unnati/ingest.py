@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+import httpx
+
 from unnati import observations as obs
 from unnati.db import Connection
 from unnati.reference import load_reference
@@ -404,9 +406,17 @@ def _bprd_dopo(today: date) -> Fetched:
     from unnati.connectors import bprd
     from unnati.core.http import PoliteClient
 
-    with PoliteClient(timeout=600) as http:
-        year, url = bprd.latest(http)
-        pdf = http.get(url).content
+    try:
+        with PoliteClient(timeout=600) as http:
+            year, url = bprd.latest(http)
+            pdf = http.get(url).content
+    except httpx.HTTPError:
+        # The site is often unreachable from outside India: fall back to the copy saved by hand.
+        saved = bprd.local_latest()
+        if saved is None:
+            raise
+        year, path = saved
+        url, pdf = bprd.PAGE, path.read_bytes()
     observations, problems = bprd.observations(pdf, year, load_reference().resolver())
     return Fetched(observations, problems, fingerprint_of({"year": year, "url": url}), url)
 
@@ -415,8 +425,14 @@ def _bprd_probe(today: date) -> str:
     from unnati.connectors import bprd
     from unnati.core.http import PoliteClient
 
-    with PoliteClient() as http:
-        year, url = bprd.latest(http)
+    try:
+        with PoliteClient() as http:
+            year, url = bprd.latest(http)
+    except httpx.HTTPError:
+        saved = bprd.local_latest()
+        if saved is None:
+            raise
+        year, url = saved[0], bprd.PAGE
     return fingerprint_of({"year": year, "url": url})
 
 
@@ -521,19 +537,25 @@ def run(
     conn = connect()
     try:
         run_id = start_run(conn, dataset_id, trigger)
-        if dataset_id in PROBES and not force:
-            probed = PROBES[dataset_id](today)
-            if probed == last_fingerprint(conn, dataset_id):
-                mark_checked(conn, dataset_id, probed, changed=False)
-                finish_run(conn, run_id, "unchanged", fingerprint=probed)
-                return IngestReport(dataset_id, Fetched([], [], probed, ""), obs.Validation(), "unchanged")
         previous = last_fingerprint(conn, dataset_id)
     finally:
         conn.close()
     try:
+        # The cheap change check and the fetch both reach out to the source; either can fail (a
+        # site that times out from abroad) and the failure must be recorded, not left "running".
+        if dataset_id in PROBES and not force:
+            probed = PROBES[dataset_id](today)
+            if probed == previous:
+                conn = connect()
+                try:
+                    mark_checked(conn, dataset_id, probed, changed=False)
+                    finish_run(conn, run_id, "unchanged", fingerprint=probed)
+                finally:
+                    conn.close()
+                return IngestReport(dataset_id, Fetched([], [], probed, ""), obs.Validation(), "unchanged")
         report = check(dataset_id, today)
     except Exception as err:
-        _finish(connect, run_id, "failed", error=str(err))
+        _finish(connect, run_id, "failed", error=f"{type(err).__name__}: {err}")
         raise
     conn = connect()
     try:

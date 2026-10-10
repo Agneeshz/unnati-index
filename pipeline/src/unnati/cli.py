@@ -325,6 +325,36 @@ _REVALIDATE_TAGS = typer.Argument(None, help="Cache tags; default: everything da
 
 
 @app.command()
+def health(
+    as_json: bool = typer.Option(False, "--json", help="Print the problems as JSON."),
+    issues: bool = typer.Option(False, "--issues", help="Sync data-source GitHub issues (needs gh)."),
+) -> None:
+    """Failing or stale data sources; with --issues, open/update/close GitHub issues for them."""
+    import os
+
+    from unnati import health as health_module
+    from unnati.db import connect
+    from unnati.ingest import INGESTERS
+
+    ids = sorted(INGESTERS)
+    conn = connect()
+    try:
+        found = health_module.problems(conn, ids)
+    finally:
+        conn.close()
+    if as_json:
+        typer.echo(health_module.as_json(found))
+    else:
+        for p in found:
+            typer.echo(f"{p.kind:8} {p.dataset}: {p.detail}")
+        typer.echo(f"{len(found)} problem(s) across {len(ids)} sources")
+    if issues:
+        run_url = os.environ.get("RUN_URL", "")
+        for line in health_module.sync_issues(found, ids, run_url):
+            typer.echo(line)
+
+
+@app.command()
 def releases() -> None:
     """Record release events (the site's updates feed) for loaded runs that have none."""
     from unnati.db import connect

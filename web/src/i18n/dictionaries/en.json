@@ -213,7 +213,14 @@
       "intro": "Every dataset, where it comes from and when we last checked it. The pipeline checks each source daily and loads only new or revised figures.",
       "lastChecked": "Last checked",
       "lastChanged": "Last new data",
-      "cadence": "Released"
+      "cadence": "Released",
+      "status": "Status",
+      "ok": "Working",
+      "failing": "Failing since {date}",
+      "stale": "No new data since {date}",
+      "staleNever": "No data loaded yet",
+      "unknown": "Not checked yet",
+      "statusNote": "A source is marked failing when its latest check errored, and quiet when it has gone 1.5 times its usual release interval without new data. Each problem opens a public issue on GitHub that closes itself on recovery."
     },
     "indices": {
       "title": "Indices",

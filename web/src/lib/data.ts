@@ -2,6 +2,7 @@ import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { cacheLife, cacheTag } from "next/cache";
 import { iso } from "@/lib/dates";
+import { type SourceHealth, sourceHealth } from "@/lib/source-health";
 import { locale as rootLocale } from "next/root-params";
 
 /**
@@ -362,6 +363,7 @@ export type DatasetStatus = {
   lastChecked: string | null;
   lastChanged: string | null;
   landingUrl: string | null;
+  health: SourceHealth;
 };
 
 export async function getDatasets(): Promise<DatasetStatus[]> {
@@ -369,8 +371,16 @@ export async function getDatasets(): Promise<DatasetStatus[]> {
   cacheTag("observations");
   cacheLife("hours");
   const rows = await sql()`
-    select d.id, d.title, s.name as source, d.cadence, d.last_checked_at, d.last_changed_at, d.landing_url
+    select d.id, d.title, s.name as source, d.cadence, d.last_checked_at, d.last_changed_at, d.landing_url,
+           r.status as run_status, r.started_at as run_started_at,
+           (select min(f.started_at) from ingestion_run f
+            where f.dataset_id = d.id and f.status in ('failed', 'rejected', 'running')
+              and f.id > coalesce((select max(ok.id) from ingestion_run ok
+                                   where ok.dataset_id = d.id and ok.status in ('loaded', 'unchanged')), 0))
+             as failing_since
     from dataset d join source s on s.id = d.source_id
+    left join lateral (select status, started_at from ingestion_run x where x.dataset_id = d.id
+                       order by x.id desc limit 1) r on true
     where d.status <> 'paused'
     order by d.last_changed_at desc nulls last`;
   return rows.map((r) => ({
@@ -381,6 +391,13 @@ export async function getDatasets(): Promise<DatasetStatus[]> {
     lastChecked: r.last_checked_at ? new Date(r.last_checked_at).toISOString() : null,
     lastChanged: r.last_changed_at ? new Date(r.last_changed_at).toISOString() : null,
     landingUrl: r.landing_url,
+    health: sourceHealth({
+      cadence: r.cadence,
+      lastChanged: r.last_changed_at ? new Date(r.last_changed_at) : null,
+      runStatus: r.run_status,
+      runStarted: r.run_started_at ? new Date(r.run_started_at) : null,
+      failingSince: r.failing_since ? new Date(r.failing_since) : null,
+    }),
   }));
 }
 

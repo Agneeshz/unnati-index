@@ -397,7 +397,7 @@ datasets:
     source: jalshakti
     title: Jal Jeevan Mission — household tap connections
     connector: jjm
-    cadence: daily
+    cadence: monthly  # imported from dashboard PDFs downloaded by hand (manual-downloads/jjm)
     landing_url: https://ejalshakti.gov.in/jjmreport/JJMIndia.aspx
     enabled: true
   - id: cgwb_groundwater

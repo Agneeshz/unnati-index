@@ -10,6 +10,7 @@ from __future__ import annotations
 import io
 import re
 from datetime import date
+from pathlib import Path
 from urllib.parse import quote, urljoin
 
 import pdfplumber
@@ -20,6 +21,9 @@ from unnati.core.http import PoliteClient
 from unnati.core.periods import Period, day
 from unnati.observations import Observation
 
+# bprd.nic.in often times out from outside India (GitHub's runners): the newest DoPO PDF saved here
+# (named with its year, e.g. "Data on Police Organizations (2024).pdf") is used instead.
+MANUAL_DIR = Path(__file__).resolve().parents[3] / "manual-downloads" / "bprd"
 SITE = "https://bprd.nic.in/"
 PAGE = f"{SITE}page/data_on_police_organization_dopo"
 
@@ -37,6 +41,16 @@ def latest(http: PoliteClient) -> tuple[int, str]:
     if not found:
         raise RuntimeError("BPR&D: no Data on Police Organizations PDF linked")
     return max(found)
+
+
+def local_latest() -> tuple[int, Path] | None:
+    """(year, path) of the newest DoPO PDF saved by hand, if any."""
+    found = []
+    for path in MANUAL_DIR.glob("*.pdf"):
+        year = re.search(r"(20\d{2})", path.name)
+        if year:
+            found.append((int(year.group(1)), path))
+    return max(found) if found else None
 
 
 def _split(text: str) -> tuple[str, list[str]]:
