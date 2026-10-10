@@ -1,6 +1,7 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { cacheLife, cacheTag } from "next/cache";
+import { iso } from "@/lib/dates";
 import { locale as rootLocale } from "next/root-params";
 
 /**
@@ -80,7 +81,6 @@ export type OfficeHolder = {
   sourceUrl: string;
 };
 
-const iso = (d: unknown) => (d instanceof Date ? d.toISOString().slice(0, 10) : String(d));
 
 export async function getPlaces(): Promise<Place[]> {
   "use cache";
@@ -500,5 +500,46 @@ export async function getSearchPlaces(): Promise<SearchPlace[]> {
     type: r.type,
     stateSlug: r.type === "city" ? r.parent_slug : null,
     aliases: r.aliases,
+  }));
+}
+
+export type IndicatorSource = { indicatorId: string; dataset: string; source: string; url: string | null };
+
+/** Where each indicator comes from (dataset title, publisher, landing page), for downloads. */
+export async function getIndicatorSources(): Promise<IndicatorSource[]> {
+  "use cache";
+  cacheTag("places");
+  cacheLife("max");
+  const rows = await sql()`
+    select i.id, d.title, s.name as source, coalesce(d.landing_url, s.url) as url
+    from indicator i
+    left join dataset d on d.id = i.dataset_id
+    left join source s on s.id = d.source_id
+    order by i.id`;
+  return rows.map((r) => ({ indicatorId: r.id, dataset: r.title, source: r.source, url: r.url }));
+}
+
+export type ExportRow = Observation & { placeName: string; placeType: string; stateSlug: string | null };
+
+/**
+ * Latest values with place names (including former places such as undivided Andhra Pradesh) for
+ * the downloads: one indicator, or everything. Not cached: the bulk file's ~40,000 rows are too
+ * large for a cache entry, so the CDN caches the response instead.
+ */
+export async function getExportRows(indicatorId?: string): Promise<ExportRow[]> {
+  const rows = await sql()`
+    select e.slug, e.name as place_name, e.type as place_type, p.slug as parent_slug,
+           o.indicator_id, o.period_start, o.period_end, o.period_label, o.value,
+           o.ci_low, o.ci_high, o.is_provisional, o.note
+    from latest_observation o
+    join entity e on e.id = o.entity_id
+    left join entity p on p.id = e.parent_id
+    where (${indicatorId ?? null}::text is null or o.indicator_id = ${indicatorId ?? null})
+    order by o.indicator_id, e.type, e.slug, o.period_end`;
+  return rows.map((r) => ({
+    ...toObservation(r),
+    placeName: r.place_name,
+    placeType: r.place_type,
+    stateSlug: r.place_type === "city" ? r.parent_slug : null,
   }));
 }

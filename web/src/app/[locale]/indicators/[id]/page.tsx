@@ -86,7 +86,10 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
       <h1 className="mt-1 text-3xl font-bold tracking-tight">{indicator.name}</h1>
       <p className="mt-2 max-w-3xl text-muted">{indicator.description}</p>
       <p className="mt-2 text-sm">
-        {indicator.unit} · {directionText}
+        {indicator.unit} · {directionText} ·{" "}
+        <a href={`/data/${indicator.id}.csv`} className="underline underline-offset-2" download>
+          {dict.ui.data.download}
+        </a>
       </p>
       {indicator.caveat && (
         <aside className="mt-4 max-w-3xl rounded-md border border-border bg-accent-soft px-4 py-3 text-sm">

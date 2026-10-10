@@ -104,3 +104,18 @@ test("a report card ranks a state within its peer group", async ({ page }) => {
   await page.goto("/en/states/keralam");
   await expect(page.getByText(/#\d+ of 18 in Large states/)).toBeVisible();
 });
+
+test("data downloads are CSV with a header and rows", async ({ request }) => {
+  const one = await request.get("/data/infant-mortality-rate.csv");
+  expect(one.status()).toBe(200);
+  expect(one.headers()["content-type"]).toContain("text/csv");
+  const text = await one.text();
+  const lines = text.trim().split("\r\n");
+  expect(lines[0].replace(/^﻿/, "")).toMatch(/^indicator_id,indicator,unit,place_slug,place/);
+  expect(lines.length).toBeGreaterThan(36);
+  expect(text).toContain("keralam");
+
+  const catalogue = await (await request.get("/data/indicators.csv")).text();
+  expect(catalogue).toContain("swachh-survekshan-score");
+  expect((await request.get("/data/no-such-indicator.csv")).status()).toBe(404);
+});

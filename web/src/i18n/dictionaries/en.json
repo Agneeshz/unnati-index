@@ -82,7 +82,8 @@
       "indices": "Indices",
       "compare": "Compare",
       "updates": "Updates",
-      "cities": "Cities"
+      "cities": "Cities",
+      "data": "Data"
     },
     "peerGroups": {
       "large_state": "Large states",
@@ -336,6 +337,20 @@
         "indicator": "Indicator",
         "page": "Page"
       }
+    },
+    "data": {
+      "title": "Download the data",
+      "intro": "Every figure on this site as CSV: each indicator for every state, UT and city, with its period, source and notes. Files open in Excel, Google Sheets or any analysis tool.",
+      "licenceTitle": "Free to reuse",
+      "licence": "Our compiled data is licensed CC BY 4.0: you may share and adapt it, including commercially, if you credit Unnati Index and the original publishers named in each file (for example RBI, MoSPI, NCRB, CPCB). The underlying figures remain the publishers'.",
+      "citation": "Source: Unnati Index (unnati-index.vercel.app), from official data; CC BY 4.0",
+      "bulkTitle": "Everything",
+      "all": "All indicators (all.csv)",
+      "allNote": "every value of every indicator, one row per place and period",
+      "catalogue": "Indicator catalogue (indicators.csv)",
+      "catalogueNote": "definitions, units, direction, caveats and sources",
+      "byIndicator": "By indicator",
+      "download": "Download CSV"
     }
   }
 }

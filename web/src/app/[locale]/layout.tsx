@@ -63,7 +63,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
           </div>
           <div className="mx-auto max-w-6xl px-4 pb-1">
             <nav aria-label="Main" className="-mx-2 flex items-center gap-1 overflow-x-auto text-sm">
-              {(["rankings", "cities", "compare", "indices", "indicators", "updates", "methodology", "sources"] as const).map((key) => (
+              {(["rankings", "cities", "compare", "indices", "indicators", "updates", "data", "methodology", "sources"] as const).map((key) => (
                 <Link
                   key={key}
                   href={`/${current}/${key}`}
