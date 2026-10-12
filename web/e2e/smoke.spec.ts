@@ -91,8 +91,9 @@ test("search page works without the search box", async ({ page }) => {
 test("no sideways scrolling on a phone", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 375, height: 800 } });
   const page = await context.newPage();
-  for (const path of ["/en", "/en/states/maharashtra", "/en/cities", "/en/compare?e=keralam,bihar"]) {
-    await page.goto(path);
+  for (const path of ["/en", "/en/states/maharashtra", "/en/cities", "/en/compare?e=keralam,bihar", "/en/compare?e=bihar,assam,gujarat"]) {
+    await page.goto(path, { waitUntil: "networkidle" }); // measure the finished page, not the stream
+    await expect(page.locator("h1").first()).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} scrolls sideways`).toBeLessThanOrEqual(1);
   }

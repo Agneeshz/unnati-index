@@ -10,6 +10,7 @@ import { aqiSummary, CITY_CRIME, cityName, cityPoints, latestFor, SWACHH } from 
 import { getCities, getCityObservations, getIndicators, getPlaces } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
 import { aqiCategory, fill } from "@/lib/present";
+import { formatPeriod } from "@/lib/period";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
@@ -88,7 +89,7 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
             maxLabels={state ? undefined : 30}
           />
         </div>
-        <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="relative overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[36rem] text-sm">
             <thead className="border-b border-border text-left text-muted">
               <tr>
@@ -143,7 +144,7 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
                     <td className="px-3 py-2 text-right tabular-nums">
                       {pm ? (
                         <>
-                          {formatNumber(pm.value, 0, locale)} <span className="text-xs text-muted">({pm.label})</span>
+                          {formatNumber(pm.value, 0, locale)} <span className="text-xs text-muted">({formatPeriod(pm.label, locale)})</span>
                         </>
                       ) : (
                         "–"
@@ -171,7 +172,7 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
           {dict.ui.cities.crimeTitle}
         </h2>
         <p className="mt-1 text-sm text-muted">{dict.ui.cities.crimeIntro}</p>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[44rem] text-sm">
             <thead className="border-b border-border text-left text-muted">
               <tr>
@@ -183,7 +184,7 @@ async function Cities({ searchParams }: { searchParams: PageProps<"/[locale]/cit
                     <Link href={`/${locale}/indicators/${id}`} className="hover:underline">
                       {byId.get(id)?.name ?? id}
                     </Link>
-                    {crimeYear && <span className="block text-xs font-normal">{crimeYear}</span>}
+                    {crimeYear && <span className="block text-xs font-normal">{formatPeriod(crimeYear, locale)}</span>}
                   </th>
                 ))}
               </tr>

@@ -58,7 +58,7 @@ export default async function RankingsPage() {
             <h2 id={`group-${group}`} className="text-xl font-semibold">
               {dict.ui.peerGroups[group]}
             </h2>
-            <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+            <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
               <table className="w-full min-w-[56rem] text-sm">
                 <caption className="sr-only">
                   {dict.ui.peerGroups[group]}: {fill(dict.ui.rankings.title, { year: edition })}

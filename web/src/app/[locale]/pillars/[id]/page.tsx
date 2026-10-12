@@ -124,7 +124,7 @@ async function PillarDetail({ params }: { params: PageProps<"/[locale]/pillars/[
         <p className="mt-1 text-sm text-muted">
           {fill(dict.ui.indicators.coverage, { n: ranked.length, total: states.length })}
         </p>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[36rem] text-sm">
             <thead className="border-b border-border text-left text-muted">
               <tr>

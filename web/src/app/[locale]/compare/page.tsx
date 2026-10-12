@@ -22,6 +22,7 @@ import {
   type ScoreRow,
 } from "@/lib/data";
 import { fill, formatScore, formatValue } from "@/lib/present";
+import { formatPeriod } from "@/lib/period";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
@@ -275,7 +276,7 @@ async function Comparison({
         <h2 id="pillars" className="text-xl font-semibold">
           {dict.ui.state.pillarsTitle}
         </h2>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
           <table className={tableClass} style={minWidth}>
             {header}
             <tbody>
@@ -297,7 +298,7 @@ async function Comparison({
         <h2 id="indices" className="text-xl font-semibold">
           {dict.ui.compare.indicesTitle}
         </h2>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
           <table className={tableClass} style={minWidth}>
             {header}
             <tbody>
@@ -325,7 +326,7 @@ async function Comparison({
           return (
             <div key={category.id} className="mt-5">
               <h3 className="font-semibold">{category.name}</h3>
-              <div className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface">
+              <div className="mt-2 relative overflow-x-auto rounded-lg border border-border bg-surface">
                 <table className={tableClass} style={minWidth}>
                   <tbody>
                     {rows.map((indicator) => {
@@ -353,7 +354,7 @@ async function Comparison({
                                     {formatValue(o.value, indicator, locale)}
                                   </Best>
                                   <span className="block text-xs text-muted">
-                                    {o.label}
+                                    {formatPeriod(o.label, locale)}
                                     {o.provisional ? ` · ${dict.ui.common.provisional}` : ""}
                                   </span>
                                 </>

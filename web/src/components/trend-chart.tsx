@@ -1,4 +1,5 @@
 import { MapTooltip } from "@/components/map-tooltip";
+import { formatPeriod } from "@/lib/period";
 
 export type TrendPoint = { label: string; value: number; tip: string };
 export type TrendSeries = {
@@ -21,11 +22,13 @@ export function TrendChart({
   series,
   periods,
   format,
+  locale = "en",
 }: {
   title: string;
   series: TrendSeries[];
   periods: string[]; // ordered x-axis labels
   format: (value: number) => string;
+  locale?: string; // for the period labels
 }) {
   const values = series.flatMap((s) => s.points.map((p) => p.value));
   if (values.length === 0 || periods.length < 2) return null;
@@ -84,7 +87,7 @@ export function TrendChart({
               textAnchor={i === 0 ? "start" : "end"}
               className="fill-muted text-[10px]"
             >
-              {label}
+              {formatPeriod(label, locale)}
             </text>
           ))}
           {series.map((s) => {

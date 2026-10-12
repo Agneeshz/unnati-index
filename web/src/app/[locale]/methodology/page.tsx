@@ -52,7 +52,7 @@ export default async function MethodologyPage() {
           <h3 id={`p-${pillarId}`} className="font-semibold">
             {dict.pillars[pillarId as keyof Dictionary["pillars"]]?.name ?? pillarId}
           </h3>
-          <div className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface">
+          <div className="mt-2 relative overflow-x-auto rounded-lg border border-border bg-surface">
             <table className="w-full min-w-[36rem] text-sm">
               <thead className="border-b border-border text-left text-muted">
                 <tr>

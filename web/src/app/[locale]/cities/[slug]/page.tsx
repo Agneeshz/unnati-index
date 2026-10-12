@@ -12,6 +12,7 @@ import { getCities, getCityObservations, getIndicators, getPlaceObservations, ge
 import { formatNumber } from "@/lib/format";
 import { placeNotFound } from "@/lib/not-found";
 import { aqiCategory, fill, formatValue } from "@/lib/present";
+import { formatPeriod } from "@/lib/period";
 
 // Million-plus cities are prerendered; the rest render on first visit and are cached after that.
 export async function generateStaticParams() {
@@ -122,7 +123,7 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
             <div>
               <p className="text-5xl font-bold tabular-nums">{formatNumber(aqi.latest.value, 0, locale)}</p>
               <p className="mt-1">
-                {dict.ui.aqi[aqiCategory(aqi.latest.value)]} <span className="text-muted">· {aqi.latest.label}</span>
+                {dict.ui.aqi[aqiCategory(aqi.latest.value)]} <span className="text-muted">· {formatPeriod(aqi.latest.label, locale)}</span>
               </p>
               <p className="mt-1 text-sm text-muted">
                 {dict.ui.cities.aqi30}: {formatNumber(aqi.mean, 0, locale)} (
@@ -131,6 +132,7 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
             </div>
             {aqi.recent.length >= 2 && (
               <TrendChart
+                locale={locale}
                 title={dict.ui.cities.aqi30}
                 periods={aqi.recent.map((o) => o.label)}
                 format={(v) => formatNumber(v, 0, locale)}
@@ -141,7 +143,7 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
                     points: aqi.recent.map((o) => ({
                       label: o.label,
                       value: o.value,
-                      tip: `${o.label}: ${formatNumber(o.value, 0, locale)} (${dict.ui.aqi[aqiCategory(o.value)]})`,
+                      tip: `${formatPeriod(o.label, locale)}: ${formatNumber(o.value, 0, locale)} (${dict.ui.aqi[aqiCategory(o.value)]})`,
                     })),
                   },
                 ]}
@@ -186,7 +188,7 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
             </h2>
             <p className="mt-2 text-4xl font-bold tabular-nums">
               {formatNumber(pm25.value, 0, locale)} <span className="text-base font-normal text-muted">µg/m³</span>
-              <span className="ml-2 text-sm font-normal text-muted">{pm25.label}</span>
+              <span className="ml-2 text-sm font-normal text-muted">{formatPeriod(pm25.label, locale)}</span>
             </p>
             <p className="mt-2 text-sm">{dict.ui.cities.pm25Note}</p>
           </section>
@@ -225,7 +227,8 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
               <div key={c.id}>
                 <Link href={`/${locale}/indicators/${c.id}`} className="block hover:opacity-90">
                   <TrendChart
-                    title={`${c.indicator.name} · ${formatValue(c.latest.value, c.indicator, locale)} (${c.latest.label})`}
+                locale={locale}
+                    title={`${c.indicator.name} · ${formatValue(c.latest.value, c.indicator, locale)} (${formatPeriod(c.latest.label, locale)})`}
                     periods={c.periods}
                     series={c.series}
                     format={(v) => formatNumber(v, c.indicator.decimals, locale)}

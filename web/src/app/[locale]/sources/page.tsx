@@ -15,7 +15,7 @@ export default async function SourcesPage() {
       <h1 className="text-3xl font-bold tracking-tight">{dict.ui.sources.title}</h1>
       <p className="mt-3 max-w-3xl text-muted">{dict.ui.sources.intro}</p>
       <p className="mt-2 max-w-3xl text-sm text-muted">{dict.ui.sources.statusNote}</p>
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
+      <div className="mt-6 relative overflow-x-auto rounded-lg border border-border bg-surface">
         <table className="w-full min-w-[44rem] text-sm">
           <thead className="border-b border-border text-left text-muted">
             <tr>

@@ -31,6 +31,7 @@ import {
 import { formatNumber } from "@/lib/format";
 import { placeNotFound } from "@/lib/not-found";
 import { fill, formatScore, formatValue } from "@/lib/present";
+import { formatPeriod } from "@/lib/period";
 
 export async function generateStaticParams() {
   const places = await getPlaces();
@@ -219,7 +220,7 @@ async function ReportCard({
         <h2 id="pillars" className="text-xl font-semibold">
           {dict.ui.state.pillarsTitle}
         </h2>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[34rem] text-sm">
             <thead className="border-b border-border text-left text-muted">
               <tr>
@@ -389,7 +390,7 @@ async function ReportCard({
                     </Link>
                     <p className="text-sm text-muted">
                       {value
-                        ? `${formatValue(value.value, indicator, locale)} (${value.label})`
+                        ? `${formatValue(value.value, indicator, locale)} (${formatPeriod(value.label, locale)})`
                         : ""}{" "}
                       · {dict.ui.common.score}{" "}
                       {formatScore(s.score ?? 0, locale)}
@@ -500,7 +501,7 @@ function IndicatorTable({
         return (
           <div key={g.id || "other"} className="mt-5">
             <h3 className="font-semibold">{g.name}</h3>
-            <div className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface">
+            <div className="mt-2 relative overflow-x-auto rounded-lg border border-border bg-surface">
               <table className="w-full min-w-[34rem] text-sm">
                 <tbody>
                   {rows.map((i) => {
@@ -540,9 +541,9 @@ function IndicatorTable({
                             : ""}
                         </td>
                         <td className="px-3 py-2 text-muted">
-                          {o.label}
+                          {formatPeriod(o.label, locale)}
                           {scored && newest.label !== scored.label
-                            ? ` · ${newest.label}: ${formatValue(newest.value, i, locale)}`
+                            ? ` · ${formatPeriod(newest.label, locale)}: ${formatValue(newest.value, i, locale)}`
                             : ""}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums text-muted">
@@ -625,7 +626,7 @@ function Trends({
             points: recent.map((o) => ({
               label: o.label,
               value: o.value,
-              tip: `${o.label}: ${fmt(o.value)}`,
+              tip: `${formatPeriod(o.label, locale)}: ${fmt(o.value)}`,
             })),
           },
           ...(india.length
@@ -636,7 +637,7 @@ function Trends({
                   points: india.map((o) => ({
                     label: o.label,
                     value: o.value,
-                    tip: `${o.label}: ${fmt(o.value)}`,
+                    tip: `${formatPeriod(o.label, locale)}: ${fmt(o.value)}`,
                   })),
                 },
               ]
@@ -655,6 +656,7 @@ function Trends({
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {composite.length >= 2 && (
           <TrendChart
+            locale={locale}
             title={dict.site.name}
             periods={composite.map((h) => String(h.edition))}
             format={(v) => formatScore(v, locale)}
@@ -678,6 +680,7 @@ function Trends({
             className="block hover:opacity-90"
           >
             <TrendChart
+            locale={locale}
               title={c.title}
               periods={c.periods}
               series={c.series}

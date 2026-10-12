@@ -18,6 +18,7 @@ import {
 } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
 import { fill, formatValue } from "@/lib/present";
+import { formatPeriod } from "@/lib/period";
 
 export async function generateStaticParams() {
   const indicators = await getIndicators();
@@ -110,7 +111,7 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
             <IndiaMap
               title={`${indicator.name}: map of states and UTs`}
               data={Object.fromEntries(
-                withData.map((o) => [o.slug, { value: o.value, label: `${formatValue(o.value, indicator, locale)} (${o.label})` }]),
+                withData.map((o) => [o.slug, { value: o.value, label: `${formatValue(o.value, indicator, locale)} (${formatPeriod(o.label, locale)})` }]),
               )}
               formatBreak={(v) => formatNumber(v, indicator.decimals, locale)}
               notAvailable={dict.ui.common.notAvailable}
@@ -118,7 +119,7 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
               hrefFor={(slug) => `/${locale}/states/${slug}`}
             />
           </div>
-          <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+          <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
             <table className="w-full min-w-[36rem] text-sm">
               <thead className="border-b border-border text-left text-muted">
                 <tr>
@@ -150,7 +151,7 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
                       <td className="px-3 py-2">
                         <ValueBar o={o} max={max} indicator={indicator} locale={locale} dict={dict} />
                       </td>
-                      <td className="px-3 py-2 text-muted">{o.label}</td>
+                      <td className="px-3 py-2 text-muted">{formatPeriod(o.label, locale)}</td>
                     </tr>
                   );
                 })}
@@ -189,13 +190,13 @@ async function IndicatorDetail({ params }: { params: PageProps<"/[locale]/indica
           <h2 id="history" className="text-xl font-semibold">
             {dict.ui.common.india}: {dict.ui.indicators.history}
           </h2>
-          <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+          <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
             <table className="w-full min-w-[30rem] text-sm">
               <tbody>
                 {[...national].reverse().map((o) => (
                   <tr key={o.label} className="border-b border-border last:border-0">
                     <th scope="row" className="w-40 px-3 py-2 text-left font-normal text-muted">
-                      {o.label}
+                      {formatPeriod(o.label, locale)}
                     </th>
                     <td className="px-3 py-2">
                       <ValueBar o={o} max={max} indicator={indicator} locale={locale} dict={dict} />
@@ -268,7 +269,7 @@ function CityTable({
       <h2 id="cities" className="text-xl font-semibold">
         {dict.ui.cities.citiesTitle}
       </h2>
-      <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-surface">
+      <div className="mt-3 relative overflow-x-auto rounded-lg border border-border bg-surface">
         <table className="w-full min-w-[34rem] text-sm">
           <tbody>
             {rows.map(({ city, o }) => (
@@ -282,7 +283,7 @@ function CityTable({
                 <td className="px-3 py-2">
                   <ValueBar o={o} max={max} indicator={indicator} locale={locale} dict={dict} />
                 </td>
-                <td className="px-3 py-2 text-muted">{o.label}</td>
+                <td className="px-3 py-2 text-muted">{formatPeriod(o.label, locale)}</td>
               </tr>
             ))}
           </tbody>
