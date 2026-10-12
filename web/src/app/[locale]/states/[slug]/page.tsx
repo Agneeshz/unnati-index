@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
+import { Loading } from "@/components/loading";
 import { BandLabel, RankChange, ScoreBar } from "@/components/score";
 import { CityMap } from "@/components/city-map";
 import { cityName, cityPoints } from "@/lib/cities";
@@ -28,6 +29,7 @@ import {
   type ScoreRow,
 } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
+import { placeNotFound } from "@/lib/not-found";
 import { fill, formatScore, formatValue } from "@/lib/present";
 
 export async function generateStaticParams() {
@@ -48,9 +50,7 @@ export async function generateMetadata({
 export default function StatePage(props: PageProps<"/[locale]/states/[slug]">) {
   return (
     <Suspense
-      fallback={
-        <div className="mx-auto max-w-5xl px-4 py-12 text-muted">…</div>
-      }
+      fallback={<Loading wide />}
     >
       <ReportCard params={props.params} />
     </Suspense>
@@ -72,7 +72,7 @@ async function ReportCard({
   const locale: Locale = isLocale(lang) ? lang : "en";
   const places = await getPlaces();
   const place = places.find((p) => p.slug === slug && p.type !== "country");
-  if (!place) notFound();
+  if (!place) return placeNotFound("states", slug, locale);
   const edition = await getLatestEdition();
   if (edition == null) notFound();
   const [scores, pillars, indicators, observations, indices] =

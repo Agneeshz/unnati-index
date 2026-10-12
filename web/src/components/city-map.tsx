@@ -291,7 +291,7 @@ function FrameSvg({
   const { view, dots, labels } = frame;
   const focused = view.shape != null;
   return (
-    <svg viewBox={`0 0 ${view.width} ${view.height}`} role="img" aria-label={label} className="mx-auto h-auto w-full">
+    <svg viewBox={`0 0 ${view.width} ${view.height}`} role="group" aria-label={label} className="mx-auto h-auto w-full">
       {view.others.map((s) => (
         <path
           key={s.slug}
@@ -319,7 +319,6 @@ function FrameSvg({
             strokeWidth={d.slug === highlight ? 2.5 : 0.75}
             strokeDasharray={d.category ? undefined : "2 2"}
             data-tip={d.tip}
-            tabIndex={0}
           >
             <title>{d.tip}</title>
           </circle>

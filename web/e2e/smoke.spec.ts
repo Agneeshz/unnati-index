@@ -119,3 +119,21 @@ test("data downloads are CSV with a header and rows", async ({ request }) => {
   expect(catalogue).toContain("swachh-survekshan-score");
   expect((await request.get("/data/no-such-indicator.csv")).status()).toBe(404);
 });
+
+test("old place names redirect to the current page", async ({ page }) => {
+  await page.goto("/en/states/kerala");
+  await expect(page).toHaveURL(/\/en\/states\/keralam$/);
+  await page.goto("/en/cities/gurgaon");
+  await expect(page).toHaveURL(/\/en\/cities\/gurugram$/);
+});
+
+test("robots.txt and the sitemap list the site's pages", async ({ request }) => {
+  const robots = await request.get("/robots.txt");
+  expect(robots.status()).toBe(200);
+  expect(await robots.text()).toContain("sitemap.xml");
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.status()).toBe(200);
+  const xml = await sitemap.text();
+  expect(xml).toContain("/en/states/keralam</loc>");
+  expect(xml).toContain('hreflang="hi"');
+});

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
+import { Loading } from "@/components/loading";
 import { IndiaMap } from "@/components/india-map";
 import { BandLabel, ScoreBar } from "@/components/score";
 import { isLocale, type Locale } from "@/i18n/config";
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/indices/
 
 export default function IndexPage(props: PageProps<"/[locale]/indices/[id]">) {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-5xl px-4 py-12 text-muted">…</div>}>
+    <Suspense fallback={<Loading wide />}>
       <IndexDetail params={props.params} />
     </Suspense>
   );

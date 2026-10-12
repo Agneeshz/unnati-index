@@ -56,7 +56,8 @@ export async function IndiaMap({
       <MapTooltip>
         <svg
           viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-          role="img"
+          // A group, not role="img", so the focusable shapes and links inside stay reachable.
+          role="group"
           aria-label={title}
           className="mx-auto h-auto w-full max-w-md"
         >
@@ -77,8 +78,9 @@ export async function IndiaMap({
                 className={d ? "stroke-surface" : "stroke-muted"}
                 strokeWidth={d ? 0.8 : 1}
                 data-tip={tip}
-                tabIndex={0}
-                aria-label={tip}
+                // Linked shapes are reached through their link; others are focusable for the tip.
+                tabIndex={hrefFor ? undefined : 0}
+                aria-label={hrefFor ? undefined : tip}
               >
                 <title>{tip}</title>
               </path>

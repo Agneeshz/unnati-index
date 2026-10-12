@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
+import { Loading } from "@/components/loading";
 import { BandLabel, ScoreBar } from "@/components/score";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
@@ -30,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function ComparePage(props: PageProps<"/[locale]/compare">) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <Suspense fallback={<p className="text-muted">…</p>}>
+      <Suspense fallback={<Loading />}>
         <Compare searchParams={props.searchParams} />
       </Suspense>
     </div>

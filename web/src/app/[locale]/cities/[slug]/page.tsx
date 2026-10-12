@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
+import { Loading } from "@/components/loading";
 import { TrendChart } from "@/components/trend-chart";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
@@ -10,6 +10,7 @@ import { CityMap } from "@/components/city-map";
 import { aqiSummary, CITY_CRIME, cityPoints, latestFor } from "@/lib/cities";
 import { getCities, getCityObservations, getIndicators, getPlaceObservations, getPlaces } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
+import { placeNotFound } from "@/lib/not-found";
 import { aqiCategory, fill, formatValue } from "@/lib/present";
 
 // Million-plus cities are prerendered; the rest render on first visit and are cached after that.
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/cities/[
 
 export default function CityPage(props: PageProps<"/[locale]/cities/[slug]">) {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-5xl px-4 py-12 text-muted">…</div>}>
+    <Suspense fallback={<Loading wide />}>
       <CityReport params={props.params} />
     </Suspense>
   );
@@ -42,7 +43,7 @@ async function CityReport({ params }: { params: PageProps<"/[locale]/cities/[slu
   ]);
   const locale: Locale = isLocale(lang) ? lang : "en";
   const city = cities.find((c) => c.slug === slug);
-  if (!city) notFound();
+  if (!city) return placeNotFound("cities", slug, locale);
   const byId = new Map(indicators.map((i) => [i.id, i]));
   const state = places.find((p) => p.slug === city.stateSlug);
   const [own, stateObs, cityAir] = await Promise.all([

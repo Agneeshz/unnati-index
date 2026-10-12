@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
+import { Loading } from "@/components/loading";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type Dictionary, getDictionary } from "@/i18n/dictionaries";
 import { getIndicators, getReleases } from "@/lib/data";
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function UpdatesPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <Suspense fallback={<p className="text-muted">…</p>}>
+      <Suspense fallback={<Loading />}>
         <Updates />
       </Suspense>
     </div>

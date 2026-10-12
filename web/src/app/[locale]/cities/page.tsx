@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { locale as rootLocale } from "next/root-params";
 import { Suspense } from "react";
+import { Loading } from "@/components/loading";
 import { CityMap } from "@/components/city-map";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
@@ -18,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function CitiesPage(props: PageProps<"/[locale]/cities">) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <Suspense fallback={<p className="text-muted">…</p>}>
+      <Suspense fallback={<Loading />}>
         <Cities searchParams={props.searchParams} />
       </Suspense>
     </div>

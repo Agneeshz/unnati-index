@@ -8,7 +8,9 @@ export function MapTooltip({ children }: { children: ReactNode }) {
   const [tip, setTip] = useState<{ text: string; x: number; y: number } | null>(null);
 
   const show = (target: EventTarget | null, x: number, y: number) => {
-    const text = target instanceof Element ? target.getAttribute("data-tip") : null;
+    // A focused link holds its shape, which carries the tip.
+    const el = target instanceof Element ? (target.closest("[data-tip]") ?? target.querySelector("[data-tip]")) : null;
+    const text = el?.getAttribute("data-tip");
     const rect = box.current?.getBoundingClientRect();
     if (!text || !rect) return setTip(null);
     setTip({ text, x: x - rect.left, y: y - rect.top });

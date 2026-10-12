@@ -6,6 +6,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SearchBox } from "@/components/search-box";
 import { isLocale, locales } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
+import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
 const latin = Noto_Sans({ subsets: ["latin"], variable: "--font-latin", display: "swap" });
@@ -13,6 +14,9 @@ const devanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari"],
   variable: "--font-devanagari",
   display: "swap",
+  // Not preloaded: English pages only need it for the language link, and the browser fetches it
+  // as soon as Devanagari text renders (unicode-range).
+  preload: false,
 });
 
 const REPO_URL = "https://github.com/Agneeshz/unnati-index";
@@ -26,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: `${dict.site.name}: ${dict.site.tagline}`, template: `%s · ${dict.site.name}` },
     description: dict.site.description,
-    metadataBase: new URL(process.env.SITE_URL ?? "https://unnati-index.vercel.app"),
+    metadataBase: new URL(SITE_URL),
     openGraph: { siteName: dict.site.name, type: "website" },
   };
 }

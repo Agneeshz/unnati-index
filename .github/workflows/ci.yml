@@ -85,7 +85,8 @@ jobs:
           # Pages are prerendered from the database with a read-only role.
           DATABASE_URL_READONLY: ${{ secrets.DATABASE_URL_READONLY }}
       # Browser checks on the production build: pages render, map labels don't collide, search
-      # works from the keyboard, no sideways scrolling on a phone.
+      # works from the keyboard, no sideways scrolling on a phone, no axe accessibility violations
+      # (WCAG 2.1 AA, light and dark mode).
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
         env:
