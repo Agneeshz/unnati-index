@@ -5,6 +5,16 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getCategories, getIndicatorSources, getIndicators } from "@/lib/data";
 
+const API_ENDPOINTS = [
+  { key: "index", path: "/api/v1", example: "/api/v1" },
+  { key: "places", path: "/api/v1/places", example: "/api/v1/places" },
+  { key: "place", path: "/api/v1/places/{slug}", example: "/api/v1/places/keralam" },
+  { key: "indicators", path: "/api/v1/indicators", example: "/api/v1/indicators" },
+  { key: "indicator", path: "/api/v1/indicators/{id}", example: "/api/v1/indicators/infant-mortality-rate" },
+  { key: "rankings", path: "/api/v1/rankings", example: "/api/v1/rankings" },
+  { key: "sources", path: "/api/v1/sources", example: "/api/v1/sources" },
+] as const;
+
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
   return { title: dict.ui.data.title, description: dict.ui.data.intro };
@@ -50,6 +60,23 @@ export default async function DataPage() {
             </a>
             <span className="text-sm text-muted"> · {dict.ui.data.catalogueNote}</span>
           </li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="api" className="mt-10">
+        <h2 id="api" className="text-xl font-semibold">
+          {dict.ui.data.apiTitle}
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm text-muted">{dict.ui.data.apiIntro}</p>
+        <ul className="mt-3 divide-y divide-border rounded-lg border border-border bg-surface text-sm">
+          {API_ENDPOINTS.map(({ key, path, example }) => (
+            <li key={key} className="px-4 py-2">
+              <a href={example} className="font-mono text-accent underline underline-offset-2">
+                {path}
+              </a>
+              <span className="text-muted"> · {dict.ui.data.apiEndpoints[key]}</span>
+            </li>
+          ))}
         </ul>
       </section>
 

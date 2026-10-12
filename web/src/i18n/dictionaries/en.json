@@ -357,7 +357,18 @@
       "catalogue": "Indicator catalogue (indicators.csv)",
       "catalogueNote": "definitions, units, direction, caveats and sources",
       "byIndicator": "By indicator",
-      "download": "Download CSV"
+      "download": "Download CSV",
+      "apiTitle": "JSON API",
+      "apiIntro": "The same data as JSON, for apps and analysis. No key needed; any website may call it (CORS is open). Responses are cached for a few hours, and the data changes at most daily. Add ?lang=hi for Hindi indicator names.",
+      "apiEndpoints": {
+        "index": "the list of endpoints",
+        "places": "India, the states and UTs, and the cities",
+        "place": "one place: every indicator value and, for states and UTs, its latest scores and ranks",
+        "indicators": "the indicator catalogue",
+        "indicator": "one indicator for every place and period (?place= for one place)",
+        "rankings": "Unnati Index and pillar scores with overall and peer-group ranks (?edition= for a past year)",
+        "sources": "every dataset with its release schedule and status"
+      }
     }
   }
 }

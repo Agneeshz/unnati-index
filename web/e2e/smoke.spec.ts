@@ -137,3 +137,27 @@ test("robots.txt and the sitemap list the site's pages", async ({ request }) => 
   expect(xml).toContain("/en/states/keralam</loc>");
   expect(xml).toContain('hreflang="hi"');
 });
+
+test("the JSON API serves places, indicators and rankings with a licence", async ({ request }) => {
+  const index = await request.get("/api/v1");
+  expect(index.headers()["access-control-allow-origin"]).toBe("*");
+  expect((await index.json()).licence).toBe("CC BY 4.0");
+
+  const place = (await (await request.get("/api/v1/places/keralam")).json()).data;
+  expect(place).toMatchObject({ slug: "keralam", type: "state" });
+  expect(place.rankings.unnati_index.rank).toBeGreaterThan(0);
+  expect(place.observations.length).toBeGreaterThan(20);
+
+  const imr = (await (await request.get("/api/v1/indicators/infant-mortality-rate?place=keralam")).json()).data;
+  expect(imr.observations.every((o: { place_slug: string }) => o.place_slug === "keralam")).toBe(true);
+
+  const rankings = (await (await request.get("/api/v1/rankings")).json()).data;
+  expect(rankings.places[0].unnati_index.rank).toBe(1);
+
+  const hindi = (await (await request.get("/api/v1/indicators?lang=hi")).json()).data;
+  expect(hindi.some((i: { name: string }) => /[ऀ-ॿ]/.test(i.name))).toBe(true);
+
+  const missing = await request.get("/api/v1/places/atlantis");
+  expect(missing.status()).toBe(404);
+  expect((await missing.json()).error).toContain("atlantis");
+});
