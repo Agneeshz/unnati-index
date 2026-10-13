@@ -7,9 +7,7 @@ export function MapTooltip({ children }: { children: ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   const [tip, setTip] = useState<{ text: string; x: number; y: number } | null>(null);
 
-  const show = (target: EventTarget | null, x: number, y: number) => {
-    // A focused link holds its shape, which carries the tip.
-    const el = target instanceof Element ? (target.closest("[data-tip]") ?? target.querySelector("[data-tip]")) : null;
+  const show = (el: Element | null, x: number, y: number) => {
     const text = el?.getAttribute("data-tip");
     const rect = box.current?.getBoundingClientRect();
     if (!text || !rect) return setTip(null);
@@ -20,11 +18,15 @@ export function MapTooltip({ children }: { children: ReactNode }) {
     <div
       ref={box}
       className="relative"
-      onPointerMove={(e) => show(e.target, e.clientX, e.clientY)}
+      // Only the shape under the pointer: empty map space (the svg itself) shows nothing.
+      onPointerMove={(e) => show((e.target as Element).closest("[data-tip]"), e.clientX, e.clientY)}
       onPointerLeave={() => setTip(null)}
       onFocus={(e) => {
-        const r = (e.target as Element).getBoundingClientRect();
-        show(e.target, r.left + r.width / 2, r.top + r.height / 2);
+        // A focused link holds its shape, which carries the tip.
+        const target = e.target as Element;
+        const shape = target.closest("[data-tip]") ?? (target.matches("a") ? target.querySelector("[data-tip]") : null);
+        const r = target.getBoundingClientRect();
+        show(shape, r.left + r.width / 2, r.top + r.height / 2);
       }}
       onBlur={() => setTip(null)}
     >

@@ -162,3 +162,27 @@ test("the JSON API serves places, indicators and rankings with a licence", async
   expect(missing.status()).toBe(404);
   expect((await missing.json()).error).toContain("atlantis");
 });
+
+test("map tooltips name only the shape under the pointer", async ({ page }) => {
+  // Empty map space (sea, outside India) once showed the first shape's name.
+  for (const path of ["/en", "/en/states/uttar-pradesh"]) {
+    await page.goto(path, { waitUntil: "networkidle" });
+    const maps = page.locator('svg[role="group"]');
+    for (let m = 0; m < (await maps.count()); m++) {
+      const box = await maps.nth(m).boundingBox();
+      if (!box) continue;
+      for (const [fx, fy] of [[0.02, 0.98], [0.98, 0.02], [0.5, 0.5], [0.02, 0.02], [0.98, 0.98]]) {
+        const x = box.x + box.width * fx;
+        const y = box.y + box.height * fy;
+        await page.mouse.move(x, y);
+        const expected = await page.evaluate(
+          ([px, py]) => document.elementFromPoint(px, py)?.closest("[data-tip]")?.getAttribute("data-tip") ?? null,
+          [x, y],
+        );
+        const tip = page.locator('[role="status"].pointer-events-none');
+        if (expected) await expect(tip).toHaveText(expected);
+        else await expect(tip).toHaveCount(0);
+      }
+    }
+  }
+});
