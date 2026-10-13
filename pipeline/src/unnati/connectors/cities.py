@@ -100,6 +100,12 @@ ALT_NAMES = {
 }
 # CPCB bulletin names that automatic matching cannot find.
 CPCB_NAMES = {"chhatrapati-sambhajinagar": "Aurangabad (Maharashtra)"}
+# Listed coordinates that fall in the sea, replaced with the city centre (latitude, longitude).
+# The web tests check that every city lies inside its state's boundary.
+COORDINATES = {
+    "kochi": (9.9816, 76.2999),  # listed 9.967, 76.217 is 2 km off Fort Kochi; this is Ernakulam
+    "kozhikode": (11.2588, 75.7804),  # listed point is 0.2 km off the beach; this is Mananchira
+}
 COLUMNS = [
     "slug", "name", "name_hi", "state_slug", "population_2011", "latitude", "longitude",
     "wikidata_qid", "ncrb_name", "cpcb_name",
@@ -259,6 +265,8 @@ def build(
         old = previous.get(slug) or by_name.get(normalize_name(name)) or {}
         latitude = (listed_row.latitude if listed_row else None) or info.get("latitude")
         longitude = (listed_row.longitude if listed_row else None) or info.get("longitude")
+        if slug in COORDINATES:
+            latitude, longitude = COORDINATES[slug]
         if latitude is None or longitude is None:
             problems.append(f"{name}: no coordinates")
             continue

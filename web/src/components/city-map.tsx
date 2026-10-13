@@ -267,7 +267,10 @@ export async function CityMap({
           {dict.ui.cities.mapNote}
           {insets.length > 0 ? ` ${dict.ui.cities.insetNote}` : ""}
         </p>
-        <p>{dict.ui.map.boundaryNote}</p>
+        <p>
+          {dict.ui.map.boundaryNote}
+          {main.water || insets.some((i) => i.frame.view.water) ? ` ${dict.ui.map.waterNote}` : ""}
+        </p>
       </div>
     </figure>
   );
@@ -297,14 +300,20 @@ function FrameSvg({
           key={s.slug}
           d={s.d}
           className={focused ? "fill-bg stroke-border opacity-60" : "fill-bg stroke-border"}
-          strokeWidth={0.8}
+          strokeWidth={view.water ? 0 : 0.8}
           data-tip={stateName.get(s.slug) ?? s.name}
         />
       ))}
       {view.shape && (
-        <path d={view.shape.d} className="fill-accent-soft stroke-muted" strokeWidth={1.2}>
+        <path d={view.shape.d} className="fill-accent-soft stroke-muted" strokeWidth={view.water ? 0 : 1.2}>
           <title>{stateName.get(view.shape.slug) ?? view.shape.name}</title>
         </path>
+      )}
+      {/* Water over the states (sea, harbours, creeks, backwaters, lakes, rivers): the official
+          boundaries count inland water as land. */}
+      {view.water && <path d={view.water} className="fill-water" pointerEvents="none" />}
+      {view.borders && (
+        <path d={view.borders} className="fill-none stroke-muted" strokeWidth={0.8} pointerEvents="none" />
       )}
       {dots.map((d) => (
         <a key={d.slug} href={hrefFor(d.slug)} aria-label={d.tip}>

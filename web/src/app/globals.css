@@ -9,6 +9,7 @@
   --surface: #ffffff;
   --accent: #0f766e;
   --accent-soft: #e3f1ef;
+  --water: #cfe2f2; /* sea and inland water on zoomed-in maps */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,6 +21,7 @@
     --surface: #181b1e;
     --accent: #5eead4;
     --accent-soft: #143430;
+    --water: #172c40;
   }
 }
 
@@ -31,6 +33,7 @@
   --color-surface: var(--surface);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-water: var(--water);
   --font-sans: var(--font-latin), var(--font-devanagari), system-ui, sans-serif;
 }
 

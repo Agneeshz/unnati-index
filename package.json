@@ -15,8 +15,10 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@electric-sql/pglite-socket": "^0.2.11",
+    "d3-geo": "^3.1.1",
     "dbmate": "^2.36.0",
-    "mapshaper": "^0.7.72"
+    "mapshaper": "^0.7.72",
+    "shapefile": "^0.6.6"
   },
   "dependencies": {
     "@neon/config": "^1.8.3",

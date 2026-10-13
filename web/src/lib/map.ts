@@ -1,11 +1,12 @@
 import "server-only";
-import { type GeoProjection, geoMercator, geoPath } from "d3-geo";
+import { type GeoProjection, type GeoStream, geoBounds, geoMercator, geoPath } from "d3-geo";
 import type { FeatureCollection, Geometry } from "geojson";
-import { feature } from "topojson-client";
+import { feature, mesh } from "topojson-client";
 import { presimplify, quantile, simplify } from "topojson-simplify";
 import type { Topology } from "topojson-specification";
 import topology from "../../public/geo/india-states.topo.json";
 import detailedTopology from "../geo/india-states-detailed.topo.json";
+import waterTopology from "../geo/water.topo.json";
 
 export const MAP_WIDTH = 560;
 export const MAP_HEIGHT = 640;
@@ -47,6 +48,91 @@ function stateFeatures(detail: "full" | "national" | "detailed" = "full"): State
   const features = feature(topo, topo.objects.states) as unknown as StateFeatures;
   featureCache.set(detail, features);
   return features;
+}
+
+type WaterPart = { feature: GeoJSON.Feature<GeoJSON.Polygon>; bounds: [[number, number], [number, number]] };
+let waterParts: WaterPart[] | null = null;
+
+/** OpenStreetMap water around every city (ODbL; geo/water.mjs), for zoomed-in maps only: one
+ *  entry per polygon with its bounds, so a frame draws only the water it shows. */
+function water(): WaterPart[] {
+  if (!waterParts) {
+    const topo = waterTopology as unknown as Topology;
+    const all = feature(topo, topo.objects.water) as unknown as FeatureCollection;
+    waterParts = all.features.flatMap((f) => {
+      const g = f.geometry;
+      const polygons = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+      return polygons.map((coordinates) => {
+        const part: GeoJSON.Feature<GeoJSON.Polygon> = {
+          type: "Feature",
+          properties: {},
+          geometry: { type: "Polygon", coordinates },
+        };
+        return { feature: part, bounds: geoBounds(part) };
+      });
+    });
+  }
+  return waterParts;
+}
+
+let borderLines: FeatureCollection | null = null;
+
+/** Borders between states and India's land borders near cities, without coastlines (the water
+ *  draws those): the land borders are the states' outer edge away from the sea (geo/water.mjs). */
+function stateBorders(): FeatureCollection {
+  if (!borderLines) {
+    const states = detailedTopology as unknown as Topology;
+    const between = mesh(states, states.objects.states as never, (a, b) => a !== b);
+    const waterTopo = waterTopology as unknown as Topology;
+    const land = feature(waterTopo, waterTopo.objects.landborders) as unknown as FeatureCollection;
+    borderLines = {
+      type: "FeatureCollection",
+      features: [{ type: "Feature", properties: {}, geometry: between }, ...land.features],
+    };
+  }
+  return borderLines;
+}
+
+/** Projection stream that skips points within `minPx` of the last one drawn: water outlines carry
+ *  more detail than a close-up can show, and every point costs page weight. */
+function decimate(minPx: number, out: GeoStream): GeoStream {
+  let last: [number, number] | null = null;
+  let pending: [number, number] | null = null;
+  return {
+    point(x, y) {
+      if (!last || Math.hypot(x - last[0], y - last[1]) >= minPx) {
+        out.point(x, y);
+        last = [x, y];
+        pending = null;
+      } else pending = [x, y];
+    },
+    lineStart() {
+      last = null;
+      pending = null;
+      out.lineStart();
+    },
+    lineEnd() {
+      if (pending) out.point(pending[0], pending[1]);
+      out.lineEnd();
+    },
+    polygonStart: () => out.polygonStart(),
+    polygonEnd: () => out.polygonEnd(),
+    sphere: () => out.sphere?.(),
+  };
+}
+
+/** The water in a frame as one SVG path, without parts under ~4 px across. */
+function waterPath(projection: GeoProjection, clipped: GeoProjection, width: number, height: number): string {
+  const [west, north] = projection.invert?.([0, 0]) ?? [0, 0];
+  const [east, south] = projection.invert?.([width, height]) ?? [0, 0];
+  const minDegrees = 4 / ((projection.scale() * Math.PI) / 180);
+  const parts = water().filter(
+    ({ bounds: [[w, s], [e, n]] }) =>
+      e >= west && w <= east && n >= south && s <= north && Math.max(e - w, n - s) >= minDegrees,
+  );
+  if (parts.length === 0) return "";
+  const path = geoPath({ stream: (out: GeoStream) => clipped.stream(decimate(1.5, out)) }).digits(1);
+  return path({ type: "FeatureCollection", features: parts.map((p) => p.feature) }) ?? "";
 }
 
 /** [x, y] on the national map for a longitude/latitude (same projection as indiaShapes). */
@@ -98,6 +184,12 @@ export type MapView = {
   shape: Shape | null;
   others: Shape[];
   project: (longitude: number, latitude: number) => [number, number];
+  /** Sea and large inland water on zoomed-in maps (SVG path), drawn over the states: the official
+   *  boundaries count harbours, creeks, backwaters and lakes as land. Empty on wider maps. */
+  water?: string;
+  /** With water: the borders between states as lines, drawn over it (the coastline then comes
+   *  from the water, so state outlines are filled without a stroke). */
+  borders?: string;
 };
 /** @deprecated name kept for callers: a state map is a MapView with a highlighted shape. */
 export type StateView = MapView;
@@ -147,6 +239,8 @@ function frameView(
     shape: shapes.find((s) => s.slug === highlight) ?? null,
     others: shapes.filter((s) => s.slug !== highlight),
     project: (longitude, latitude) => projection([longitude, latitude]) ?? [0, 0],
+    water: zoom > 8 ? waterPath(projection, clipped, width, height) : "",
+    borders: zoom > 8 ? (path(stateBorders()) ?? "") : "",
   };
 }
 
