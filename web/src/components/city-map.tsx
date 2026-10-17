@@ -312,6 +312,17 @@ function FrameSvg({
       {/* Water over the states (sea, harbours, creeks, backwaters, lakes, rivers): the official
           boundaries count inland water as land. */}
       {view.water && <path d={view.water} className="fill-water" pointerEvents="none" />}
+      {/* Municipal boundaries (OpenStreetMap), the page's own city drawn stronger. */}
+      {view.cities?.map((c) => (
+        <path
+          key={`b-${c.slug}`}
+          d={c.d}
+          className={c.slug === highlight ? "fill-accent/15 stroke-accent" : "fill-accent/5 stroke-muted"}
+          strokeWidth={c.slug === highlight ? 1.5 : 0.8}
+          strokeDasharray={c.slug === highlight ? undefined : "3 2"}
+          pointerEvents="none"
+        />
+      ))}
       {view.borders && (
         <path d={view.borders} className="fill-none stroke-muted" strokeWidth={0.8} pointerEvents="none" />
       )}

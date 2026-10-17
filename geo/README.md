@@ -55,3 +55,14 @@ which close-ups and insets (more than 8x the national scale) draw over the state
 
 India's external boundary still comes from the state boundaries (Survey of India); water only
 changes how inland water looks near cities. Rebuild after adding cities to the roster.
+
+## City boundaries on zoomed-in maps
+
+`node geo/cities.mjs` builds `web/src/geo/cities.topo.json` (server-only, ODbL): the municipal
+boundary of each roster city from OpenStreetMap, as no official open dataset exists. Overpass is
+queried in two batches (candidates for every city, then their shapes), cached in
+`geo/build/osm/`. A city gets the boundary tagged with its Wikidata item, or a municipal-level
+boundary around its point whose name matches (level 6 only when the name says it is the
+municipal body, since level 6 is usually a larger tehsil); Mumbai is the union of its two
+districts. Boundaries must hold the city's point (or come within 2 km) and cover 5-1,600 km².
+The build prints how each city matched; cities without a boundary in OpenStreetMap stay a dot.

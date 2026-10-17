@@ -6,6 +6,7 @@ import { presimplify, quantile, simplify } from "topojson-simplify";
 import type { Topology } from "topojson-specification";
 import topology from "../../public/geo/india-states.topo.json";
 import detailedTopology from "../geo/india-states-detailed.topo.json";
+import cityTopology from "../geo/cities.topo.json";
 import waterTopology from "../geo/water.topo.json";
 
 export const MAP_WIDTH = 560;
@@ -73,6 +74,23 @@ function water(): WaterPart[] {
     });
   }
   return waterParts;
+}
+
+let cityFeatures: GeoJSON.Feature<GeoJSON.Geometry, { slug: string }>[] | null = null;
+
+/** City boundaries (geo/cities.mjs) drawn in a frame: those with some part inside it. */
+function cityOutlines(path: ReturnType<typeof geoPath>, width: number, height: number) {
+  if (!cityFeatures) {
+    const topo = cityTopology as unknown as Topology;
+    cityFeatures = (feature(topo, topo.objects.cities) as unknown as FeatureCollection<GeoJSON.Geometry, { slug: string }>)
+      .features;
+  }
+  return cityFeatures.flatMap((f) => {
+    const [[x0, y0], [x1, y1]] = path.bounds(f);
+    if (x1 < 0 || y1 < 0 || x0 > width || y0 > height) return [];
+    const d = path(f);
+    return d ? [{ slug: f.properties.slug, d }] : [];
+  });
 }
 
 let borderLines: FeatureCollection | null = null;
@@ -190,6 +208,8 @@ export type MapView = {
   /** With water: the borders between states as lines, drawn over it (the coastline then comes
    *  from the water, so state outlines are filled without a stroke). */
   borders?: string;
+  /** Municipal boundaries of the cities reaching into a zoomed-in frame (OpenStreetMap). */
+  cities?: { slug: string; d: string }[];
 };
 /** @deprecated name kept for callers: a state map is a MapView with a highlighted shape. */
 export type StateView = MapView;
@@ -241,6 +261,7 @@ function frameView(
     project: (longitude, latitude) => projection([longitude, latitude]) ?? [0, 0],
     water: zoom > 8 ? waterPath(projection, clipped, width, height) : "",
     borders: zoom > 8 ? (path(stateBorders()) ?? "") : "",
+    cities: zoom > 8 ? cityOutlines(path, width, height) : [],
   };
 }
 
