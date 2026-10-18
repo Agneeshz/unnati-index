@@ -68,3 +68,10 @@ districts. Boundaries must hold the city's point (or come within 2 km) and cover
 Only outer edges are kept (enclaves such as New Delhi Municipal Council inside Delhi would read
 as holes). The build prints how each city matched; cities without a boundary in OpenStreetMap
 stay a dot.
+
+Cities without a corporation boundary in OpenStreetMap fall back to DataMeet's
+[Municipal Spatial Data](https://github.com/datameet/Municipal_Spatial_Data) (pinned commit,
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); *Municipal Spatial Data by DataMeet
+India community*), scraped from the corporations' own maps: a city boundary file where one exists,
+otherwise the wards merged. About a third of the roster has a boundary from either source; the
+rest have none openly available and stay a dot rather than borrow a larger tehsil or district.

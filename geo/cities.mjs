@@ -30,6 +30,21 @@ const MAX_KM2 = 1600 // Delhi's corporations cover about 1,400 km²
 // Corporations made of several OSM areas: Brihanmumbai Municipal Corporation covers Mumbai City
 // and Mumbai Suburban districts exactly.
 const COMBINED = { mumbai: [7964376, 7964375] }
+// DataMeet's municipal boundaries and wards (CC BY 4.0), scraped from the corporations' own
+// maps, for cities OpenStreetMap has no corporation boundary for. Wards are merged.
+const DATAMEET_RAW =
+  'https://raw.githubusercontent.com/datameet/Municipal_Spatial_Data/9b4d1c2ece54cdeb6f5e8bad9ccad7844f783b17'
+const DATAMEET = {
+  ahmedabad: 'Ahmedabad/Wards.geojson',
+  kanpur: 'Kanpur/Kanpur_city_boundaries.geojson',
+  lucknow: 'Lucknow/Lucknow_city_boundary.geojson',
+  pune: 'Pune/pune-electoral-wards_2022.geojson',
+  'pimpri-chinchwad': 'PCMC/pcmc-electoral-wards.geojson',
+  vadodara: 'Vadodara/vardodara_wards.geojson',
+  faridabad: 'Faridabad/Faridabad_Boundary.geojson',
+  'chandigarh-city': 'Chandigarh/Chandigarh_Boundary.geojson',
+  coimbatore: 'Coimbatore/Cbe2011Wards.geojson',
+}
 // Cities whose Wikidata-tagged OSM area is something larger (the whole district).
 const SKIP = new Set(['puducherry-city'])
 // A city's listed point may sit just outside its corporation (Howrah, Mysuru): within 2 km is fine.
@@ -44,7 +59,7 @@ const norm = (s) =>
     .trim()
 // Words that name the body rather than the place.
 const BODY =
-  /\b(municipal|corporation|city|nagar nigam|mahanagar palika|mahanagarapalike|greater|brihan|bruhat|council|municipality|cantonment|the|of)\b/g
+  /\b(municipal|corporation|city|nagar nigam|mahanagar palika|mahanagarapalike|greater|brihan|bruhat|council|municipality|cantonment|urban|the|of)\b/g
 const core = (s) => norm(s).replace(BODY, ' ').replace(/\s+/g, ' ').trim()
 
 async function overpass(name, query) {
@@ -155,33 +170,66 @@ if (ids.length) {
   }
 }
 
-// 3. The first candidate that holds the city's point and has a plausible size.
+/** One boundary from its parts, outer rings only: enclaves run by other bodies (New Delhi
+ *  Municipal Council and the cantonment inside Delhi's corporation, say) read as missing pieces
+ *  of the city on a map. Checked to hold the city's point and to have a plausible size. */
+function accept(city, geometries, how) {
+  const polygons = geometries
+    .flatMap((g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates))
+    .map((polygon) => [polygon[0]])
+  const geometry = { type: 'MultiPolygon', coordinates: polygons }
+  // Sources wind rings either way; d3 reads the GeoJSON way as the rest of the globe, so the
+  // checks use whichever winding gives the smaller area (mapshaper accepts either).
+  let forD3 = { type: 'Feature', geometry }
+  if (geoArea(forD3) > 2 * Math.PI) forD3 = { type: 'Feature', geometry: reversed(geometry) }
+  const km2 = geoArea(forD3) * KM2_PER_STERADIAN
+  const point = [Number(city.longitude), Number(city.latitude)]
+  const holds = geoContains(forD3, point) || nearestKm(geometry, point) <= NEAR_KM
+  if (!holds || km2 < MIN_KM2 || km2 > MAX_KM2) {
+    return { how: `rejected ${how}: ${holds ? '' : 'point outside, '}${Math.round(km2)} km²` }
+  }
+  return {
+    how: `${how}, ${Math.round(km2)} km²`,
+    feature: { type: 'Feature', properties: { slug: city.slug }, geometry },
+  }
+}
+
+/** A DataMeet municipal file (wards merged into one area), cached in geo/build/osm/datameet/. */
+async function datameet(file) {
+  const local = path.join(cache, 'datameet', file.replaceAll('/', '__'))
+  if (!existsSync(local)) {
+    const response = await fetch(`${DATAMEET_RAW}/${file.split('/').map(encodeURIComponent).join('/')}`)
+    if (!response.ok) throw new Error(`DataMeet ${file}: HTTP ${response.status}`)
+    await mkdir(path.dirname(local), { recursive: true })
+    await writeFile(local, await response.text())
+  }
+  const merged = await mapshaper.applyCommands('-i in.json -dissolve2 -o out.json format=geojson', {
+    'in.json': await readFile(local, 'utf8'),
+  })
+  const out = JSON.parse(merged['out.json'])
+  // Merged without attributes, mapshaper writes a GeometryCollection rather than features.
+  return (out.features?.map((f) => f.geometry) ?? out.geometries ?? []).filter(Boolean)
+}
+
+// 3. The first candidate that holds the city's point and has a plausible size; DataMeet's
+//    municipal data for cities OpenStreetMap does not cover.
 const features = []
 for (const [i, city] of cities.entries()) {
-  let how = 'no matching boundary'
+  let how = 'no boundary in OpenStreetMap or DataMeet'
+  let found = null
   for (const choice of choices.get(city.slug) ?? []) {
     const geometries = choice.ids.map((id) => shapesById.get(id))
     if (geometries.some((g) => !g)) continue
-    // Outer rings only: enclaves run by other bodies (New Delhi Municipal Council and the
-    // cantonment inside Delhi's corporation, say) read as missing pieces of the city on a map.
-    const polygons = geometries
-      .flatMap((g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates))
-      .map((polygon) => [polygon[0]])
-    const geometry = { type: 'MultiPolygon', coordinates: polygons }
-    // osmtogeojson winds rings the GeoJSON way; d3 reads that as the rest of the globe, so the
-    // checks use a reversed copy (mapshaper accepts either).
-    const forD3 = { type: 'Feature', geometry: reversed(geometry) }
-    const km2 = geoArea(forD3) * KM2_PER_STERADIAN
-    const point = [Number(city.longitude), Number(city.latitude)]
-    const holds = geoContains(forD3, point) || nearestKm(geometry, point) <= NEAR_KM
-    if (!holds || km2 < MIN_KM2 || km2 > MAX_KM2) {
-      how = `rejected ${choice.how}: ${holds ? '' : 'point outside, '}${Math.round(km2)} km²`
-      continue
-    }
-    how = `${choice.how}, ${Math.round(km2)} km²`
-    features.push({ type: 'Feature', properties: { slug: city.slug }, geometry })
-    break
+    const result = accept(city, geometries, choice.how)
+    how = result.how
+    if ((found = result.feature)) break
   }
+  if (!found && DATAMEET[city.slug]) {
+    const result = accept(city, await datameet(DATAMEET[city.slug]), `DataMeet ${DATAMEET[city.slug]}`)
+    how = result.how
+    found = result.feature
+  }
+  if (found) features.push(found)
   console.log(`${String(i + 1).padStart(3)} ${city.slug.padEnd(28)} ${how}`)
 }
 console.log(`${features.length} of ${cities.length} cities have a boundary`)

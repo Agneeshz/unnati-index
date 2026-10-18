@@ -278,7 +278,7 @@
       "selectState": "Select a state for its report card.",
       "darkerValue": "Darker means a higher value.",
       "boundaryNote": "Boundaries as per Survey of India; not an authenticated map.",
-      "waterNote": "Water and city boundaries © OpenStreetMap contributors (ODbL)."
+      "waterNote": "Water and city boundaries © OpenStreetMap contributors (ODbL); some city boundaries by DataMeet (CC BY 4.0)."
     },
     "cities": {
       "title": "Cities",
