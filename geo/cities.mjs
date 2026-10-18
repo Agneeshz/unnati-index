@@ -45,6 +45,14 @@ const DATAMEET = {
   'chandigarh-city': 'Chandigarh/Chandigarh_Boundary.geojson',
   coimbatore: 'Coimbatore/Cbe2011Wards.geojson',
 }
+// OpenCity's ward maps (public domain), published by or for the corporations, for cities in
+// neither source above. Wards are merged.
+const OPENCITY = {
+  gurugram:
+    'https://data.opencity.in/dataset/6a0a1e94-46ac-4d4a-b7f4-899eb4551b70/resource/802f00d5-38ab-45a5-823b-45dd870fd572/download/1dad3e7e-38e3-4a2f-9126-f439e7f8992e.kml',
+  guwahati:
+    'https://data.opencity.in/dataset/c4bf2003-bfef-41d3-8bcd-53be016a5134/resource/ee49b0af-5d83-489c-8bc1-337db55b4fb4/download/8e39d68f-c9eb-4ce4-8611-7430663751e9.kml',
+}
 // Cities whose Wikidata-tagged OSM area is something larger (the whole district).
 const SKIP = new Set(['puducherry-city'])
 // A city's listed point may sit just outside its corporation (Howrah, Mysuru): within 2 km is fine.
@@ -194,17 +202,19 @@ function accept(city, geometries, how) {
   }
 }
 
-/** A DataMeet municipal file (wards merged into one area), cached in geo/build/osm/datameet/. */
-async function datameet(file) {
-  const local = path.join(cache, 'datameet', file.replaceAll('/', '__'))
+/** A municipal boundary or ward file (wards merged into one area), cached in
+ *  geo/build/osm/municipal/. GeoJSON or KML. */
+async function municipal(slug, url) {
+  const ext = url.toLowerCase().endsWith('.kml') ? 'kml' : 'json'
+  const local = path.join(cache, 'municipal', `${slug}.${ext}`)
   if (!existsSync(local)) {
-    const response = await fetch(`${DATAMEET_RAW}/${file.split('/').map(encodeURIComponent).join('/')}`)
-    if (!response.ok) throw new Error(`DataMeet ${file}: HTTP ${response.status}`)
+    const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } })
+    if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`)
     await mkdir(path.dirname(local), { recursive: true })
     await writeFile(local, await response.text())
   }
-  const merged = await mapshaper.applyCommands('-i in.json -dissolve2 -o out.json format=geojson', {
-    'in.json': await readFile(local, 'utf8'),
+  const merged = await mapshaper.applyCommands(`-i in.${ext} -dissolve2 -o out.json format=geojson`, {
+    [`in.${ext}`]: await readFile(local, 'utf8'),
   })
   const out = JSON.parse(merged['out.json'])
   // Merged without attributes, mapshaper writes a GeometryCollection rather than features.
@@ -215,7 +225,7 @@ async function datameet(file) {
 //    municipal data for cities OpenStreetMap does not cover.
 const features = []
 for (const [i, city] of cities.entries()) {
-  let how = 'no boundary in OpenStreetMap or DataMeet'
+  let how = 'no boundary in OpenStreetMap, DataMeet or OpenCity'
   let found = null
   for (const choice of choices.get(city.slug) ?? []) {
     const geometries = choice.ids.map((id) => shapesById.get(id))
@@ -224,8 +234,13 @@ for (const [i, city] of cities.entries()) {
     how = result.how
     if ((found = result.feature)) break
   }
-  if (!found && DATAMEET[city.slug]) {
-    const result = accept(city, await datameet(DATAMEET[city.slug]), `DataMeet ${DATAMEET[city.slug]}`)
+  const fallback = DATAMEET[city.slug]
+    ? { url: `${DATAMEET_RAW}/${DATAMEET[city.slug].split('/').map(encodeURIComponent).join('/')}`, how: `DataMeet ${DATAMEET[city.slug]}` }
+    : OPENCITY[city.slug]
+      ? { url: OPENCITY[city.slug], how: 'OpenCity wards' }
+      : null
+  if (!found && fallback) {
+    const result = accept(city, await municipal(city.slug, fallback.url), fallback.how)
     how = result.how
     found = result.feature
   }

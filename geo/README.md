@@ -75,3 +75,8 @@ Cities without a corporation boundary in OpenStreetMap fall back to DataMeet's
 India community*), scraped from the corporations' own maps: a city boundary file where one exists,
 otherwise the wards merged. About a third of the roster has a boundary from either source; the
 rest have none openly available and stay a dot rather than borrow a larger tehsil or district.
+
+After DataMeet, OpenCity's public-domain ward maps ([data.opencity.in](https://data.opencity.in))
+fill in Gurugram and Guwahati. Sources checked and not used: datta07/INDIAN-SHAPEFILES (Surat
+and others; licence claimed but provenance not stated), Hubballi-Dharwad on OpenCity (licence not
+specified), university ward layers (restricted licences), Google Maps (terms forbid extraction).
