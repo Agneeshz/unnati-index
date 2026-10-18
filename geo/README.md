@@ -65,4 +65,6 @@ queried in two batches (candidates for every city, then their shapes), cached in
 boundary around its point whose name matches (level 6 only when the name says it is the
 municipal body, since level 6 is usually a larger tehsil); Mumbai is the union of its two
 districts. Boundaries must hold the city's point (or come within 2 km) and cover 5-1,600 km².
-The build prints how each city matched; cities without a boundary in OpenStreetMap stay a dot.
+Only outer edges are kept (enclaves such as New Delhi Municipal Council inside Delhi would read
+as holes). The build prints how each city matched; cities without a boundary in OpenStreetMap
+stay a dot.

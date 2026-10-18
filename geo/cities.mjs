@@ -162,7 +162,11 @@ for (const [i, city] of cities.entries()) {
   for (const choice of choices.get(city.slug) ?? []) {
     const geometries = choice.ids.map((id) => shapesById.get(id))
     if (geometries.some((g) => !g)) continue
-    const polygons = geometries.flatMap((g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates))
+    // Outer rings only: enclaves run by other bodies (New Delhi Municipal Council and the
+    // cantonment inside Delhi's corporation, say) read as missing pieces of the city on a map.
+    const polygons = geometries
+      .flatMap((g) => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates))
+      .map((polygon) => [polygon[0]])
     const geometry = { type: 'MultiPolygon', coordinates: polygons }
     // osmtogeojson winds rings the GeoJSON way; d3 reads that as the rest of the globe, so the
     // checks use a reversed copy (mapshaper accepts either).
